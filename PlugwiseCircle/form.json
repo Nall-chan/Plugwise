@@ -1,0 +1,34 @@
+{
+    "elements":
+            [ {
+                    "name": "CircleID",
+                    "type": "ValidationTextBox",
+                    "caption": "Circle ID"
+                },{
+                    "name": "showCalib",
+                    "type": "CheckBox",
+                    "caption": "Show variables for calibration"
+                }
+            ],
+    "actions":
+            [
+                {
+                    "type": "Button",
+                    "label": "Update calibration",
+                    "onClick": "PLUGWISE_RequestCalibration($id);"
+                }, {
+                    "type": "Button",
+                    "label": "on",
+                    "onClick": "PLUGWISE_SwitchMode($id, true);"
+                }, {
+                    "type": "Button",
+                    "label": "off",
+                    "onClick": "PLUGWISE_SwitchMode($id, false);"
+                }, 
+                {
+                    "type": "Button",
+                    "label": "Request energy",
+                    "onClick": "KODIAPP_RequestEnergy($id,);"
+                }
+            ]
+}

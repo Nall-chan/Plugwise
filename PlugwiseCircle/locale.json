@@ -1,0 +1,14 @@
+{
+    "translations": {
+        "de": {
+            "Show variable for systemname": "Status-Variable für Namen anlegen",
+            "Show variable for version": "Status-Variable für Version anlegen",
+            "Show Action-Variable for exit Kodi": "Aktions-Variable für Kodi beenden anlegen",
+            "Mute on": "Stumm Ein",
+            "Mute off": "Stumm Aus",
+            "Volume:": "Lautstärke:",
+            "Request all states": "Status lesen"
+
+        }
+    }
+}
