@@ -62,6 +62,8 @@ class PlugwiseDevice extends IPSModule
         $this->RegisterPropertyBoolean("showHardware", true);
         $this->RegisterPropertyBoolean("showFrequenz", true);
         $this->RegisterPropertyBoolean("showTime", true);
+        $this->RegisterPropertyBoolean("showTemperature", true);
+        $this->RegisterPropertyBoolean("showHumidity", true);
         $this->RegisterTimer('RequestState', 0, 'PLUGWISE_TimerEvent($_IPS["TARGET"]);');
         $this->Type = 0;
         $this->gainA = 0;
@@ -142,8 +144,11 @@ class PlugwiseDevice extends IPSModule
         if ($State == IS_ACTIVE)
         {
             $this->RequestState();
-            $this->RequestCalibration();
-            $this->RequestEnergy();
+            if ($this->Type == Plugwise_Typ::Cricle)
+            {
+                $this->RequestCalibration();
+                $this->RequestEnergy();
+            }
             if ($this->ReadPropertyInteger('Interval') > 0)
                 $this->SetTimerInterval('RequestState', $this->ReadPropertyInteger('Interval') * 1000);
         }
@@ -162,6 +167,26 @@ class PlugwiseDevice extends IPSModule
 
         switch ($PlugwiseData->Command)
         {
+            case Plugwise_Command::PushButtonResponse: //switch ???
+                $this->SetValueBoolean('Switch', (substr($PlugwiseData->Data, 0, 2) == Plugwise_Switch::ON));
+                break;
+            case Plugwise_Command::KeyPressResponse: //switch
+                $this->SetValueBoolean('Switch1', (substr($PlugwiseData->Data, 0, 2) == Plugwise_Switch::ON));
+                $this->SetValueBoolean('Switch2', (substr($PlugwiseData->Data, 2, 2) == Plugwise_Switch::ON));
+                break;
+            case Plugwise_Command::SensInfoResponse: //sens
+                if ($this->ReadPropertyBoolean("showTemperature"))
+                {
+                    $Temperature = (hexdec(substr($PlugwiseData->Data, 4, 4)) - 17473) / 372.90;
+                    $this->SetValueFloat('Temperature', $Temperature, '~Temperature');
+                }
+                if ($this->ReadPropertyBoolean("showHumidity"))
+                {
+                    $Humidity = (hexdec(substr($PlugwiseData->Data, 0, 4)) - 3145) / 524.30;
+                    $this->SetValueFloat('Humidity', $Humidity, '~Humidity.F');
+                }
+
+                break;
             default:
                 break;
         }
@@ -192,7 +217,10 @@ class PlugwiseDevice extends IPSModule
     public function TimerEvent()
     {
         $this->RequestState();
-        $this->RequestEnergy();
+        if ($this->Type == Plugwise_Typ::Cricle)
+        {
+            $this->RequestEnergy();
+        }
     }
 
     /**
@@ -323,11 +351,13 @@ class PlugwiseDevice extends IPSModule
         $Result = $this->Send($PlugwiseData);
         if ($Result === false)
             return false;
-        if (substr($Result->Data, 0, 16) != '0000FFFF00000000')
+        $pulses1hex = substr($Result->Data, 0, 4);
+        if ($pulses1hex != 'FFFF')
         {
+
             if ($this->ReadPropertyBoolean("showCurrent"))
             {
-                $pulses_1 = intval(hexdec(substr($Result->Data, 0, 4)));
+                $pulses_1 = intval(hexdec($pulses1hex));
                 $pulses1 = Plugwise_Frame::pulsesCorrection(
                                 $pulses_1, 1, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
                 );
@@ -336,9 +366,14 @@ class PlugwiseDevice extends IPSModule
                 if ($watt1 >= 0)
                     $this->SetValueFloat('PowerCurrent', $watt1, '~Watt.3680');
             }
+        }
+
+        $pulses2hex = substr($Result->Data, 4, 4);
+        if ($pulses2hex != 'FFFF')
+        {
             if ($this->ReadPropertyBoolean("showAverage"))
             {
-                $pulses_8 = intval(hexdec(substr($Result->Data, 4, 4)));
+                $pulses_8 = intval(hexdec($pulses2hex));
                 $pulses8 = Plugwise_Frame::pulsesCorrection(
                                 $pulses_8, 8, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
                 );
@@ -347,18 +382,19 @@ class PlugwiseDevice extends IPSModule
                 if ($watt8 >= 0)
                     $this->SetValueFloat('PowerAverage', $watt8, '~Watt.3680');
             }
-            if ($this->ReadPropertyBoolean("showOverall"))
-            {
-                $pulses_total = intval(hexdec(substr($Result->Data, 8, 8)));
-                $pulsestotal = Plugwise_Frame::pulsesCorrection(
-                                $pulses_total, 3600, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
-                );
-                $watttotal = Plugwise_Frame::pulsesToKwh($pulsestotal);
-                $this->SendDebug('watttotal', $watttotal, 0);
-                if ($watttotal >= 0)
-                    $this->SetValueFloat('PowerOverall', $watttotal, 'Plugwise.kwh');
-            }
         }
+        if ($this->ReadPropertyBoolean("showOverall"))
+        {
+            $pulses_total = intval(hexdec(substr($Result->Data, 8, 8)));
+            $pulsestotal = Plugwise_Frame::pulsesCorrection(
+                            $pulses_total, 3600, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
+            );
+            $watttotal = Plugwise_Frame::pulsesToKwh($pulsestotal);
+            $this->SendDebug('watttotal', $watttotal, 0);
+            if ($watttotal >= 0)
+                $this->SetValueFloat('PowerOverall', $watttotal, 'Plugwise.kwh');
+        }
+
         return true;
     }
 

@@ -181,6 +181,8 @@ class Plugwise_NetworkState
                 return 'Search for Circle+';
             case self::ParingCirclePlus:
                 return 'Ongoing paring with Circle+';
+            case self::SearchingNodes:
+                return 'Ongoing network discovery';
             case self::Online:
                 return 'Online';
             case self::OnlineJoining:
@@ -221,36 +223,95 @@ class Plugwise_Switch
 class Plugwise_AckMsg
 {
 
-//    const SENT = "0000";
-//    const RECEIVED = "9999";
     const ACK = "00C1";
     const NACK = "00C2";
-    const UNKNOW = "00C3";
+    const UNKNOW = "00C3";          //	"Command not allowed"
     const SWITCHON = "00D8";
-    const JOININGENABLE = "00D9";
-    const JOININGDISABLE = "00DD";
+    const JOININGENABLE = "00D9";   //	"Allow nodes to join ACK1"
+    const JOININGDISABLE = "00DD";  //	"Allow nodes to join ACK0"
     const SWITCHOFF = "00DE";
-    const SUCCESSFUL = "00DF";
+    const SUCCESSFUL = "00DF";      //	"Set RTC-Data ACK"
+    //                 "00E7";      //	"Set RTC-Data NACK"
     const OUTOFRANGE = "00E1";
-    const DISCONNECTED = "00F2";
-    const CONNECTED = "00F4";
+    const DISCONNECTED = "00F2";    //	"Reply role changed OK"
+    //                  "00F3";     //	"Reply role changed NOK"	 	
+    const CONNECTED = "00F4";       //	"Set handle on"
+
+    //                  "00F5";     //	"Set handle off"
+    //                  "00F9";     //	"Clear group MAC-Table"
+    //          	"00FA";     //	"Fill Switch-schedule"
+    //  	 	"00F7";     //	"Request self-removal from network"
+    //          	"00F1";     //	"Set broadcast-time interval"
+    //                  "00E6";     //	"Set PN"
+    //           	"00F8";     //	"Set powerrecording"
+    //                  "00BE";     //	"Set scan-params ACK"
+    //  	 	"00BF";     //	"Set scan-params NACK"
+    //  	 	"00B5";     //	"Set sense-boundaries ACK"
+    //  	 	"00B6";     //	"Set sense-boundaries NACK"
+    //  	 	"00B3";     //	"Set sense-interval ACK"
+    //  	 	"00B4";     //	"Set sense-interval NACK"
+    //  	 	"00F6";     //	"Set sleep-behavior"
+    //  	 	"00E5";     //	"Activate Switch-schedule on"
+    //  	 	"00E4";     //	"Activate Switch-schedule off"
+    //  	 	"00C8";     //	"Bootload aborted"
+    //  	 	"00C9";     //	"Bootload done"
+    //  	 	"00D5";     //	"Cancel read Powermeter-Info Logdata"
+    //  	 	"00C4";     //	"Cannot join network"
+    //  	 	"00D1";     //	"Done reading Powermeter-Info Logdata"
+    //  	 	"00C0";     //	"Ember stack error
+    //  	 	"00C5";     //	"Exceeding Tableindex"
+    //  	 	"00CF";     //	"Flash erased"
+    //  	 	"00C6";     //	"Flash error"
+    //  	 	"00ED";     //	"Group-MAC added"
+    //  	 	"00EF";     //	"Group-MAC not added"
+    //  	 	"00F0";     //	"Group-MAC not removed"
+    //  	 	"00EE";     //	"Group-MAC removed"
+    //  	 	"00E8";     //	"Image activate ACK"
+    //  	 	"00CC";     //	"Image check timeout"
+    //  	 	"00CB";     //	"Image invalid"
+    //  	 	"00CA";     //	"Image valid"
+    //  	 	"00C7";     //	"Node-change accepted"
+    //  	 	"00CD";     //	"Ping timeout 1sec"
+    //  	 	"00EB";     //	"Pingrun busy"
+    //  	 	"00EC";     //	"Pingrun finished"
+    //  	 	"00CE";     //	"Public network-info complete"
+    //  	 	"00D0";     //	"Remote flash erased"
+    //  	 	"00E0";     //	"Send switchblock NACK"
+    //  	 	"00DA";     //	"Send calib-params ACK"
+    //  	 	"00E2";     //	"Set relais denied"
+    //  	 	"00D7";     //	"Set year, month and flashadress DONE"
+    //  	 	"00BD";     //	"Start Light-Calibration started"
+    //  	 	"00E9";     //	"Start Pingrun ACK"
+    //  	 	"00EA";     //	"Stop Pingrun ACK"
+    //  	 	"00DC";     //	"Syncronize NC ACK"
+    //  	 	"00D6";     //	"Timeout Powermeter Logdata"
 
     static function ToString($Plugwise_AckMsg)
     {
         switch ($Plugwise_AckMsg)
         {
-//            case self::SENT:
-//                return 'SENT';
-//            case self::RECEIVED:
-//                return 'RECEIVED';
             case self::ACK:
                 return 'ACK';
             case self::NACK:
                 return 'NACK';
-            case self::OUTOFRANGE:
-                return 'OUTOFRANGE';
             case self::UNKNOW:
                 return 'UNKNOW';
+            case self::SWITCHON:
+                return 'SWITCHON';
+            case self::JOININGENABLE:
+                return 'JOININGENABLE';
+            case self::JOININGDISABLE:
+                return 'JOININGDISABLE';
+            case self::SWITCHOFF:
+                return 'SWITCHOFF';
+            case self::SUCCESSFUL:
+                return 'SUCCESSFUL';
+            case self::OUTOFRANGE:
+                return 'OUTOFRANGE';
+            case self::DISCONNECTED:
+                return 'DISCONNECTED';
+            case self::CONNECTED:
+                return 'CONNECTED';
             default:
                 return $Plugwise_AckMsg . ' = ????????????';
         }
@@ -261,6 +322,9 @@ class Plugwise_AckMsg
 class Plugwise_Command
 {
 
+    /**
+     * Response from stick after request
+     */
     const AckMsgResponse = '0000';
 
     /**
@@ -275,16 +339,19 @@ class Plugwise_Command
      */
     const ConnectCirclePlusRequest = '0004';
     const ConnectCirclePlusResponse = '0005';
-    //
+
+    /**
+     * Broadcast from factory-default nodes
+     */
     const AdvertiseNodeResponse = '0006';
-    //
+
     /**
      * Send Join nodes request to add a new node to the network
      */
     const JoinNodeRequest = '0007';
 
     /*
-     * Send a flag which enables or disables joining nodes (cirles) request
+     * Send a flag which enables or disables joining nodes request
      */
     const EnableJoiningRequest = '0008';
 
@@ -299,20 +366,31 @@ class Plugwise_Command
     const StickStatusRequest = '000A';
 
     /**
-     * Send ping to mac
+     * Send ping to node
      */
     const Ping = '000D';
     const PingResponse = '000E';
-    //
+
+    /**
+     * Status from stick
+     */
     const StickStatusResponse = '0011';
+
+    /**
+     * Request for power usage
+     */
     const PowerUsageRequest = '0012';
 
     /**
      * returns power usage as impulse counters for several different timeframes
      */
     const PowerUsageResponse = '0013';
-    //
+
+    /**
+     * Set time on circle+
+     */
     const ClockSetRequest = '0016'; // oder 28 ?
+
     /**
      * switches Plug on or off
      */
@@ -329,7 +407,7 @@ class Plugwise_Command
     const AssociatedNodesResponse = '0019';
 
     /**
-     * Send remove node from network request
+     * Request remove node from network
      */
     const RemoveNodeRequest = '001C';
 
@@ -337,12 +415,22 @@ class Plugwise_Command
      * RemoveNode response
      */
     const RemoveNodeResponse = '001D';
+
+    /**
+     * Info request and response
+     */
     const InfoRequest = '0023';
     const InfoResponse = '0024';
-    //
+
+    /**
+     * Calibration request and response
+     */
     const CalibrationRequest = '0026';
     const CalibrationResponse = '0027';
-    //
+
+    /**
+     * DateTime request and response
+     */
     const SetDateTimeRequest = '0028';
     const DateTimeInfoRequest = '0029';
     const DateTimeInfoResponse = '003A';
@@ -357,6 +445,10 @@ class Plugwise_Command
      */
     const SendScheduleRequest = '003C';
     const SendScheduleResponse = '003D';
+
+    /**
+     * Clock request and response
+     */
     const ClockInfoRequest = '003E';
     const ClockInfoResponse = '003F';
 
@@ -364,7 +456,10 @@ class Plugwise_Command
      * switches Schedule on or off
      */
     const EnableScheduleRequest = '0040';
-    //    
+
+    /**
+     * Request power usage historical data
+     */
     const PowerBufferRequest = '0048';
 
     /**
@@ -392,24 +487,40 @@ class Plugwise_Command
      * Keypress on Switch
      */
     const KeyPressResponse = '0056';
+
+    /**
+     * ???
+     */
     const LogIntervalRequest = '0057';
-    //
+
+    /**
+     * ???
+     */
     const ClearGroupMacRequest = '0058';
 
     /**
      * Send chunk of  On/Off/StandbyKiller Schedule to Circle(+)
      */
     const SetScheduleValueRequest = '0059';
-    //
+
+    /**
+     * ???
+     */
     const FeatureSetRequest = '005F';
 
     /**
      * returns feature set of modules
      */
     const FeatureSetResponse = '0060';
-    //
+
+    /**
+     * Broadcast when node join network
+     */
     const AckAssociationResponse = '0061';
-    //
+
+    /**
+     * Sens values
+     */
     const SensInfoResponse = '0105';
 
     static function ToString($Plugwise_Command)
@@ -610,7 +721,6 @@ class Plugwise_Frame
      */
     public $Checksum = null;
 
-    
     /**
      * Erstellt ein Plugwise_Data Objekt.
      * 
@@ -814,8 +924,8 @@ class Plugwise_Frame
             case Plugwise_Command::SensInfoResponse:
                 //   000D6F0000B1A240 | 01234 | 5678
                 //   Device MAC       | hum   | temp
-                //   $xplmsg{val1} = (hex($3)-3145)/524.30; Hum
-                //   $xplmsg{val2} = (hex($4)-17473)/372.90; Temp
+                //   (hex(hum)-3145)/524.30; Hum
+                //   (hex(temp)-17473)/372.90; Temp
 
                 $this->NodeMAC = strtoupper(substr($Data, 8, 16));
                 $this->Data = strtoupper(substr($Data, 24, -4));

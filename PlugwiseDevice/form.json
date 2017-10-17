@@ -34,16 +34,32 @@
                     "name": "showAverage",
                     "type": "CheckBox",
                     "caption": "Schow average"
-                },{
+                }, {
                     "name": "showOverall",
                     "type": "CheckBox",
                     "caption": "Show overall"
-                },{
+                }, {
                     "name": "showFrequenz",
                     "type": "CheckBox",
                     "caption": "Show frequenz"
                 },
                 {
+                    "type": "Label",
+                    "label": "----------------------------------------------------------------------------------------------------------------------------------"
+                }, 
+                {
+                    "type": "Label",
+                    "label": "Sens:"
+                }, {
+                    "name": "showTemperature",
+                    "type": "CheckBox",
+                    "caption": "Show temperature"
+                },
+                {
+                    "name": "showHumidity",
+                    "type": "CheckBox",
+                    "caption": "Show Humidity"
+                }, {
                     "type": "Label",
                     "label": "----------------------------------------------------------------------------------------------------------------------------------"
                 }, 
