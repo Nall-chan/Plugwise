@@ -1,9 +1,13 @@
 {
-	"id": "{5603D208-76A4-4359-B546-CC450CAB6984}",
-	"author": "Michael Tr\u00246ger",
-	"name": "Kodi Library",
-	"url": "//github.com/Nall-chan/IPSKodi/",
-	"version": "0.1",
-	"build": 0,
-	"date": 0
+    "id": "{02B1D96B-CA54-4B44-94B8-B21B571C13D9}",
+    "author": "Michael Tr\u00246ger",
+    "name": "Plugwise Library",
+    "url": "https://github.com/Nall-chan/IPSPlugwise/",
+    "version": "0.1",
+    "build": 0,
+    "date": 0,
+    "compatibility": {
+        "version": "4.3",
+        "date": 1498241677
+    }
 }
