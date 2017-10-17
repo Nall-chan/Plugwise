@@ -323,39 +323,41 @@ class PlugwiseDevice extends IPSModule
         $Result = $this->Send($PlugwiseData);
         if ($Result === false)
             return false;
-
-        if ($this->ReadPropertyBoolean("showCurrent"))
+        if (substr($Result->Data, 0, 16) != '0000FFFF00000000')
         {
-            $pulses_1 = intval(hexdec(substr($Result->Data, 0, 4)));
-            $pulses1 = Plugwise_Frame::pulsesCorrection(
-                            $pulses_1, 1, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
-            );
-            $watt1 = Plugwise_Frame::pulsesToWatt($pulses1);
-            $this->SendDebug('watt1', $watt1, 0);
-            if ($watt1 >= 0)
-                $this->SetValueFloat('PowerCurrent', $watt1, '~Watt.3680');
-        }
-        if ($this->ReadPropertyBoolean("showAverage"))
-        {
-            $pulses_8 = intval(hexdec(substr($Result->Data, 4, 4)));
-            $pulses8 = Plugwise_Frame::pulsesCorrection(
-                            $pulses_8, 8, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
-            );
-            $watt8 = Plugwise_Frame::pulsesToWatt($pulses8);
-            $this->SendDebug('watt8', $watt8, 0);
-            if ($watt8 >= 0)
-                $this->SetValueFloat('PowerAverage', $watt8, '~Watt.3680');
-        }
-        if ($this->ReadPropertyBoolean("showOverall"))
-        {
-            $pulses_total = intval(hexdec(substr($Result->Data, 8, 8)));
-            $pulsestotal = Plugwise_Frame::pulsesCorrection(
-                            $pulses_total, 3600, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
-            );
-            $watttotal = Plugwise_Frame::pulsesToKwh($pulsestotal);
-            $this->SendDebug('watttotal', $watttotal, 0);
-            if ($watttotal >= 0)
-                $this->SetValueFloat('PowerOverall', $watttotal, 'Plugwise.kwh');
+            if ($this->ReadPropertyBoolean("showCurrent"))
+            {
+                $pulses_1 = intval(hexdec(substr($Result->Data, 0, 4)));
+                $pulses1 = Plugwise_Frame::pulsesCorrection(
+                                $pulses_1, 1, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
+                );
+                $watt1 = Plugwise_Frame::pulsesToWatt($pulses1);
+                $this->SendDebug('watt1', $watt1, 0);
+                if ($watt1 >= 0)
+                    $this->SetValueFloat('PowerCurrent', $watt1, '~Watt.3680');
+            }
+            if ($this->ReadPropertyBoolean("showAverage"))
+            {
+                $pulses_8 = intval(hexdec(substr($Result->Data, 4, 4)));
+                $pulses8 = Plugwise_Frame::pulsesCorrection(
+                                $pulses_8, 8, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
+                );
+                $watt8 = Plugwise_Frame::pulsesToWatt($pulses8);
+                $this->SendDebug('watt8', $watt8, 0);
+                if ($watt8 >= 0)
+                    $this->SetValueFloat('PowerAverage', $watt8, '~Watt.3680');
+            }
+            if ($this->ReadPropertyBoolean("showOverall"))
+            {
+                $pulses_total = intval(hexdec(substr($Result->Data, 8, 8)));
+                $pulsestotal = Plugwise_Frame::pulsesCorrection(
+                                $pulses_total, 3600, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
+                );
+                $watttotal = Plugwise_Frame::pulsesToKwh($pulsestotal);
+                $this->SendDebug('watttotal', $watttotal, 0);
+                if ($watttotal >= 0)
+                    $this->SetValueFloat('PowerOverall', $watttotal, 'Plugwise.kwh');
+            }
         }
         return true;
     }
