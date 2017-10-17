@@ -1,0 +1,64 @@
+{
+    "actions": [{
+            "type": "Label",
+            "label": "IMPORTANT: You must close this page an reopen it to see changes."
+        },
+        {
+            "type": "Label",
+            "label": "----------------------------------------------------------------------------------------------------------------------------------"
+        }, {
+            "type": "Label",
+            "label": "No nodes associated in this network!"
+        }, {
+            "type": "Label",
+            "label": "-----------------------------------------------"
+        }, 
+        {
+            "type": "Label",
+            "label": "No new nodes found!"
+        }, {
+            "type": "Label",
+            "label": "No deleted nodes!"
+        }, {
+            "type": "Label",
+            "label": "List of all nodes and all instances:"
+        },
+        {
+            "type": "List",
+            "name": "Nodes",
+            "rowCount": 20,
+            "add": false,
+            "delete": false,
+            "sort": {
+                "column": "Index",
+                "direction": "ascending"
+            },
+            "columns": [{
+                    "label": "No",
+                    "name": "Index",
+                    "width": "55px"
+                }, {
+                    "label": "Node MAC",
+                    "name": "NodeMAC",
+                    "width": "120px"
+                }, {
+                    "label": "Name",
+                    "name": "Name",
+                    "width": "120px"
+                }, {
+                    "label": "Location",
+                    "name": "Location",
+                    "width": "auto"
+                }, {
+                    "label": "InstanceID",
+                    "name": "InstanceID",
+                    "width": "65px"
+                }
+            ],
+            "values": []
+        }, {
+            "type": "Button",
+            "label": "Create instance",
+            "onClick": ""
+        }]
+}

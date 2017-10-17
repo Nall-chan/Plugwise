@@ -1,0 +1,97 @@
+{
+    "elements":
+            [{
+                    "name": "NodeMAC",
+                    "type": "ValidationTextBox",
+                    "caption": "Node MAC"
+                }, {
+                    "type": "Label",
+                    "label": "Refresh state of node"
+                }, {
+                    "name": "Interval",
+                    "type": "NumberSpinner",
+                    "caption": "Interval"
+                },
+                {
+                    "type": "Label",
+                    "label": "----------------------------------------------------------------------------------------------------------------------------------"
+                }, 
+                {
+                    "type": "Label",
+                    "label": "Energy:"
+                },
+                {
+                    "name": "showState",
+                    "type": "CheckBox",
+                    "caption": "Show state"
+                },
+                {
+                    "name": "showCurrent",
+                    "type": "CheckBox",
+                    "caption": "Show current"
+                },
+                {
+                    "name": "showAverage",
+                    "type": "CheckBox",
+                    "caption": "Schow average"
+                },{
+                    "name": "showOverall",
+                    "type": "CheckBox",
+                    "caption": "Show overall"
+                },{
+                    "name": "showFrequenz",
+                    "type": "CheckBox",
+                    "caption": "Show frequenz"
+                },
+                {
+                    "type": "Label",
+                    "label": "----------------------------------------------------------------------------------------------------------------------------------"
+                }, 
+                {
+                    "type": "Label",
+                    "label": "Node:"
+                },
+                {
+                    "name": "showTime",
+                    "type": "CheckBox",
+                    "caption": "Show time"
+                },
+                {
+                    "name": "showFirmware",
+                    "type": "CheckBox",
+                    "caption": "Show firmware"
+                },
+                {
+                    "name": "showHardware",
+                    "type": "CheckBox",
+                    "caption": "Schow hardware"
+                } 
+            ],
+    "actions":
+            [
+                {
+                    "type": "Button",
+                    "label": "on",
+                    "onClick": "PLUGWISE_SwitchMode($id, true);"
+                }, {
+                    "type": "Button",
+                    "label": "off",
+                    "onClick": "PLUGWISE_SwitchMode($id, false);"
+                }, 
+                {
+                    "type": "Button",
+                    "label": "Request state",
+                    "onClick": "PLUGWISE_RequestState($id);"
+                }, {
+                    "type": "Button",
+                    "label": "Update calibration",
+                    "onClick": "PLUGWISE_RequestCalibration($id);"
+                }, 
+                {
+                    "type": "Button",
+                    "label": "Request energy",
+                    "onClick": "PLUGWISE_RequestEnergy($id);"
+                }
+
+            ]
+}

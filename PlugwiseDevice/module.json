@@ -1,0 +1,11 @@
+{
+    "id": "{5FD73328-68F3-4047-B678-E385C2E31962}",
+    "name": "PlugwiseDevice",
+    "type": 3,
+    "vendor": "Plugwise",
+    "aliases": ["Plugwise Device"],
+    "parentRequirements": ["{E7DA1628-D62B-47BF-A834-E5556DD110E7}"],
+    "childRequirements": [],
+    "implemented": ["{CD59EBB4-B313-4ACA-A503-E646CFE0B6FD}"],
+    "prefix": "PLUGWISE"
+}

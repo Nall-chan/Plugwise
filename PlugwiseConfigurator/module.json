@@ -1,0 +1,11 @@
+{
+    "id": "{4C481455-ACE8-45FF-9C5E-02C8F70CEBC7}",
+    "name": "PlugwiseConfigurator",
+    "type": 4,
+    "vendor": "Plugwise",
+    "aliases": ["Plugwise Configurator"],
+    "parentRequirements": ["{53FBE996-B1E9-45C2-B8DB-5BD6E5E3F94C}"],
+    "childRequirements": [],
+    "implemented": ["{CD59EBB4-B313-4ACA-A503-E646CFE0B6FD}"],
+    "prefix": "PLUGWISE"
+}
