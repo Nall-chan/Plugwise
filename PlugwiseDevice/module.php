@@ -165,16 +165,14 @@ class PlugwiseDevice extends IPSModule
         switch ($this->Type)
         {
             case Plugwise_Typ::Cricle:
-//                unset($form['elements'][13]);
-//                unset($form['elements'][12]);
-//                unset($form['elements'][11]);
-//                unset($form['elements'][10]);
-                break;
-            case Plugwise_Typ::Switche:
-                break;
-            case Plugwise_Typ::Sense:
+                array_splice($form['elements'], 10, 4);
                 break;
             case Plugwise_Typ::Scan:
+            case Plugwise_Typ::Switche:
+                array_splice($form['elements'], 3, 11);
+                break;
+            case Plugwise_Typ::Sense:
+                array_splice($form['elements'], 3, 7);
                 break;
         }
         $this->SendDebug('FORM', json_encode($form), 0);

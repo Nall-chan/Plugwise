@@ -1495,7 +1495,7 @@ trait VariableHelper
      * @param string $Value Neuer Wert der Statusvariable.
      * @return bool true wenn Variable vorhanden sonst false.
      */
-    protected function SetValueString($Ident, $Value)
+    protected function SetValueString($Ident, $Value, $Profile = "")
     {
         $id = @$this->GetIDForIdent($Ident);
         if ($id == false)
