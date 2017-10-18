@@ -18,26 +18,26 @@
                 }, 
                 {
                     "type": "Label",
-                    "label": "Energy:"
+                    "label": "Circle and Stealth:"
                 },
                 {
                     "name": "showState",
                     "type": "CheckBox",
-                    "caption": "Show state"
+                    "caption": "Show switching status"
                 },
                 {
                     "name": "showCurrent",
                     "type": "CheckBox",
-                    "caption": "Show current"
+                    "caption": "Show current power"
                 },
                 {
                     "name": "showAverage",
                     "type": "CheckBox",
-                    "caption": "Schow average"
+                    "caption": "Schow average power"
                 }, {
                     "name": "showOverall",
                     "type": "CheckBox",
-                    "caption": "Show overall"
+                    "caption": "Show overall consumption"
                 }, {
                     "name": "showFrequenz",
                     "type": "CheckBox",
@@ -58,7 +58,7 @@
                 {
                     "name": "showHumidity",
                     "type": "CheckBox",
-                    "caption": "Show Humidity"
+                    "caption": "Show humidity"
                 }, {
                     "type": "Label",
                     "label": "----------------------------------------------------------------------------------------------------------------------------------"
@@ -70,7 +70,7 @@
                 {
                     "name": "showTime",
                     "type": "CheckBox",
-                    "caption": "Show time"
+                    "caption": "Show timestamp"
                 },
                 {
                     "name": "showFirmware",
@@ -80,18 +80,18 @@
                 {
                     "name": "showHardware",
                     "type": "CheckBox",
-                    "caption": "Schow hardware"
+                    "caption": "Show hardware version"
                 } 
             ],
     "actions":
             [
                 {
                     "type": "Button",
-                    "label": "on",
+                    "label": "On",
                     "onClick": "PLUGWISE_SwitchMode($id, true);"
                 }, {
                     "type": "Button",
-                    "label": "off",
+                    "label": "Off",
                     "onClick": "PLUGWISE_SwitchMode($id, false);"
                 }, 
                 {
@@ -100,12 +100,12 @@
                     "onClick": "PLUGWISE_RequestState($id);"
                 }, {
                     "type": "Button",
-                    "label": "Update calibration",
+                    "label": "Read calibration",
                     "onClick": "PLUGWISE_RequestCalibration($id);"
                 }, 
                 {
                     "type": "Button",
-                    "label": "Request energy",
+                    "label": "Read energy measurement",
                     "onClick": "PLUGWISE_RequestEnergy($id);"
                 }
 

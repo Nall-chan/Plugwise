@@ -97,7 +97,7 @@ class PlugwiseNetwork extends IPSModule
         if ($this->HasActiveParent())
             $this->StartNetwork();
         else
-            $this->SetStatus (IS_INACTIVE);
+            $this->SetStatus(IS_INACTIVE);
     }
 
     /**
@@ -398,7 +398,7 @@ class PlugwiseNetwork extends IPSModule
             );
             $form[] = array(
                 'type' => 'Button',
-                'label' => 'Exlude node from network',
+                'label' => 'Exclude node from network',
                 'onClick' => 'PLUGWISE_RequestExcludeOfNodeEx($id,$NodesOnline["NodeMAC"]);'
             );
         }
@@ -605,12 +605,12 @@ class PlugwiseNetwork extends IPSModule
         return true;
     }
 
-//    public function SendDataStick(string $Command, string $Data, string $NodeMAC)
-//    {
-//        $PlugwiseData = new Plugwise_Frame($Command, $Data, $NodeMAC);
-//        $result = $this->Send($PlugwiseData);
-//        return $result;
-//    }
+    public function SendDataStick(string $Command, string $Data, string $NodeMAC)
+    {
+        $PlugwiseData = new Plugwise_Frame($Command, $Data, $NodeMAC);
+        $result = $this->Send($PlugwiseData);
+        return $result;
+    }
 
     public function EnableNetworkJoining(bool $Value)
     {
@@ -1062,8 +1062,10 @@ class PlugwiseNetwork extends IPSModule
      * @access private
      * @result Plugwise_Data|boolean Enthält ein Antwort eines Plugwise_Data-Objekt mit der Antwort, oder false bei einem Timeout.
      */
-    private function WaitForResponse(int $FrameID, int $Seconds = 5000)
+    private function WaitForResponse(int $FrameID, int $Seconds = null)
     {
+        if ($Seconds == null)
+            $Seconds = 5000;
         $Slot = $Seconds / 5;
         for ($i = 0; $i < $Slot; $i++)
         {

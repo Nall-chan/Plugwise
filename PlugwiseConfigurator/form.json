@@ -1,7 +1,7 @@
 {
     "actions": [{
             "type": "Label",
-            "label": "IMPORTANT: You must close this page an reopen it to see changes."
+            "label": "IMPORTANT: You must close this page an reopen it to see the changes."
         },
         {
             "type": "Label",

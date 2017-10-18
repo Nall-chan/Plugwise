@@ -1448,7 +1448,7 @@ trait VariableHelper
     {
         $id = @$this->GetIDForIdent($Ident);
         if ($id == false)
-            $id = $this->RegisterVariableBoolean($Ident, $Ident, $Profile);
+            $id = $this->RegisterVariableBoolean(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
         SetValueBoolean($id, $Value);
         return true;
     }
@@ -1465,7 +1465,7 @@ trait VariableHelper
     {
         $id = @$this->GetIDForIdent($Ident);
         if ($id == false)
-            $id = $this->RegisterVariableInteger($Ident, $Ident, $Profile);
+            $id = $this->RegisterVariableInteger(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
         SetValueInteger($id, $Value);
         return true;
     }
@@ -1482,7 +1482,7 @@ trait VariableHelper
     {
         $id = @$this->GetIDForIdent($Ident);
         if ($id == false)
-            $id = $this->RegisterVariableFloat($Ident, $Ident, $Profile);
+            $id = $this->RegisterVariableFloat(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
         SetValueFloat($id, $Value);
         return true;
     }
@@ -1499,7 +1499,7 @@ trait VariableHelper
     {
         $id = @$this->GetIDForIdent($Ident);
         if ($id == false)
-            $id = $this->RegisterVariableString($Ident, $Ident);
+            $id = $this->RegisterVariableString(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
         SetValueString($id, $Value);
         return true;
     }

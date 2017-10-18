@@ -1,14 +1,43 @@
 {
     "translations": {
         "de": {
-            "Show variable for systemname": "Status-Variable für Namen anlegen",
-            "Show variable for version": "Status-Variable für Version anlegen",
-            "Show Action-Variable for exit Kodi": "Aktions-Variable für Kodi beenden anlegen",
-            "Mute on": "Stumm Ein",
-            "Mute off": "Stumm Aus",
-            "Volume:": "Lautstärke:",
-            "Request all states": "Status lesen"
-
+            "Refresh state of node": "Aktualisierung des Node",
+            "Interval": "Intervall",
+            "Circle and Stealth:": "Circle und Stealth:",
+            "Show switching status": "Zeige Schaltzustand",
+            "Show current power": "Zeige aktuelle Leistung",
+            "Show average power": "Zeige durchschnittliche Leistung",
+            "Show overall consumption": "Zeige Gesamtverbrauch",
+            "Show frequenz": "Zeige Frequenz",
+            "Sens:": "Sens:",
+            "Show temperature": "Zeige Temeratur",
+            "Show humidity": "Zeige Luftfeuchtigkeit",
+            "Node:": "Node:",
+            "Show timestamp": "Zeige Zeitstempel",
+            "Show firmware": "Zeige Firmware",
+            "Show hardware version": "Zeige Hardware Version",
+            "On": "An",
+            "Off": "Aus",
+            "Request state": "Zustandsabfrage",
+            "Read calibration": "Lese Kalibrierung",
+            "Switch": "Schalter",
+            "Switch 1": "Schalter 1",
+            "Switch 2": "Schalter 2",
+            "Temperature": "Temperatur",
+            "Humidity": "Luftfeuchtigkeit",
+            "Invalid ident": "Ungültiger Ident",
+            "Value must be boolean": "Value muss vom Typ boolean sein",
+            "Switch state not active in instance": "Schaltzustand nicht aktiv in der Instanz",
+            "Error on send switch state": "Fehler beim senden des Schaltzustand",
+            "State": "Schaltzustand",
+            "Timestamp": "Zeitstempel",
+            "No calibration found": "Keine Kalibrierung vorhanden",
+            "Power Current": "Leistung Aktuell",
+            "Power Average": "Leistung Durchschnitt",
+            "Consumption Overall": "Verbrauch Gesamt",
+            "Timeout error": "Zeitüberschreitung",
+            "Error on send data": "Fehler beim senden der Daten",
+            "Node not reachable": "Node nicht erreichbar"
         }
     }
 }

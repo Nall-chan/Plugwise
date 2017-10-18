@@ -133,7 +133,7 @@ class PlugwiseConfigurator extends IPSModule
         if ($Total > 0)
             $data['actions'][2]['label'] = sprintf($this->Translate("Nodes in network: %d"), $Total);
         if ($NewNodes > 0)
-            $data['actions'][4]['label'] = sprintf($this->Translate("New Nodes: %d"), $NewNodes);
+            $data['actions'][4]['label'] = sprintf($this->Translate("New nodes: %d"), $NewNodes);
         if ($DisconnectedNodes > 0)
             $data['actions'][5]['label'] = sprintf($this->Translate("Deleted nodes : %d"), $DisconnectedNodes);
         $data['actions'][7]['values'] = array_merge($data['actions'][7]['values'], $Liste);

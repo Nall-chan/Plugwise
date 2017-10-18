@@ -1,14 +1,17 @@
 {
     "translations": {
         "de": {
-            "Show variable for systemname": "Status-Variable für Namen anlegen",
-            "Show variable for version": "Status-Variable für Version anlegen",
-            "Show Action-Variable for exit Kodi": "Aktions-Variable für Kodi beenden anlegen",
-            "Mute on": "Stumm Ein",
-            "Mute off": "Stumm Aus",
-            "Volume:": "Lautstärke:",
-            "Request all states": "Status lesen"
-
+            "IMPORTANT: You must close this page an reopen it to see the changes.": "WICHTIG: Sie müssen diese Seite schließen und erneut öffnen, um die Änderungen anzuzeigen.",
+            "No nodes associated in this network!": "Keine Knoten in diesem Netzwerk zugeordnet!",
+            "No new nodes found!": "Keine neuen Knoten gefunden!",
+            "No deleted nodes!": "Keine gelöschten Knoten!",
+            "List of all nodes and all instances:": "Liste aller Knoten und aller Instanzen:",
+            "Location": "Ort",
+            "InstanceID": "InstanzID",
+            "Create instance": "Erzeuge Instanz",
+            "Nodes in network: %d": "Knoten im Netzwerk: %d",
+            "New nodes: %d": "Neue Knoten: %d",
+            "Deleted nodes : %d": "Gelöschte Knoten: %d"
         }
     }
 }

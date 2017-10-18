@@ -2,7 +2,7 @@
 
 require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
 
-/*
+/**
  * @addtogroup plugwise
  * @{
  *
@@ -25,6 +25,7 @@ require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
  * @version       0.1
  * @example <b>Ohne</b>
  * @property Plugwise_Typ $Type Typ des Gerätes
+ * @property bool $isCalib
  * @property float $gainA 
  * @property float $gainB 
  * @property float $offTot
@@ -65,6 +66,7 @@ class PlugwiseDevice extends IPSModule
         $this->RegisterPropertyBoolean("showTemperature", true);
         $this->RegisterPropertyBoolean("showHumidity", true);
         $this->RegisterTimer('RequestState', 0, 'PLUGWISE_TimerEvent($_IPS["TARGET"]);');
+        $this->isCalib = false;
         $this->Type = 0;
         $this->gainA = 0;
         $this->gainB = 0;
@@ -80,10 +82,10 @@ class PlugwiseDevice extends IPSModule
     public function ApplyChanges()
     {
         parent::ApplyChanges();
-//        $this->RegisterMessage(0, IPS_KERNELSTARTED);
 
         $this->RegisterMessage($this->InstanceID, DM_CONNECT);
         $this->RegisterMessage($this->InstanceID, DM_DISCONNECT);
+
         $NodeMAC = $this->ReadPropertyString('NodeMAC');
         if ($NodeMAC == "")
             $Filter = '.*"NodeMAC":"999999999".*';
@@ -91,15 +93,17 @@ class PlugwiseDevice extends IPSModule
             $Filter = '.*"NodeMAC":"' . $NodeMAC . '".*';
         $this->SetReceiveDataFilter($Filter);
         $this->SendDebug("SetFilter", $Filter, 0);
+
         // Wenn Kernel nicht bereit, dann warten... KR_READY über Splitter kommt ja gleich
         $this->RegisterParent();
         if (IPS_GetKernelRunlevel() <> KR_READY)
             return;
 
         $this->RegisterProfileFloat('Plugwise.kwh', 'Electricity', '', ' kWh', 0, 0, 0, 3);
-        $this->SetStatus(IS_ACTIVE);
-        // Wenn Parent aktiv, dann Anmeldung an der Hardware bzw. Datenabgleich starten
 
+        $this->SetStatus(IS_ACTIVE);
+
+        // Wenn Parent aktiv, dann Anmeldung an der Hardware bzw. Datenabgleich starten
         if ($this->HasActiveParent())
             $this->IOChangeState(IS_ACTIVE);
         else
@@ -113,15 +117,7 @@ class PlugwiseDevice extends IPSModule
      */
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
     {
-
         $this->IOMessageSink($TimeStamp, $SenderID, $Message, $Data);
-//
-//        switch ($Message)
-//        {
-//            case IPS_KERNELSTARTED:
-//                $this->KernelReady();
-//                break;
-//        }
     }
 
     /**
@@ -143,15 +139,46 @@ class PlugwiseDevice extends IPSModule
         $this->SetTimerInterval('RequestState', 0);
         if ($State == IS_ACTIVE)
         {
-            $this->RequestState();
-            if ($this->Type == Plugwise_Typ::Cricle)
+            if ($this->RequestState())
             {
-                $this->RequestCalibration();
-                $this->RequestEnergy();
+                if ($this->Type == Plugwise_Typ::Cricle)
+                {
+                    $this->RequestCalibration();
+                    $this->RequestEnergy();
+                }
             }
             if ($this->ReadPropertyInteger('Interval') > 0)
                 $this->SetTimerInterval('RequestState', $this->ReadPropertyInteger('Interval') * 1000);
         }
+    }
+
+    /**
+     * Interne Funktion des SDK.
+     *
+     * @access public
+     */
+    public function GetConfigurationForm()
+    {
+        $form = json_decode(file_get_contents(__DIR__ . "/form.json"), true);
+        $this->SendDebug('GetConfigurationForm', Plugwise_Typ::ToString($this->Type), 0);
+
+        switch ($this->Type)
+        {
+            case Plugwise_Typ::Cricle:
+//                unset($form['elements'][13]);
+//                unset($form['elements'][12]);
+//                unset($form['elements'][11]);
+//                unset($form['elements'][10]);
+                break;
+            case Plugwise_Typ::Switche:
+                break;
+            case Plugwise_Typ::Sense:
+                break;
+            case Plugwise_Typ::Scan:
+                break;
+        }
+        $this->SendDebug('FORM', json_encode($form), 0);
+        return json_encode($form);
     }
 
 ################## PRIVATE     
@@ -171,8 +198,8 @@ class PlugwiseDevice extends IPSModule
                 $this->SetValueBoolean('Switch', (substr($PlugwiseData->Data, 0, 2) == Plugwise_Switch::ON));
                 break;
             case Plugwise_Command::KeyPressResponse: //switch
-                $this->SetValueBoolean('Switch1', (substr($PlugwiseData->Data, 0, 2) == Plugwise_Switch::ON));
-                $this->SetValueBoolean('Switch2', (substr($PlugwiseData->Data, 2, 2) == Plugwise_Switch::ON));
+                $this->SetValueBoolean('Switch 1', (substr($PlugwiseData->Data, 0, 2) == Plugwise_Switch::ON));
+                $this->SetValueBoolean('Switch 2', (substr($PlugwiseData->Data, 2, 2) == Plugwise_Switch::ON));
                 break;
             case Plugwise_Command::SensInfoResponse: //sens
                 if ($this->ReadPropertyBoolean("showTemperature"))
@@ -208,7 +235,7 @@ class PlugwiseDevice extends IPSModule
             case "State":
                 return $this->SwitchMode($Value);
             default:
-                trigger_error('Invalid Ident.', E_USER_NOTICE);
+                echo $this->Translate('Invalid Ident');
         }
     }
 
@@ -216,11 +243,9 @@ class PlugwiseDevice extends IPSModule
 
     public function TimerEvent()
     {
-        $this->RequestState();
-        if ($this->Type == Plugwise_Typ::Cricle)
-        {
-            $this->RequestEnergy();
-        }
+        if ($this->RequestState())
+            if ($this->Type == Plugwise_Typ::Cricle)
+                $this->RequestEnergy();
     }
 
     /**
@@ -234,12 +259,12 @@ class PlugwiseDevice extends IPSModule
     {
         if (!is_bool($Value))
         {
-            trigger_error('Value must be boolean', E_USER_NOTICE);
+            echo $this->Translate('Value must be boolean');
             return false;
         }
         if (!$this->ReadPropertyBoolean("showState"))
         {
-            trigger_error('State not active in instance', E_USER_NOTICE);
+            echo $this->Translate('Switch state not active in instance');
             return false;
         }
         $PlugwiseData = new Plugwise_Frame(Plugwise_Command::SwitchRequest, null, ($Value ? Plugwise_Switch::ON : Plugwise_Switch::OFF));
@@ -252,7 +277,7 @@ class PlugwiseDevice extends IPSModule
             $this->SetValueBoolean("State", $Value);
             return true;
         }
-        trigger_error('Error on SwitchMode.', E_USER_NOTICE);
+        echo $this->Translate('Error on send switch state');
         return false;
     }
 
@@ -265,7 +290,6 @@ class PlugwiseDevice extends IPSModule
     public function RequestState()
     {
         $PlugwiseData = new Plugwise_Frame(Plugwise_Command::InfoRequest);
-//        $PlugwiseData->GetState();
         $Result = $this->Send($PlugwiseData);
         if ($Result === false)
             return false;
@@ -327,7 +351,7 @@ class PlugwiseDevice extends IPSModule
         $Result = $this->Send($PlugwiseData);
         if ($Result === false)
             return false;
-
+        $this->isCalib = true;
         $this->gainA = Plugwise_Frame::Hex2Float(substr($Result->Data, 0, 8));
         $this->gainB = Plugwise_Frame::Hex2Float(substr($Result->Data, 8, 8));
         $this->offTot = Plugwise_Frame::Hex2Float(substr($Result->Data, 16, 8));
@@ -351,6 +375,12 @@ class PlugwiseDevice extends IPSModule
         $Result = $this->Send($PlugwiseData);
         if ($Result === false)
             return false;
+        if (!$this->isCalib)
+        {
+            echo $this->Translate('No calibration found');
+            if (!$this->RequestCalibration())
+                return false;
+        }
         $pulses1hex = substr($Result->Data, 0, 4);
         if ($pulses1hex != 'FFFF')
         {
@@ -364,7 +394,7 @@ class PlugwiseDevice extends IPSModule
                 $watt1 = Plugwise_Frame::pulsesToWatt($pulses1);
                 $this->SendDebug('watt1', $watt1, 0);
                 if ($watt1 >= 0)
-                    $this->SetValueFloat('PowerCurrent', $watt1, '~Watt.3680');
+                    $this->SetValueFloat('Power Current', $watt1, '~Watt.3680');
             }
         }
 
@@ -380,7 +410,7 @@ class PlugwiseDevice extends IPSModule
                 $watt8 = Plugwise_Frame::pulsesToWatt($pulses8);
                 $this->SendDebug('watt8', $watt8, 0);
                 if ($watt8 >= 0)
-                    $this->SetValueFloat('PowerAverage', $watt8, '~Watt.3680');
+                    $this->SetValueFloat('Power Average', $watt8, '~Watt.3680');
             }
         }
         if ($this->ReadPropertyBoolean("showOverall"))
@@ -392,7 +422,7 @@ class PlugwiseDevice extends IPSModule
             $watttotal = Plugwise_Frame::pulsesToKwh($pulsestotal);
             $this->SendDebug('watttotal', $watttotal, 0);
             if ($watttotal >= 0)
-                $this->SetValueFloat('PowerOverall', $watttotal, 'Plugwise.kwh');
+                $this->SetValueFloat('Consumption Overall', $watttotal, 'Plugwise.kwh');
         }
 
         return true;
@@ -420,7 +450,7 @@ class PlugwiseDevice extends IPSModule
         if ($ResultString === false)
         {
             $this->SendDebug('Receive', 'Error receive data', 0);
-            echo 'Error receive data';
+            echo $this->Translate('Timeout error');
             return false;
         }
         $Result = @unserialize($ResultString);
@@ -428,12 +458,12 @@ class PlugwiseDevice extends IPSModule
         if (($Result === NULL) or ( $Result === false))
         {
             $this->SendDebug('Receive', 'Error receive data', 0);
-            echo 'Error on send data';
+            echo $this->Translate('Error on send data');
             return false;
         }
         if ($Result->Data == '00E1')
         {
-            trigger_error('Node not reachable', E_USER_NOTICE);
+            echo $this->Translate('Node not reachable');
             return false;
         }
 
