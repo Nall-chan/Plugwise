@@ -3,14 +3,14 @@
             [
                 {
                     "type": "Label",
-                    "label": "IMPORTANT: You must close this page an reopen it to see changes."
+                    "label": "IMPORTANT: You must close this page an reopen it to see the changes."
                 },
                 {
                     "type": "Label",
                     "label": "----------------------------------------------------------------------------------------------------------------------------------"
                 }, {
                     "type": "Label",
-                    "label": "IO-Port need to be openened manually in the I/O instance!"
+                    "label": "COM-Port need to be openened manually in the I/O instance!"
                 },
                 {
                     "type": "Label",
@@ -23,12 +23,12 @@
                 {
                     "code": 102,
                     "icon": "active",
-                    "caption": "RF-Stick online."
+                    "caption": "RF-Stick online"
                 },
                 {
                     "code": 104,
                     "icon": "inactive",
-                    "caption": "Network not online."
+                    "caption": "Network not online"
                 },
                 {
                     "code": 202,

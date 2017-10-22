@@ -1,6 +1,7 @@
 <?
 
-/* * @addtogroup plugwise
+/**
+ * @addtogroup plugwise
  * @{
  *
  * @package       Plugwise
@@ -10,7 +11,6 @@
  * @version       0.1
  * @example <b>Ohne</b>
  */
-
 if (@constant('IPS_BASE') == null) //Nur wenn Konstanten noch nicht bekannt sind.
 {
 // --- BASE MESSAGE
@@ -769,7 +769,6 @@ class Plugwise_Frame
             return;
 
         $circle_date = sprintf("%04d-%02d-%02d", hexdec(substr($TimeString, 0, 2)) + 2000, hexdec(substr($TimeString, 2, 2)), (hexdec(substr($TimeString, 4, 4)) / 60 / 24) + 1);
-        //echo hexdec(substr($TimeString, 0, 2)) + 2000;
         $time = hexdec(substr($TimeString, 4, 4)) % (60 * 24);
         $hour = intval($time / 60);
         $minutes = $time % 60;
@@ -780,9 +779,7 @@ class Plugwise_Frame
     static function pulsesCorrection($pulses, $timespan, $offRuis, $offTot, $gainA, $gainB)
     {
         if ($pulses == 0)
-        {
             $out = 0;
-        }
         else
         {
             $value = $pulses / $timespan;
@@ -990,7 +987,6 @@ class Plugwise_Frame
         $buffer = $this->Command;
         if ($this->FrameID != -1)
             $buffer .= sprintf("%04X", $this->FrameID);
-        //$buffer .= strtoupper(str_pad(dechex($this->FrameID), 4, '0', STR_PAD_LEFT));
         $buffer .= $this->NodeMAC . $this->Data;
         $crc16c = 0x0000;  // the crc initial value laut www.maartendamen.com
         $buffer_length = strlen($buffer);

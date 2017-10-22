@@ -2,7 +2,7 @@
 
 require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
 
-/*
+/**
  * @addtogroup plugwise
  * @{
  *
@@ -277,13 +277,13 @@ class PlugwiseNetwork extends IPSModule
                 );
                 $form['elements'][] = array(
                     'type' => 'Label',
-                    'label' => 'Please pair a new Circle+ and create a new Plugwise-Network.'
+                    'label' => 'Please pair a Circle+ and create a new Plugwise-Network.'
                 );
-                $form['elements'][] = array(
-                    'type' => 'Button',
-                    'label' => 'Start paring of Circle+',
-                    'onClick' => 'echo "sorry, not working.";'
-                );
+                /* $form['elements'][] = array(
+                  'type' => 'Button',
+                  'label' => 'Start paring of Circle+',
+                  'onClick' => 'echo "'.$this->Translate('Sorry, not working').'";'
+                  ); */
                 break;
             case Plugwise_NetworkState::CirclePlusOffline:
                 $form['elements'][] = array(
@@ -303,10 +303,6 @@ class PlugwiseNetwork extends IPSModule
                     'type' => 'Label',
                     'label' => 'Enable joining for discovery of new nodes.'
                 );
-//                $form['elements'][] = array(
-//                    'type' => 'Label',
-//                    'label' => 'Previously associated nodes will join network automatically.'
-//                );
                 $form['elements'][] = array(
                     'type' => 'Button',
                     'label' => 'Enable joining',
@@ -486,7 +482,6 @@ class PlugwiseNetwork extends IPSModule
 
     /**
      * Initianlisiert den Stick
-     * fertig
      */
     private function InitStick()
     {
@@ -497,9 +492,9 @@ class PlugwiseNetwork extends IPSModule
         if ($Result === null)
         {
             $this->StickMAC = '';
-            $this->SetSummary('no Stick');
+            $this->SetSummary($this->Translate('no Stick'));
             $this->NetworkID = '';
-            $this->SetValueString('NetworkID', 'no Network');
+            $this->SetValueString('NetworkID', $this->Translate('no Network'));
             $this->NetworkState = Plugwise_NetworkState::StickNotFound;
             $this->SendDebug('InitStick', Plugwise_NetworkState::ToString($this->NetworkState), 0);
             return false;
@@ -509,7 +504,7 @@ class PlugwiseNetwork extends IPSModule
         if (substr($Result->Data, 2, 2) == '00')
         {
             $this->NetworkID = '';
-            $this->SetValueString('NetworkID', 'no Network');
+            $this->SetValueString('NetworkID', $this->Translate('no Network'));
             $this->NetworkState = Plugwise_NetworkState::CirclePlusMissing;
             $this->SendDebug('InitStick', Plugwise_NetworkState::ToString($this->NetworkState), 0);
             return false;
@@ -533,7 +528,7 @@ class PlugwiseNetwork extends IPSModule
             return false;
         if (substr($Result->Data, 0, 4) != Plugwise_AckMsg::CONNECTED)
         {
-            $this->SetValueString('NetworkID', 'no Network');
+            $this->SetValueString('NetworkID', $this->Translate('no Network'));
             $this->NetworkState = Plugwise_NetworkState::CirclePlusOffline;
             $this->SendDebug('InitStick', Plugwise_NetworkState::ToString($this->NetworkState), 0);
             return false;
@@ -582,7 +577,7 @@ class PlugwiseNetwork extends IPSModule
         if (substr($Result->Data, 0, 4) != Plugwise_AckMsg::SUCCESSFUL)
         {
             $this->SetValueBoolean('TimeSync', false);
-            trigger_error('Error on set time in Circle+', E_USER_NOTICE);
+            trigger_error($this->Translate('Error on set time in Circle+'), E_USER_NOTICE);
             return false;
         }
         $PlugwiseData = new Plugwise_Frame(Plugwise_Command::DateTimeInfoRequest, $this->CirclePlusMAC);
@@ -595,7 +590,7 @@ class PlugwiseNetwork extends IPSModule
         if ($Result->Data != $Data)
         {
             $this->SetValueBoolean('TimeSync', false);
-            trigger_error('Error on verify time in Circle+', E_USER_NOTICE);
+            trigger_error($this->Translate('Error on verify time in Circle+'), E_USER_NOTICE);
             return false;
         }
         // 25 47 17  07   15  10 17
@@ -616,7 +611,7 @@ class PlugwiseNetwork extends IPSModule
     {
         if ($this->NetworkState < Plugwise_NetworkState::Online)
         {
-            trigger_error('Network not ready.', E_USER_NOTICE);
+            trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
             return false;
         }
         $PlugwiseData = new Plugwise_Frame(Plugwise_Command::EnableJoiningRequest, ($Value ? Plugwise_Switch::ON : Plugwise_Switch::OFF));
@@ -639,10 +634,10 @@ class PlugwiseNetwork extends IPSModule
         $result = $this->RequestJoiningOfNode($NodeMAC);
         if ($result === true)
         {
-            echo 'OK. Node accepted join request.';
+            echo $this->Translate('OK. Node accepted join request.');
             return true;
         }
-        trigger_error('Join of node failed.', E_USER_NOTICE);
+        trigger_error($this->Translate('Join of node failed.'), E_USER_NOTICE);
         return false;
     }
 
@@ -652,13 +647,13 @@ class PlugwiseNetwork extends IPSModule
         $Index = array_search($NodeMAC, $Nodes);
         if ($Index !== false)
         {
-            trigger_error('Node MAC already in network associated.', E_USER_NOTICE);
+            trigger_error($this->Translate('Node MAC already in network associated.'), E_USER_NOTICE);
             return false;
         }
 
         if ($this->NetworkState < Plugwise_NetworkState::Online)
         {
-            trigger_error('Network not ready.', E_USER_NOTICE);
+            trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
             return false;
         }
         if ($this->NetworkState == Plugwise_NetworkState::Online)
@@ -725,10 +720,10 @@ class PlugwiseNetwork extends IPSModule
         $result = $this->RequestExcludeOfNode($NodeMAC);
         if ($result === true)
         {
-            echo 'OK. Node accepted exclude request.';
+            echo $this->Translate('OK. Node accepted exclude request.');
             return true;
         }
-        trigger_error('Exclude of node failed.', E_USER_NOTICE);
+        trigger_error($this->Translate('Exclude of node failed.'), E_USER_NOTICE);
         return false;
     }
 
@@ -736,7 +731,7 @@ class PlugwiseNetwork extends IPSModule
     {
         if ($this->NetworkState < Plugwise_NetworkState::Online)
         {
-            trigger_error('Network not ready.', E_USER_NOTICE);
+            trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
             return false;
         }
         if ($this->NetworkState == Plugwise_NetworkState::Online)
@@ -769,7 +764,7 @@ class PlugwiseNetwork extends IPSModule
     {
         if ($this->NetworkState < Plugwise_NetworkState::Online)
         {
-            trigger_error('Network not ready.', E_USER_NOTICE);
+            trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
             return false;
         }
         $PlugwiseData = new Plugwise_Frame(Plugwise_Command::ResetRequest, $NodeMAC, '0001');
@@ -878,14 +873,14 @@ class PlugwiseNetwork extends IPSModule
                 case 'GetCirclePlusMAC':
                     if ($this->NetworkState < Plugwise_NetworkState::Online)
                     {
-                        trigger_error('Network not ready. Tyr again later.', E_USER_NOTICE);
+                        trigger_error($this->Translate('Network not ready. Try again later.'), E_USER_NOTICE);
                         return false;
                     }
                     return serialize($this->CirclePlusMAC);
                 case 'ListNodes':
                     if ($this->NetworkState < Plugwise_NetworkState::Online)
                     {
-                        trigger_error('Network not ready. Tyr again later.', E_USER_NOTICE);
+                        trigger_error($this->Translate('Network not ready. Try again later.'), E_USER_NOTICE);
                         return false;
                     }
                     return serialize($this->Nodes);
@@ -995,9 +990,9 @@ class PlugwiseNetwork extends IPSModule
         try
         {
             if (!$this->HasActiveParent())
-                throw new Exception('Intance has no active parent.', E_USER_NOTICE);
+                throw new Exception($this->Translate('Instance has no active parent.'), E_USER_NOTICE);
             if (!$this->lock('WaitForStick'))
-                throw new Exception('Send to Stick is locked.', E_USER_NOTICE);
+                throw new Exception($this->Translate('Send to Stick is locked.'), E_USER_NOTICE);
             $DataLine = $PlugwiseFrame->EncodeFrame();
             $JsonString = $this->ToJSONStringForStick($DataLine);
             $this->SendDebug('Send', $PlugwiseFrame, 0);
@@ -1009,15 +1004,15 @@ class PlugwiseNetwork extends IPSModule
             $Result = $this->WaitForStick();
 //            $this->SendDebug('ReceiveResult', $Result, 0);
             if ($Result === -10) // Timeout
-                throw new Exception('Stick did not response.', E_USER_NOTICE);
+                throw new Exception($this->Translate('Stick did not response.'), E_USER_NOTICE);
             elseif ($Result === -4) // unknow
-                throw new Exception('Stick tell unknown error.', E_USER_NOTICE);
+                throw new Exception($this->Translate('Stick response unknown error.'), E_USER_NOTICE);
             elseif ($Result === -3) // OutOfRange
-                throw new Exception('Stick tell OutOfRange.', E_USER_NOTICE);
+                throw new Exception($this->Translate('Stick response OutOfRange.'), E_USER_NOTICE);
             elseif ($Result === -2) // NACK
-                throw new Exception('Stick send NACK.', E_USER_NOTICE);
+                throw new Exception($this->Translate('Stick send NACK.'), E_USER_NOTICE);
             elseif ($Result === -1) // CRC Error
-                throw new Exception('Wrong CRC received.', E_USER_NOTICE);
+                throw new Exception($this->Translate('Wrong CRC received.'), E_USER_NOTICE);
 
             if ($PlugwiseFrame->Command == Plugwise_Command::JoinNodeRequest)
                 return true;
@@ -1028,10 +1023,10 @@ class PlugwiseNetwork extends IPSModule
             //$this->SendDebug('Receive', 'ACK', 0);
 
             if ($ReplyPlugwiseFrame === false)
-                throw new Exception('No anwser from Network.', E_USER_NOTICE);
+                throw new Exception($this->Translate('No anwser from Network.'), E_USER_NOTICE);
             $this->SendDebug('Response', $ReplyPlugwiseFrame, 0);
             if ($ReplyPlugwiseFrame->Checksum !== true)
-                throw new Exception('Wrong CRC received.', E_USER_NOTICE);
+                throw new Exception($this->Translate('Wrong CRC received.'), E_USER_NOTICE);
             return $ReplyPlugwiseFrame;
         }
         catch (Exception $ex)
