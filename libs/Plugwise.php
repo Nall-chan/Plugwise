@@ -790,8 +790,12 @@ class Plugwise_Frame
 
     static function pulsesToKwh($pulses)
     {
-        $result = (($pulses / 3600) / 468.9385193) * 3600;
-        return (number_format($result, 3, ',', ''));
+        return  (($pulses / 3600) / 468.9385193) * 3600;
+    }
+
+    static function format($Value)
+    {
+        return (number_format($Value, 3, ',', ''));
     }
 
     static function pulsesToWatt($pulses)

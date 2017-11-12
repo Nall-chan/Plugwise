@@ -431,7 +431,7 @@ class PlugwiseDevice extends IPSModule
                     else
                         $OldValueHour = 0;
 
-                    $this->SetValueFloat('Consumption Current Hour', $watttotal, 'Plugwise.kwh');
+                    $this->SetValueFloat('Consumption Current Hour', Plugwise_Frame::format($watttotal), 'Plugwise.kwh');
 
                     $AddValueTotal = $watttotal - $OldValueHour;
                     if ($AddValueTotal < 0)
@@ -445,7 +445,7 @@ class PlugwiseDevice extends IPSModule
 
                     $NewValueTotal = $OldOverall + $AddValueTotal;
 
-                    $this->SetValueFloat('Consumption Overall', $NewValueTotal, 'Plugwise.kwh');
+                    $this->SetValueFloat('Consumption Overall', Plugwise_Frame::format($NewValueTotal), 'Plugwise.kwh');
                 }
             }
         }
