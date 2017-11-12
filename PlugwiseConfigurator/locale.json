@@ -8,6 +8,7 @@
             "List of all nodes and all instances:": "Liste aller Knoten und aller Instanzen:",
             "Location": "Ort",
             "InstanceID": "InstanzID",
+            "Interval for new instance": "Intervall für neue Instanz",
             "Create instance": "Erzeuge Instanz",
             "Nodes in network: %d": "Knoten im Netzwerk: %d",
             "New nodes: %d": "Neue Knoten: %d",

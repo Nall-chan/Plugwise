@@ -57,12 +57,12 @@ class PlugwiseConfigurator extends IPSModule
      */
     private function GetNodes()
     {
-        $CirclePlus = $this->SendFunction('GetCirclePlusMAC');
+        $CirclePlus = @$this->SendFunction('GetCirclePlusMAC');
         if ($CirclePlus === false)
             return false;
 
 
-        $Nodes = $this->SendFunction('ListNodes');
+        $Nodes = @$this->SendFunction('ListNodes');
         if ($Nodes === false)
             return false;
         return array_merge(array(0 => $CirclePlus), $Nodes);
@@ -151,6 +151,7 @@ if (IPS_GetInstance($InstanceID)['ConnectionID'] != IPS_GetInstance($id)['Connec
     IPS_ConnectInstance($InstanceID, IPS_GetInstance($id)['ConnectionID']);
 }
 @IPS_SetProperty($InstanceID, 'NodeMAC', $Nodes['NodeMAC']);
+@IPS_SetProperty($InstanceID, 'Interval', $Interval);
 @IPS_ApplyChanges($InstanceID);
 IPS_SetName($InstanceID,'Plugwise Node - '.$Nodes['NodeMAC']);
 echo 'OK';

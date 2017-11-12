@@ -54,7 +54,7 @@ class PlugwiseDevice extends IPSModule
         parent::Create();
         $this->ConnectParent("{7C20491F-F145-4F1C-A69C-AAE1F60F5BD5}");
         $this->RegisterPropertyString("NodeMAC", "");
-        $this->RegisterPropertyInteger("Interval", 5);
+        $this->RegisterPropertyInteger("Interval", 0);
         $this->RegisterPropertyBoolean("showState", true);
         $this->RegisterPropertyBoolean("showCurrent", true);
         $this->RegisterPropertyBoolean("showAverage", true);
@@ -411,6 +411,7 @@ class PlugwiseDevice extends IPSModule
                     $this->SetValueFloat('Power Average', $watt8, '~Watt.3680');
             }
         }
+
         if ($this->ReadPropertyBoolean("showOverall"))
         {
             $pulses_total = intval(hexdec(substr($Result->Data, 8, 8)));
@@ -418,9 +419,35 @@ class PlugwiseDevice extends IPSModule
                             $pulses_total, 3600, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
             );
             $watttotal = Plugwise_Frame::pulsesToKwh($pulsestotal);
-            $this->SendDebug('watttotal', $watttotal, 0);
+            $this->SendDebug('watthourtotal', $watttotal, 0);
+
             if ($watttotal >= 0)
-                $this->SetValueFloat('Consumption Overall', $watttotal, 'Plugwise.kwh');
+            {
+                if ($this->ReadPropertyBoolean("showOverall"))
+                {
+                    $vidHour = @$this->GetIDForIdent('ConsumptionCurrentHour');
+                    if ($vidHour > 0)
+                        $OldValueHour = GetValueFloat($vidHour);
+                    else
+                        $OldValueHour = 0;
+
+                    $this->SetValueFloat('Consumption Current Hour', $watttotal, 'Plugwise.kwh');
+
+                    $AddValueTotal = $watttotal - $OldValueHour;
+                    if ($AddValueTotal < 0)
+                        $AddValueTotal = $watttotal;
+
+                    $vidOverall = @$this->GetIDForIdent('ConsumptionOverall');
+                    if ($vidOverall > 0)
+                        $OldOverall = GetValueFloat($vidOverall);
+                    else
+                        $OldOverall = 0;
+
+                    $NewValueTotal = $OldOverall + $AddValueTotal;
+
+                    $this->SetValueFloat('Consumption Overall', $NewValueTotal, 'Plugwise.kwh');
+                }
+            }
         }
 
         return true;

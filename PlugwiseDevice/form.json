@@ -33,7 +33,7 @@
                 {
                     "name": "showAverage",
                     "type": "CheckBox",
-                    "caption": "Schow average power"
+                    "caption": "Show average power"
                 }, {
                     "name": "showOverall",
                     "type": "CheckBox",
