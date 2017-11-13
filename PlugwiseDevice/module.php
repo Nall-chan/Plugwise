@@ -481,7 +481,7 @@ class PlugwiseDevice extends IPSModule
         $PlugwiseData = new Plugwise_Frame(Plugwise_Command::ClockSetRequest, null, Plugwise_Frame::Timestamp2Hex(time()));
         /* @var $Result Plugwise_Frame */
         $Result = $this->Send($PlugwiseData);
-        if ($Result === NULL)
+        if ($Result === false)
             return false;
         if (substr($Result->Data, 0, 4) != Plugwise_AckMsg::SETTIMEACK)
         {
