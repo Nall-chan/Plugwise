@@ -1,5 +1,4 @@
-<?
-
+d<?
 require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
 
 /**
@@ -66,6 +65,17 @@ class PlugwiseNetwork extends IPSModule
         $this->SearchIndex = 0;
         $this->NetworkState = Plugwise_NetworkState::Online;
         $this->RegisterTimer('SearchNodes', 0, 'PLUGWISE_SearchNodes($_IPS["TARGET"]);');
+    }
+
+    /**
+     * Interne Funktion des SDK.
+     *
+     * @access public
+     */
+    public function Destroy()
+    {
+        $this->SetTimerInterval('SearchNodes', 0);
+        parent::Destroy();
     }
 
     /**

@@ -77,6 +77,18 @@ class PlugwiseDevice extends IPSModule
 
     /**
      * Interne Funktion des SDK.
+     *
+     * @access public
+     */
+    public function Destroy()
+    {
+        $this->SetTimerInterval('RequestState', 0);
+        $this->SetTimerInterval('SetTime', 0);
+        parent::Destroy();
+    }
+
+    /**
+     * Interne Funktion des SDK.
      * 
      * @access public
      */
@@ -155,7 +167,7 @@ class PlugwiseDevice extends IPSModule
             }
             if ($this->ReadPropertyInteger('Interval') > 0)
                 $this->SetTimerInterval('RequestState', $this->ReadPropertyInteger('Interval') * 1000);
-            $this->SetTimerInterval('SetTime', 60*60*1000);
+            $this->SetTimerInterval('SetTime', 60 * 60 * 1000);
         }
     }
 
