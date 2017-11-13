@@ -553,4 +553,3 @@ class PlugwiseDevice extends IPSModule
 }
 
 /** @} */
-?>

@@ -1,4 +1,4 @@
-d<?
+<?
 require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
 
 /**
@@ -1171,4 +1171,3 @@ class PlugwiseNetwork extends IPSModule
 }
 
 /** @} */
-?>
