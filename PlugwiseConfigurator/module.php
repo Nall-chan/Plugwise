@@ -139,7 +139,7 @@ class PlugwiseConfigurator extends IPSModule
         $data['actions'][7]['values'] = array_merge($data['actions'][7]['values'], $Liste);
 
 
-        $data['actions'][8]['onClick'] = <<<'EOT'
+        $data['actions'][9]['onClick'] = <<<'EOT'
 if (($Nodes['NodeMAC'] == '') or ($Nodes['InstanceID'] > 0))
     return;
 $InstanceID = IPS_CreateInstance('{5FD73328-68F3-4047-B678-E385C2E31962}');

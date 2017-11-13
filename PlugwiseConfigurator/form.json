@@ -26,7 +26,7 @@
         {
             "type": "List",
             "name": "Nodes",
-            "rowCount": 25,
+            "rowCount": 15,
             "add": false,
             "delete": false,
             "sort": {
