@@ -66,6 +66,7 @@ class PlugwiseDevice extends IPSModule
         $this->RegisterPropertyBoolean("showTemperature", true);
         $this->RegisterPropertyBoolean("showHumidity", true);
         $this->RegisterTimer('RequestState', 0, 'PLUGWISE_TimerEvent($_IPS["TARGET"]);');
+        $this->RegisterTimer('SetTime', 0, 'PLUGWISE_SetTime($_IPS["TARGET"]);');
         $this->isCalib = false;
         $this->Type = 0;
         $this->gainA = 0;
@@ -107,7 +108,10 @@ class PlugwiseDevice extends IPSModule
         if ($this->HasActiveParent())
             $this->IOChangeState(IS_ACTIVE);
         else
+        {
             $this->SetTimerInterval('RequestState', 0);
+            $this->SetTimerInterval('SetTime', 0);
+        }
     }
 
     /**
@@ -137,10 +141,12 @@ class PlugwiseDevice extends IPSModule
     protected function IOChangeState($State)
     {
         $this->SetTimerInterval('RequestState', 0);
+        $this->SetTimerInterval('SetTime', 0);
         if ($State == IS_ACTIVE)
         {
             if ($this->RequestState())
             {
+                $this->SetTime();
                 if ($this->Type == Plugwise_Typ::Cricle)
                 {
                     $this->RequestCalibration();
@@ -149,6 +155,7 @@ class PlugwiseDevice extends IPSModule
             }
             if ($this->ReadPropertyInteger('Interval') > 0)
                 $this->SetTimerInterval('RequestState', $this->ReadPropertyInteger('Interval') * 1000);
+            $this->SetTimerInterval('SetTime', 60*60*1000);
         }
     }
 
@@ -430,26 +437,45 @@ class PlugwiseDevice extends IPSModule
                         $OldValueHour = GetValueFloat($vidHour);
                     else
                         $OldValueHour = 0;
+                    $this->SendDebug('OldValueHour', $OldValueHour, 0);
 
-                    $this->SetValueFloat('Consumption Current Hour', Plugwise_Frame::format($watttotal), 'Plugwise.kwh');
+                    $this->SetValueFloat('Consumption Current Hour', $watttotal, 'Plugwise.kwh');
 
                     $AddValueTotal = $watttotal - $OldValueHour;
                     if ($AddValueTotal < 0)
                         $AddValueTotal = $watttotal;
+                    $this->SendDebug('AddValueTotal', $AddValueTotal, 0);
 
                     $vidOverall = @$this->GetIDForIdent('ConsumptionOverall');
                     if ($vidOverall > 0)
                         $OldOverall = GetValueFloat($vidOverall);
                     else
                         $OldOverall = 0;
+                    $this->SendDebug('OldOverall', $OldOverall, 0);
 
                     $NewValueTotal = $OldOverall + $AddValueTotal;
 
-                    $this->SetValueFloat('Consumption Overall', Plugwise_Frame::format($NewValueTotal), 'Plugwise.kwh');
+                    $this->SetValueFloat('Consumption Overall', $NewValueTotal, 'Plugwise.kwh');
+                    $this->SendDebug('NewValueTotal', $NewValueTotal, 0);
                 }
             }
         }
 
+        return true;
+    }
+
+    public function SetTime()
+    {
+        $PlugwiseData = new Plugwise_Frame(Plugwise_Command::ClockSetRequest, null, Plugwise_Frame::Timestamp2Hex(time()));
+        /* @var $Result Plugwise_Frame */
+        $Result = $this->Send($PlugwiseData);
+        if ($Result === NULL)
+            return false;
+        if (substr($Result->Data, 0, 4) != Plugwise_AckMsg::SETTIMEACK)
+        {
+            trigger_error($this->Translate('Error on set time in Node'), E_USER_NOTICE);
+            return false;
+        }
         return true;
     }
 
@@ -479,6 +505,7 @@ class PlugwiseDevice extends IPSModule
             return false;
         }
         $Result = @unserialize($ResultString);
+        /* @var $Result Plugwise_Frame */
         $this->SendDebug('Response', $Result, 0);
         if (($Result === NULL) or ( $Result === false))
         {
@@ -486,7 +513,7 @@ class PlugwiseDevice extends IPSModule
             echo $this->Translate('Error on send data');
             return false;
         }
-        if ($Result->Data == '00E1')
+        if ($Result->Data === '00E1')
         {
             echo $this->Translate('Node not reachable');
             return false;

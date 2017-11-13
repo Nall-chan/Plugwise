@@ -279,7 +279,7 @@ class Plugwise_AckMsg
     //  	 	"00E0";     //	"Send switchblock NACK"
     //  	 	"00DA";     //	"Send calib-params ACK"
     //  	 	"00E2";     //	"Set relais denied"
-    //  	 	"00D7";     //	"Set year, month and flashadress DONE"
+    const SETTIMEACK =  "00D7";     //	"Set year, month and flashadress DONE"
     //  	 	"00BD";     //	"Start Light-Calibration started"
     //  	 	"00E9";     //	"Start Pingrun ACK"
     //  	 	"00EA";     //	"Stop Pingrun ACK"
@@ -389,7 +389,7 @@ class Plugwise_Command
     /**
      * Set time on circle+
      */
-    const ClockSetRequest = '0016'; // oder 28 ?
+    const ClockSetRequest = '0016'; // an Circle
 
     /**
      * switches Plug on or off
@@ -636,6 +636,7 @@ class Plugwise_Typ
     const Scan = 4;
 
     static $Type = array(
+        0 => self::Cricle,
         '00' => self::Cricle,
         '01' => self::Cricle,
         '02' => self::Cricle,
@@ -761,6 +762,13 @@ class Plugwise_Frame
         return unpack("f", $bits)[1];
     }
 
+    static function Timestamp2Hex($TimeStamp)
+    {
+        $date = sprintf('%02X%02X%02X', gmdate("y", $TimeStamp), gmdate("m", $TimeStamp), ((gmdate("j", $TimeStamp) - 1) * 24 + gmdate("G", $TimeStamp)) * 60 + gmdate("i", $TimeStamp));
+        $time = sprintf('%02X%02X%02X%02X', gmdate("G", $TimeStamp), gmdate("i", $TimeStamp), gmdate("s", $TimeStamp), gmdate("N", $TimeStamp));
+        return $date . 'FFFFFFFF' . $time;
+    }
+
     static function Hex2Timestamp($TimeString)
     {
         if ($TimeString == 'FFFFFFFF')
@@ -790,18 +798,13 @@ class Plugwise_Frame
 
     static function pulsesToKwh($pulses)
     {
-        return  (($pulses / 3600) / 468.9385193) * 3600;
-    }
-
-    static function format($Value)
-    {
-        return (number_format($Value, 3, ',', ''));
+        return (($pulses / 3600) / 468.9385193) * 3600;
     }
 
     static function pulsesToWatt($pulses)
     {
-        $result = ($pulses / 468.9385193) * 1000;
-        return (number_format($result, 3, ',', ''));
+        return ($pulses / 468.9385193) * 1000;
+        //return (number_format($result, 3, ',', ''));
     }
 
     /**

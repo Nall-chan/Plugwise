@@ -190,7 +190,6 @@ class PlugwiseNetwork extends IPSModule
                 $this->SetNetworkTime();
                 $this->NewNodes = array();
                 $this->SearchNodes();
-                $this->SetStatus(IS_ACTIVE);
                 break;
             case Plugwise_NetworkState::ParingCirclePlus:
             case Plugwise_NetworkState::SearchingCirclePlus:
@@ -248,6 +247,7 @@ class PlugwiseNetwork extends IPSModule
             $this->SearchIndex = 0;
             $this->NetworkState = Plugwise_NetworkState::Online;
             $this->SetValueBoolean('ScanNetwork', false);
+            $this->SetStatus(IS_ACTIVE);
         }
     }
 
