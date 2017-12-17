@@ -410,8 +410,8 @@ class PlugwiseDevice extends IPSModule
                 );
                 $watt1 = Plugwise_Frame::pulsesToWatt($pulses1);
                 $this->SendDebug('watt1', $watt1, 0);
-                if ($watt1 >= 0)
-                    $this->SetValueFloat('Power Current', $watt1, '~Watt.3680');
+//                if ($watt1 >= 0)
+                $this->SetValueFloat('Power Current', $watt1, '~Watt.3680');
             }
         }
 
@@ -426,8 +426,8 @@ class PlugwiseDevice extends IPSModule
                 );
                 $watt8 = Plugwise_Frame::pulsesToWatt($pulses8);
                 $this->SendDebug('watt8', $watt8, 0);
-                if ($watt8 >= 0)
-                    $this->SetValueFloat('Power Average', $watt8, '~Watt.3680');
+//                if ($watt8 >= 0)
+                $this->SetValueFloat('Power Average', $watt8, '~Watt.3680');
             }
         }
 
@@ -440,37 +440,37 @@ class PlugwiseDevice extends IPSModule
             $watttotal = Plugwise_Frame::pulsesToKwh($pulsestotal);
             $this->SendDebug('watthourtotal', $watttotal, 0);
 
-            if ($watttotal >= 0)
+//            if ($watttotal >= 0)
+//            {
+            if ($this->ReadPropertyBoolean("showOverall"))
             {
-                if ($this->ReadPropertyBoolean("showOverall"))
-                {
-                    $vidHour = @$this->GetIDForIdent('ConsumptionCurrentHour');
-                    if ($vidHour > 0)
-                        $OldValueHour = GetValueFloat($vidHour);
-                    else
-                        $OldValueHour = 0;
-                    $this->SendDebug('OldValueHour', $OldValueHour, 0);
+                $vidHour = @$this->GetIDForIdent('ConsumptionCurrentHour');
+                if ($vidHour > 0)
+                    $OldValueHour = GetValueFloat($vidHour);
+                else
+                    $OldValueHour = 0;
+                $this->SendDebug('OldValueHour', $OldValueHour, 0);
 
-                    $this->SetValueFloat('Consumption Current Hour', $watttotal, 'Plugwise.kwh');
+                $this->SetValueFloat('Consumption Current Hour', $watttotal, 'Plugwise.kwh');
 
-                    $AddValueTotal = $watttotal - $OldValueHour;
-                    if ($AddValueTotal < 0)
-                        $AddValueTotal = $watttotal;
-                    $this->SendDebug('AddValueTotal', $AddValueTotal, 0);
+                $AddValueTotal = $watttotal - $OldValueHour;
+                if ($AddValueTotal < 0)
+                    $AddValueTotal = $watttotal;
+                $this->SendDebug('AddValueTotal', $AddValueTotal, 0);
 
-                    $vidOverall = @$this->GetIDForIdent('ConsumptionOverall');
-                    if ($vidOverall > 0)
-                        $OldOverall = GetValueFloat($vidOverall);
-                    else
-                        $OldOverall = 0;
-                    $this->SendDebug('OldOverall', $OldOverall, 0);
+                $vidOverall = @$this->GetIDForIdent('ConsumptionOverall');
+                if ($vidOverall > 0)
+                    $OldOverall = GetValueFloat($vidOverall);
+                else
+                    $OldOverall = 0;
+                $this->SendDebug('OldOverall', $OldOverall, 0);
 
-                    $NewValueTotal = $OldOverall + $AddValueTotal;
+                $NewValueTotal = $OldOverall + $AddValueTotal;
 
-                    $this->SetValueFloat('Consumption Overall', $NewValueTotal, 'Plugwise.kwh');
-                    $this->SendDebug('NewValueTotal', $NewValueTotal, 0);
-                }
+                $this->SetValueFloat('Consumption Overall', $NewValueTotal, 'Plugwise.kwh');
+                $this->SendDebug('NewValueTotal', $NewValueTotal, 0);
             }
+//            }
         }
 
         return true;

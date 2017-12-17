@@ -1,3 +1,8 @@
+[![Version](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
+[![Version](https://img.shields.io/badge/Modul%20Version-0.96-blue.svg)]()
+[![Version](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
+[![Version](https://img.shields.io/badge/Symcon%20Version-4.3%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-4-3-%28Stable%29-Changelog)
+
 # IPSPlugwise
 
 Implementierung von Plugwise in IP-Symcon.
@@ -37,8 +42,6 @@ Implementierung von Plugwise in IP-Symcon.
 
 ## 4. Vorbereitungen
 
- 
-
  - Der USB-Stick und der Circle+ müssen gekoppelt sein.  
  - Die Plugwise Software darf nicht ausgeführt werden.
 
@@ -57,3 +60,19 @@ Implementierung von Plugwise in IP-Symcon.
   - Das Ergebniss kann durch ein erneutes öffen des Konfigurators angezeigt werden.  
   - Dort kann über den Button 'Instant erzeugen' ein oben ausgewählten Gerät in IPS angelegt werden.  
 
+## 6. Anhang
+
+###  1. GUID der Module
+
+
+### 2. Datenaustausch
+
+### 3. Changlog
+
+Version 0.96:  
+ - Erstes offizielles Release  
+
+## 6. Lizenz
+
+  IPS-Modul:  
+  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
