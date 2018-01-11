@@ -87,8 +87,8 @@ class PlugwiseNetwork extends IPSModule
     {
         //$this->SetReceiveDataFilter(".*018EF6B5-AB94-40C6-AA53-46943E824ACF.*");
 //        $this->RegisterMessage(0, IPS_KERNELSTARTED);
-        $this->RegisterMessage($this->InstanceID, DM_CONNECT);
-        $this->RegisterMessage($this->InstanceID, DM_DISCONNECT);
+        $this->RegisterMessage($this->InstanceID, FM_CONNECT);
+        $this->RegisterMessage($this->InstanceID, FM_DISCONNECT);
         $this->ReplyData = array();
         $this->FrameID = 0;
         $this->Buffer = "";

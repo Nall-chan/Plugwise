@@ -96,8 +96,8 @@ class PlugwiseDevice extends IPSModule
     {
         parent::ApplyChanges();
 
-        $this->RegisterMessage($this->InstanceID, DM_CONNECT);
-        $this->RegisterMessage($this->InstanceID, DM_DISCONNECT);
+        $this->RegisterMessage($this->InstanceID, FM_CONNECT);
+        $this->RegisterMessage($this->InstanceID, FM_DISCONNECT);
 
         $NodeMAC = $this->ReadPropertyString('NodeMAC');
         if ($NodeMAC == "")
