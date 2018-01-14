@@ -21,7 +21,7 @@ Implementierung von Plugwise in IP-Symcon.
     2. [Hinweise](#2-hinweise)
     3. [Changlog](#3-changlog)
     4. [Spenden](#4-spenden)
-7. [Lizenz] (#7-lizenz)
+7. [Lizenz](#7-lizenz)
 
 ## 1. Funktionsumfang
 
