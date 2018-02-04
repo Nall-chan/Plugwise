@@ -1,4 +1,4 @@
-<?
+<?php
 
 /**
  * @addtogroup plugwise
@@ -12,16 +12,14 @@
  * @example <b>Ohne</b>
  */
 
-if (!defined("IPS_BASE"))
-{
-// --- BASE MESSAGE
+if (!defined("IPS_BASE")) {
+    // --- BASE MESSAGE
     define('IPS_BASE', 10000);                             //Base Message
     define('IPS_KERNELSTARTED', IPS_BASE + 1);             //Post Ready Message
     define('IPS_KERNELSHUTDOWN', IPS_BASE + 2);            //Pre Shutdown Message, Runlevel UNINIT Follows
 }
-if (!defined("IPS_KERNELMESSAGE"))
-{
-// --- KERNEL
+if (!defined("IPS_KERNELMESSAGE")) {
+    // --- KERNEL
     define('IPS_KERNELMESSAGE', IPS_BASE + 100);           //Kernel Message
     define('KR_CREATE', IPS_KERNELMESSAGE + 1);            //Kernel is beeing created
     define('KR_INIT', IPS_KERNELMESSAGE + 2);              //Kernel Components are beeing initialised, Modules loaded, Settings read
@@ -29,9 +27,8 @@ if (!defined("IPS_KERNELMESSAGE"))
     define('KR_UNINIT', IPS_KERNELMESSAGE + 4);            //Got Shutdown Message, unloading all stuff
     define('KR_SHUTDOWN', IPS_KERNELMESSAGE + 5);          //Uninit Complete, Destroying Kernel Inteface
 }
-if (!defined("IPS_LOGMESSAGE"))
-{
-// --- KERNEL LOGMESSAGE
+if (!defined("IPS_LOGMESSAGE")) {
+    // --- KERNEL LOGMESSAGE
     define('IPS_LOGMESSAGE', IPS_BASE + 200);              //Logmessage Message
     define('KL_MESSAGE', IPS_LOGMESSAGE + 1);              //Normal Message                      | FG: Black | BG: White  | STLYE : NONE
     define('KL_SUCCESS', IPS_LOGMESSAGE + 2);              //Success Message                     | FG: Black | BG: Green  | STYLE : NONE
@@ -41,16 +38,14 @@ if (!defined("IPS_LOGMESSAGE"))
     define('KL_DEBUG', IPS_LOGMESSAGE + 6);                //Debug Informations + Script Results | FG: Grey  | BG: White  | STLYE : NONE
     define('KL_CUSTOM', IPS_LOGMESSAGE + 7);               //User Message                        | FG: Black | BG: White  | STLYE : NONE
 }
-if (!defined("IPS_MODULEMESSAGE"))
-{
-// --- MODULE LOADER
+if (!defined("IPS_MODULEMESSAGE")) {
+    // --- MODULE LOADER
     define('IPS_MODULEMESSAGE', IPS_BASE + 300);           //ModuleLoader Message
     define('ML_LOAD', IPS_MODULEMESSAGE + 1);              //Module loaded
     define('ML_UNLOAD', IPS_MODULEMESSAGE + 2);            //Module unloaded
 }
-if (!defined("IPS_OBJECTMESSAGE"))
-{
-// --- OBJECT MANAGER
+if (!defined("IPS_OBJECTMESSAGE")) {
+    // --- OBJECT MANAGER
     define('IPS_OBJECTMESSAGE', IPS_BASE + 400);
     define('OM_REGISTER', IPS_OBJECTMESSAGE + 1);          //Object was registered
     define('OM_UNREGISTER', IPS_OBJECTMESSAGE + 2);        //Object was unregistered
@@ -67,9 +62,8 @@ if (!defined("IPS_OBJECTMESSAGE"))
     define('OM_CHILDREMOVED', IPS_OBJECTMESSAGE + 13);     //Child for Object was removed
     define('OM_CHANGEIDENT', IPS_OBJECTMESSAGE + 14);      //Ident was Changed
 }
-if (!defined("IPS_INSTANCEMESSAGE"))
-{
-// --- INSTANCE MANAGER
+if (!defined("IPS_INSTANCEMESSAGE")) {
+    // --- INSTANCE MANAGER
     define('IPS_INSTANCEMESSAGE', IPS_BASE + 500);         //Instance Manager Message
     define('IM_CREATE', IPS_INSTANCEMESSAGE + 1);          //Instance created
     define('IM_DELETE', IPS_INSTANCEMESSAGE + 2);          //Instance deleted
@@ -82,9 +76,8 @@ if (!defined("IPS_INSTANCEMESSAGE"))
     define('IM_SEARCHPROGRESS', IPS_INSTANCEMESSAGE + 9);  //Searching progress in %
     define('IM_SEARCHCOMPLETE', IPS_INSTANCEMESSAGE + 10); //Searching is complete
 }
-if (!defined("IPS_VARIABLEMESSAGE"))
-{
-// --- VARIABLE MANAGER
+if (!defined("IPS_VARIABLEMESSAGE")) {
+    // --- VARIABLE MANAGER
     define('IPS_VARIABLEMESSAGE', IPS_BASE + 600);              //Variable Manager Message
     define('VM_CREATE', IPS_VARIABLEMESSAGE + 1);               //Variable Created
     define('VM_DELETE', IPS_VARIABLEMESSAGE + 2);               //Variable Deleted
@@ -92,18 +85,16 @@ if (!defined("IPS_VARIABLEMESSAGE"))
     define('VM_CHANGEPROFILENAME', IPS_VARIABLEMESSAGE + 4);    //On Profile Name Change
     define('VM_CHANGEPROFILEACTION', IPS_VARIABLEMESSAGE + 5);  //On Profile Action Change
 }
-if (!defined("IPS_SCRIPTMESSAGE"))
-{
-// --- SCRIPT MANAGER
+if (!defined("IPS_SCRIPTMESSAGE")) {
+    // --- SCRIPT MANAGER
     define('IPS_SCRIPTMESSAGE', IPS_BASE + 700);           //Script Manager Message
     define('SM_CREATE', IPS_SCRIPTMESSAGE + 1);            //On Script Create
     define('SM_DELETE', IPS_SCRIPTMESSAGE + 2);            //On Script Delete
     define('SM_CHANGEFILE', IPS_SCRIPTMESSAGE + 3);        //On Script File changed
     define('SM_BROKEN', IPS_SCRIPTMESSAGE + 4);            //Script Broken Status changed
 }
-if (!defined("IPS_EVENTMESSAGE"))
-{
-// --- EVENT MANAGER
+if (!defined("IPS_EVENTMESSAGE")) {
+    // --- EVENT MANAGER
     define('IPS_EVENTMESSAGE', IPS_BASE + 800);             //Event Scripter Message
     define('EM_CREATE', IPS_EVENTMESSAGE + 1);             //On Event Create
     define('EM_DELETE', IPS_EVENTMESSAGE + 2);             //On Event Delete
@@ -120,9 +111,8 @@ if (!defined("IPS_EVENTMESSAGE"))
     define('EM_CHANGECYCLICTIMEFROM', IPS_EVENTMESSAGE + 13);
     define('EM_CHANGECYCLICTIMETO', IPS_EVENTMESSAGE + 14);
 }
-if (!defined("IPS_MEDIAMESSAGE"))
-{
-// --- MEDIA MANAGER
+if (!defined("IPS_MEDIAMESSAGE")) {
+    // --- MEDIA MANAGER
     define('IPS_MEDIAMESSAGE', IPS_BASE + 900);           //Media Manager Message
     define('MM_CREATE', IPS_MEDIAMESSAGE + 1);             //On Media Create
     define('MM_DELETE', IPS_MEDIAMESSAGE + 2);             //On Media Delete
@@ -130,32 +120,28 @@ if (!defined("IPS_MEDIAMESSAGE"))
     define('MM_AVAILABLE', IPS_MEDIAMESSAGE + 4);          //Media Available Status changed
     define('MM_UPDATE', IPS_MEDIAMESSAGE + 5);
 }
-if (!defined("IPS_LINKMESSAGE"))
-{
-// --- LINK MANAGER
+if (!defined("IPS_LINKMESSAGE")) {
+    // --- LINK MANAGER
     define('IPS_LINKMESSAGE', IPS_BASE + 1000);           //Link Manager Message
     define('LM_CREATE', IPS_LINKMESSAGE + 1);             //On Link Create
     define('LM_DELETE', IPS_LINKMESSAGE + 2);             //On Link Delete
     define('LM_CHANGETARGET', IPS_LINKMESSAGE + 3);       //On Link TargetID change
 }
-if (!defined("IPS_FLOWMESSAGE"))
-{
-// --- DATA HANDLER
+if (!defined("IPS_FLOWMESSAGE")) {
+    // --- DATA HANDLER
     define('IPS_FLOWMESSAGE', IPS_BASE + 1100);             //Data Handler Message
     define('FM_CONNECT', IPS_FLOWMESSAGE + 1);             //On Instance Connect
     define('FM_DISCONNECT', IPS_FLOWMESSAGE + 2);          //On Instance Disconnect
 }
-if (!defined("IPS_ENGINEMESSAGE"))
-{
-// --- SCRIPT ENGINE
+if (!defined("IPS_ENGINEMESSAGE")) {
+    // --- SCRIPT ENGINE
     define('IPS_ENGINEMESSAGE', IPS_BASE + 1200);           //Script Engine Message
     define('SE_UPDATE', IPS_ENGINEMESSAGE + 1);             //On Library Refresh
     define('SE_EXECUTE', IPS_ENGINEMESSAGE + 2);            //On Script Finished execution
     define('SE_RUNNING', IPS_ENGINEMESSAGE + 3);            //On Script Started execution
 }
-if (!defined("IPS_PROFILEMESSAGE"))
-{
-// --- PROFILE POOL
+if (!defined("IPS_PROFILEMESSAGE")) {
+    // --- PROFILE POOL
     define('IPS_PROFILEMESSAGE', IPS_BASE + 1300);
     define('PM_CREATE', IPS_PROFILEMESSAGE + 1);
     define('PM_DELETE', IPS_PROFILEMESSAGE + 2);
@@ -167,9 +153,8 @@ if (!defined("IPS_PROFILEMESSAGE"))
     define('PM_ASSOCIATIONREMOVED', IPS_PROFILEMESSAGE + 8);
     define('PM_ASSOCIATIONCHANGED', IPS_PROFILEMESSAGE + 9);
 }
-if (!defined("IPS_TIMERMESSAGE"))
-{
-// --- TIMER POOL
+if (!defined("IPS_TIMERMESSAGE")) {
+    // --- TIMER POOL
     define('IPS_TIMERMESSAGE', IPS_BASE + 1400);            //Timer Pool Message
     define('TM_REGISTER', IPS_TIMERMESSAGE + 1);
     define('TM_UNREGISTER', IPS_TIMERMESSAGE + 2);
@@ -178,8 +163,7 @@ if (!defined("IPS_TIMERMESSAGE"))
     define('TM_RUNNING', IPS_TIMERMESSAGE + 5);
 }
 
-if (!defined("IS_ACTIVE")) //Nur wenn Konstanten noch nicht bekannt sind.
-{
+if (!defined("IS_ACTIVE")) { //Nur wenn Konstanten noch nicht bekannt sind.
 // --- STATUS CODES
     define('IS_SBASE', 100);
     define('IS_CREATING', IS_SBASE + 1); //module is being created
@@ -191,8 +175,7 @@ if (!defined("IS_ACTIVE")) //Nur wenn Konstanten noch nicht bekannt sind.
     define('IS_NOTCREATED', IS_EBASE + 1); //instance could not be created
 }
 
-if (!defined("vtBoolean")) //Nur wenn Konstanten noch nicht bekannt sind.
-{
+if (!defined("vtBoolean")) { //Nur wenn Konstanten noch nicht bekannt sind.
     define('vtBoolean', 0);
     define('vtInteger', 1);
     define('vtFloat', 2);
@@ -201,7 +184,6 @@ if (!defined("vtBoolean")) //Nur wenn Konstanten noch nicht bekannt sind.
 
 class Plugwise_NetworkState
 {
-
     const StickNotFound = 0;
     const CirclePlusMissing = 1;
     const CirclePlusOffline = 2;
@@ -211,10 +193,9 @@ class Plugwise_NetworkState
     const Online = 7;
     const OnlineJoining = 8;
 
-    static function ToString($NetworkState)
+    public static function ToString($NetworkState)
     {
-        switch ($NetworkState)
-        {
+        switch ($NetworkState) {
             case self::StickNotFound:
                 return 'Stick not found';
             case self::CirclePlusMissing:
@@ -235,24 +216,21 @@ class Plugwise_NetworkState
                 return $NetworkState;
         }
     }
-
 }
 
 class Plugwise_Switch
 {
-
     const ON = "01";
     const OFF = "00";
 
-    static $Hertz = array(
+    public static $Hertz = array(
         133 => 50,
         197 => 60
     );
 
-    static function ToString($Plugwise_Switch)
+    public static function ToString($Plugwise_Switch)
     {
-        switch ($Plugwise_Switch)
-        {
+        switch ($Plugwise_Switch) {
             case self::ON:
                 return 'ON';
             case self::OFF:
@@ -261,12 +239,10 @@ class Plugwise_Switch
                 return '????????????';
         }
     }
-
 }
 
 class Plugwise_AckMsg
 {
-
     const ACK = "00C1";
     const NACK = "00C2";
     const UNKNOW = "00C3";          //	"Command not allowed"
@@ -278,7 +254,7 @@ class Plugwise_AckMsg
     //                 "00E7";      //	"Set RTC-Data NACK"
     const OUTOFRANGE = "00E1";
     const DISCONNECTED = "00F2";    //	"Reply role changed OK"
-    //                  "00F3";     //	"Reply role changed NOK"	 	
+    //                  "00F3";     //	"Reply role changed NOK"
     const CONNECTED = "00F4";       //	"Set handle on"
     //                  "00F5";     //	"Set handle off"
     //                  "00F9";     //	"Clear group MAC-Table"
@@ -330,10 +306,9 @@ class Plugwise_AckMsg
     //  	 	"00DC";     //	"Syncronize NC ACK"
     //  	 	"00D6";     //	"Timeout Powermeter Logdata"
 
-    static function ToString($Plugwise_AckMsg)
+    public static function ToString($Plugwise_AckMsg)
     {
-        switch ($Plugwise_AckMsg)
-        {
+        switch ($Plugwise_AckMsg) {
             case self::ACK:
                 return 'ACK';
             case self::NACK:
@@ -360,7 +335,6 @@ class Plugwise_AckMsg
                 return $Plugwise_AckMsg . ' = ????????????';
         }
     }
-
 }
 
 class Plugwise_Command
@@ -567,10 +541,9 @@ class Plugwise_Command
      */
     const SensInfoResponse = '0105';
 
-    static function ToString($Plugwise_Command)
+    public static function ToString($Plugwise_Command)
     {
-        switch ($Plugwise_Command)
-        {
+        switch ($Plugwise_Command) {
             case self::AckMsgResponse:
                 return 'AckMsgResponse';
             case self::QueryCirclePlusRequest:
@@ -667,19 +640,17 @@ class Plugwise_Command
                 return $Plugwise_Command . ' ????';
         }
     }
-
 }
 
 class Plugwise_Typ
 {
-
     const unknow = 0;
     const Cricle = 1;
     const Switche = 2; //No typo, switch is reserved by PHP ;)
     const Sense = 3;
     const Scan = 4;
 
-    static $Type = array(
+    public static $Type = array(
         0 => self::Cricle,
         '00' => self::Cricle,
         '01' => self::Cricle,
@@ -690,10 +661,9 @@ class Plugwise_Typ
         '06' => self::Scan,
     );
 
-    static function ToString($Plugwise_Type)
+    public static function ToString($Plugwise_Type)
     {
-        switch ($Plugwise_Type)
-        {
+        switch ($Plugwise_Type) {
             case self::Cricle:
                 return 'Circle';
             case self::Switche:
@@ -706,19 +676,18 @@ class Plugwise_Typ
                 return $Plugwise_Type;
         }
     }
-
 }
 
 /**
  * Enthält einen Plugwise Datenpaket.
- * 
+ *
  * @package       Plugwise
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2016 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  * @version       0.1
  * @example <b>Ohne</b>
- *  
+ *
  *
  * @property string $Command Kommando
  * @property int $FrameID Frame-ID
@@ -728,7 +697,6 @@ class Plugwise_Typ
  */
 class Plugwise_Frame
 {
-
     const CirclePlusMac = 'FFFFFFFF';
 
     /**
@@ -739,7 +707,7 @@ class Plugwise_Frame
     public $Command = "";
 
     /**
-     * Frame-ID 
+     * Frame-ID
      * @access private
      * @var int
      */
@@ -768,7 +736,7 @@ class Plugwise_Frame
 
     /**
      * Erstellt ein Plugwise_Data Objekt.
-     * 
+     *
      * @access public
      * @param string $Command [optional] Kommando
      * @param string $Data [optional] Payload
@@ -777,48 +745,51 @@ class Plugwise_Frame
      */
     public function __construct($Command = null, $NodeMAC = null, $Data = null)
     {
-        if (is_object($Command))
-        {
+        if (is_object($Command)) {
             $this->Command = utf8_decode($Command->Command);
 
             $NodeMAC2 = utf8_decode($Command->NodeMAC);
-            if ($NodeMAC2 == Plugwise_Frame::CirclePlusMac)
+            if ($NodeMAC2 == Plugwise_Frame::CirclePlusMac) {
                 $this->NodeMAC = $NodeMAC;
-            else
+            } else {
                 $this->NodeMAC = $NodeMAC2;
+            }
             $this->Data = utf8_decode($Command->Data);
-        }
-        else
-        {
-            if (!is_null($Command))
+        } else {
+            if (!is_null($Command)) {
                 $this->Command = strtoupper($Command);
-            if (!is_null($NodeMAC))
+            }
+            if (!is_null($NodeMAC)) {
                 $this->NodeMAC = strtoupper($NodeMAC);
-            if (!is_null($Data))
+            }
+            if (!is_null($Data)) {
                 $this->Data = strtoupper($Data);
+            }
         }
     }
 
-    static function Hex2Float($HexString)
+    public static function Hex2Float($HexString)
     {
         $intval = hexdec($HexString);
         $bits = pack("L", $intval);
         return unpack("f", $bits)[1];
     }
 
-    static function Timestamp2Hex($TimeStamp)
+    public static function Timestamp2Hex($TimeStamp)
     {
         $date = sprintf('%02X%02X%02X', gmdate("y", $TimeStamp), gmdate("m", $TimeStamp), ((gmdate("j", $TimeStamp) - 1) * 24 + gmdate("G", $TimeStamp)) * 60 + gmdate("i", $TimeStamp));
         $time = sprintf('%02X%02X%02X%02X', gmdate("G", $TimeStamp), gmdate("i", $TimeStamp), gmdate("s", $TimeStamp), gmdate("N", $TimeStamp));
         return $date . 'FFFFFFFF' . $time;
     }
 
-    static function Hex2Timestamp($TimeString)
+    public static function Hex2Timestamp($TimeString)
     {
-        if ($TimeString == 'FFFFFFFF')
+        if ($TimeString == 'FFFFFFFF') {
             return;
-        if (substr($TimeString, 0, 4) == '0001')
+        }
+        if (substr($TimeString, 0, 4) == '0001') {
             return;
+        }
 
         $circle_date = sprintf("%04d-%02d-%02d", hexdec(substr($TimeString, 0, 2)) + 2000, hexdec(substr($TimeString, 2, 2)), (hexdec(substr($TimeString, 4, 4)) / 60 / 24) + 1);
         $time = hexdec(substr($TimeString, 4, 4)) % (60 * 24);
@@ -828,24 +799,23 @@ class Plugwise_Frame
         return strtotime($circle_date . $circle_time . ' UTC');
     }
 
-    static function pulsesCorrection($pulses, $timespan, $offRuis, $offTot, $gainA, $gainB)
+    public static function pulsesCorrection($pulses, $timespan, $offRuis, $offTot, $gainA, $gainB)
     {
-        if ($pulses == 0)
+        if ($pulses == 0) {
             $out = 0;
-        else
-        {
+        } else {
             $value = $pulses / $timespan;
             $out = 1 * (((pow($value + $offRuis, 2.0) * $gainB) + (($value + $offRuis) * $gainA)) + $offTot);
         }
         return $out;
     }
 
-    static function pulsesToKwh($pulses)
+    public static function pulsesToKwh($pulses)
     {
         return (($pulses / 3600) / 468.9385193) * 3600;
     }
 
-    static function pulsesToWatt($pulses)
+    public static function pulsesToWatt($pulses)
     {
         return ($pulses / 468.9385193) * 1000;
         //return (number_format($result, 3, ',', ''));
@@ -854,7 +824,7 @@ class Plugwise_Frame
     /**
      * Zerlegt den String aus $Data in ein Plugwise_Data-Objekt.
      * Wird beim Datenempfang vom Stick genutzt.
-     * 
+     *
      * @access public
      * @param string $Data Payload vom Stick
      */
@@ -863,12 +833,11 @@ class Plugwise_Frame
         $this->Command = strtoupper(substr($Data, 0, 4));
         $this->FrameID = hexdec(substr($Data, 4, 4));
 
-        switch ($this->Command)
-        {
+        switch ($this->Command) {
 
             case Plugwise_Command::AdvertiseNodeResponse:
             //   000D6F0000B1A240
-            //   Device MAC      
+            //   Device MAC
             case Plugwise_Command::PingResponse:
             //   000D6F0000B1B64B | xx  | xx   | xxxx
             //   Circle+          | in? | out? | Time?
@@ -892,26 +861,26 @@ class Plugwise_Frame
             //   000D6F0000B1B64B | 000D6F0000B1B967 | 00
             //   Circle+ MAC      | Device MAC       | Index
             case Plugwise_Command::InfoResponse:
-            //                 16|              24|        32|   34|  36|              48|              56| 58 
-            //                  0|               8|        16|   18|  20|              32|              40| 42 
+            //                 16|              24|        32|   34|  36|              48|              56| 58
+            //                  0|               8|        16|   18|  20|              32|              40| 42
             //                     11   0A   5855   000515C0   01    85   0000 0440 0107   4E0844C2         02
             //                     11   0A   5807   000515B8   00    85   0000 0440 0107   4E0844C2         02
             // |000D6F0000994CAA | 0F | 08 | 595B | 00044480 | 80  | 18 | 5653.9070.1402 | 4CCEC22A       | 02
             // |  Circle+ MAC    |year|mon |min   | curr_log |state| HZ | HW1 .HW2 .HW3  | Firmware d/m/y |Typ
 //             $year=2000+intval(hexdec(substr($msg, 16, 2)));
 //            $month=intval(hexdec(substr($msg, 18, 2)));
-//            
+//
 //            $full_minutes=intval(hexdec(substr($msg, 20, 4)));
 //            $str_date=$year."-".$month."-01 00:00";
-//            
+//
 //            try {
-//                $date_obj=New DateTime($str_date);    
-//            } 
+//                $date_obj=New DateTime($str_date);
+//            }
 //            catch (Exception $ex) {
 //                $str_date="2010-01-01 00:00";
 //                $date_obj=New DateTime($str_date);
 //            }
-//            
+//
 //            $currentlog=(intval(hexdec(substr($msg, 24, 8)))- 278528) / 32;
 //            $currentstate=substr($msg, 32, 2);
 //            $hertz=substr($msg, 34, 2);
@@ -919,8 +888,8 @@ class Plugwise_Frame
 //            $firmware=date('d/m/Y', intval(hexdec(substr($msg, 48, 8))));
 //            $Typ = substr($msg,60,2);
             case Plugwise_Command::CalibrationResponse:
-            //                   0|         8|        16|        24|       32|  
-            //                      3F7F7F74   B5965F1F   BBBAB054   00000000        
+            //                   0|         8|        16|        24|       32|
+            //                      3F7F7F74   B5965F1F   BBBAB054   00000000
             //   000D6F0000B1B64B | 3F7FA7CC | 3F7FA7CC | 3CD87C2F | 00000000
             //   Circle+ MAC      | gainA    | gainB    | offtot   | offruis
 //            $macaddress=substr($msg,0,16);
@@ -933,14 +902,14 @@ class Plugwise_Frame
 //            $this->_devices[$macaddress]["offTot"]=$offTot;
 //            $this->_devices[$macaddress]["offRuis"]=$offRuis;
             case Plugwise_Command::DateTimeInfoResponse:
-            //   000D6F0000B1B64B | 20|43|12 | 06 | 12|05|11    
-            //   Device? MAC      | s |i |h  |dow | d |m |y 
+            //   000D6F0000B1B64B | 20|43|12 | 06 | 12|05|11
+            //   Device? MAC      | s |i |h  |dow | d |m |y
             case Plugwise_Command::SendScheduleResponse:
             //   000D6F0000B1A240 | xx
             //   Device MAC       | ???
             case Plugwise_Command::ClockInfoResponse:
             //   000D6F0000B1B64B | 0C | 1F | 07 | 06 | 01 | 457A
-            //   Circle+          | H  | M  | S  |DoW | ?? | scheduleCRC 
+            //   Circle+          | H  | M  | S  |DoW | ?? | scheduleCRC
 //            $macaddress = substr($msg,0,16);
 //            $hours = intval(hexdec(substr($msg, 16, 2)));
 //            $minutes = intval(hexdec(substr($msg, 18, 2)));
@@ -949,7 +918,7 @@ class Plugwise_Frame
 //            $this->_devices[$macaddress]["clock_h"]=$hours;
 //            $this->_devices[$macaddress]["clock_m"]=$minutes;
 //            $this->_devices[$macaddress]["clock_s"]=$secondes;
-//            $this->_devices[$macaddress]["clock_d"]=$day_of_week;                
+//            $this->_devices[$macaddress]["clock_d"]=$day_of_week;
             case Plugwise_Command::PowerBufferResponse:
             //                  16|              24|        32|                 48|                 64|                 96|
             //   000D6F0000B1A240 | 0B | 04 | 7F80 | 00000A87 |0B|04|7FBC|00000ACF|0B|04|7FF8|00000AAC|FF|FF|FFFF|FFFFFFFF|00044460
@@ -968,7 +937,7 @@ class Plugwise_Frame
             //   Device MAC       | Feature
             case Plugwise_Command::AckAssociationResponse:
             //   000D6F0000B1A240
-            //   Device MAC      
+            //   Device MAC
             case Plugwise_Command::SensInfoResponse:
                 //   000D6F0000B1A240 | 01234 | 5678
                 //   Device MAC       | hum   | temp
@@ -978,14 +947,14 @@ class Plugwise_Frame
                 $this->NodeMAC = strtoupper(substr($Data, 8, 16));
                 $this->Data = strtoupper(substr($Data, 24, -4));
                 break;
-//-------------------------------------------only Data without MAC            
+//-------------------------------------------only Data without MAC
             case Plugwise_Command::QueryCirclePlusResponse:
             //     XX    | 000D6F0000B1B64B | 440D6F0000B1B64B | 440D6F0000B1B64B  | 440D6F0000B1B64B | 1234 | xx
             //     0F    | FFFFFFFFFFFFFFFF | 6B0D6F0002588136 | FFFFFFFFFFFFFFFF  | 6B0D6F0002588136 | 2F6B | 01
             //   channel |  Circle+ MAC     |   PANID-long     | unique_network_id | new_node_mac_id | PANID | ??
             case Plugwise_Command::ConnectCirclePlusResponse:
             //       XX  | XX
-            // exsisting | allowed 
+            // exsisting | allowed
             case Plugwise_Command::QueryCirclePlusResponseEnd:
             //   xxxx
             //   status
@@ -1001,14 +970,14 @@ class Plugwise_Frame
 
     /**
      * Erzeugt einen, mit der GUDI versehenen, JSON-kodierten String zum versand an den Splitter.
-     * 
+     *
      * @access public
      * @param string $GUID Die Interface-GUID welche mit in den JSON-String integriert werden soll.
      * @return string JSON-kodierter String für IPS-Dateninterface.
      */
     public function ToJSONStringForSplitter()
     {
-        return json_encode(Array("DataID" => '{E7DA1628-D62B-47BF-A834-E5556DD110E7}',
+        return json_encode(array("DataID" => '{E7DA1628-D62B-47BF-A834-E5556DD110E7}',
             "Command" => utf8_encode($this->Command),
             "NodeMAC" => utf8_encode($this->NodeMAC),
             "Data" => utf8_encode($this->Data)
@@ -1017,7 +986,7 @@ class Plugwise_Frame
 
     public function ToJSONStringForDevices()
     {
-        return json_encode(Array("DataID" => '{CD59EBB4-B313-4ACA-A503-E646CFE0B6FD}',
+        return json_encode(array("DataID" => '{CD59EBB4-B313-4ACA-A503-E646CFE0B6FD}',
             "Command" => utf8_encode($this->Command),
             "NodeMAC" => utf8_encode($this->NodeMAC),
             "Data" => utf8_encode($this->Data)
@@ -1036,13 +1005,13 @@ class Plugwise_Frame
     private function CalculateChecksum()
     {
         $buffer = $this->Command;
-        if ($this->FrameID != -1)
+        if ($this->FrameID != -1) {
             $buffer .= sprintf("%04X", $this->FrameID);
+        }
         $buffer .= $this->NodeMAC . $this->Data;
         $crc16c = 0x0000;  // the crc initial value laut www.maartendamen.com
         $buffer_length = strlen($buffer);
-        for ($i = 0; $i < $buffer_length; $i++)
-        {
+        for ($i = 0; $i < $buffer_length; $i++) {
             $ch = ord($buffer[$i]);
             $crc16c = $this->update_common_crc16c($ch, $crc16c);
         }
@@ -1050,8 +1019,8 @@ class Plugwise_Frame
         return sprintf("%04X", $crc16c); //strtoupper(str_pad(dechex($crc16c), 4, '0', STR_PAD_LEFT)); //mit nullen auffüllen
     }
 
-// this function is used to calculate the (common) crc16c byte by byte
-// $ch is the next byte and $crc16c is the result from the last call, or 0xffff initially
+    // this function is used to calculate the (common) crc16c byte by byte
+    // $ch is the next byte and $crc16c is the result from the last call, or 0xffff initially
     private function update_common_crc16c($ch, $crc16c)
     {
         $crc16c_polynomial = 0x11021;   //auch laut maartendamen
@@ -1060,19 +1029,14 @@ class Plugwise_Frame
         // Why are they shifting this byte left by 8 bits??
         // How do the low bits of the poly ever see it?
         $ch <<= 8;
-        for ($i = 0; $i < 8; $i++)
-        {
-            if (($crc16c ^ $ch) & 0x8000)
-            {
+        for ($i = 0; $i < 8; $i++) {
+            if (($crc16c ^ $ch) & 0x8000) {
                 $xor_flag = true;
-            }
-            else
-            {
+            } else {
                 $xor_flag = false;
             }
             $crc16c = $crc16c << 1;
-            if ($xor_flag)
-            {
+            if ($xor_flag) {
                 $crc16c = $crc16c ^ $crc16c_polynomial;
             }
             $ch = $ch << 1;
@@ -1081,7 +1045,6 @@ class Plugwise_Frame
         $crc16c = $crc16c & 0x0000ffff;
         return $crc16c;
     }
-
 }
 
 /**
@@ -1102,28 +1065,24 @@ trait VariableProfile
      */
     protected function RegisterProfileIntegerEx($Name, $Icon, $Prefix, $Suffix, $Associations)
     {
-        if (sizeof($Associations) === 0)
-        {
+        if (sizeof($Associations) === 0) {
             $MinValue = 0;
             $MaxValue = 0;
-        }
-        else
-        {
+        } else {
             $MinValue = $Associations[0][0];
             $MaxValue = $Associations[sizeof($Associations) - 1][0];
         }
         $this->RegisterProfileInteger($Name, $Icon, $Prefix, $Suffix, $MinValue, $MaxValue, 0);
         $old = IPS_GetVariableProfile($Name)["Associations"];
         $OldValues = array_column($old, 'Value');
-        foreach ($Associations as $Association)
-        {
+        foreach ($Associations as $Association) {
             IPS_SetVariableProfileAssociation($Name, $Association[0], $Association[1], $Association[2], $Association[3]);
             $OldKey = array_search($Association[0], $OldValues);
-            if (!($OldKey === false ))
+            if (!($OldKey === false)) {
                 unset($OldValues[$OldKey]);
+            }
         }
-        foreach ($OldValues as $OldKey => $OldValue)
-        {
+        foreach ($OldValues as $OldKey => $OldValue) {
             IPS_SetVariableProfileAssociation($Name, $OldValue, '', '', 0);
         }
     }
@@ -1177,23 +1136,21 @@ trait VariableProfile
      */
     protected function RegisterProfile($VarTyp, $Name, $Icon, $Prefix, $Suffix, $MinValue, $MaxValue, $StepSize, $Digits = 0)
     {
-
-        if (!IPS_VariableProfileExists($Name))
-        {
+        if (!IPS_VariableProfileExists($Name)) {
             IPS_CreateVariableProfile($Name, $VarTyp);
-        }
-        else
-        {
+        } else {
             $profile = IPS_GetVariableProfile($Name);
-            if ($profile['ProfileType'] != $VarTyp)
+            if ($profile['ProfileType'] != $VarTyp) {
                 throw new Exception("Variable profile type does not match for profile " . $Name, E_USER_WARNING);
+            }
         }
 
         IPS_SetVariableProfileIcon($Name, $Icon);
         IPS_SetVariableProfileText($Name, $Prefix, $Suffix);
         IPS_SetVariableProfileValues($Name, $MinValue, $MaxValue, $StepSize);
-        if ($VarTyp == vtFloat)
+        if ($VarTyp == vtFloat) {
             IPS_SetVariableProfileDigits($Name, $Digits);
+        }
     }
 
     /**
@@ -1202,25 +1159,27 @@ trait VariableProfile
      */
     protected function UnregisterProfil(string $Name)
     {
-        if (!IPS_VariableProfileExists($Name))
+        if (!IPS_VariableProfileExists($Name)) {
             return;
-        foreach (IPS_GetVariableList() as $VarID)
-        {
-            if (IPS_GetParent($VarID) == $this->InstanceID)
+        }
+        foreach (IPS_GetVariableList() as $VarID) {
+            if (IPS_GetParent($VarID) == $this->InstanceID) {
                 continue;
-            if (IPS_GetVariable($VarID)['VariableCustomProfile'] == $Name)
+            }
+            if (IPS_GetVariable($VarID)['VariableCustomProfile'] == $Name) {
                 return;
-            if (IPS_GetVariable($VarID)['VariableProfile'] == $Name)
+            }
+            if (IPS_GetVariable($VarID)['VariableProfile'] == $Name) {
                 return;
+            }
         }
         IPS_DeleteVariableProfile($Name);
     }
-
 }
 
 /**
  * Trait für den Datenaustausch zwischen Splitter und Device.
- * 
+ *
  * @trait
  * @package       Plugwise
  * @author        Michael Tröger <micha@nall-chan.net>
@@ -1231,12 +1190,11 @@ trait VariableProfile
  */
 trait Plugwise
 {
-    
 }
 
 /**
  * DebugHelper ergänzt SendDebug um die Möglichkeit Array und Objekte auszugeben.
- * 
+ *
  */
 trait DebugHelper
 {
@@ -1251,52 +1209,44 @@ trait DebugHelper
      */
     protected function SendDebug($Message, $Data, $Format)
     {
-        if (is_a($Data, 'Plugwise_Frame'))
-        {
+        if (is_a($Data, 'Plugwise_Frame')) {
             /* @var $Data Plugwise_Frame */
             $this->SendDebug($Message . ":Command", Plugwise_Command::ToString($Data->Command), 0);
-            if ($Data->FrameID !== -1)
+            if ($Data->FrameID !== -1) {
                 $this->SendDebug($Message . ":FrameID", $Data->FrameID, 0);
-            if ($Data->NodeMAC !== "")
+            }
+            if ($Data->NodeMAC !== "") {
                 $this->SendDebug($Message . ":NodeMAC", $Data->NodeMAC, 0);
-            if ($Data->Data !== "")
+            }
+            if ($Data->Data !== "") {
                 $this->SendDebug($Message . ":Payload", $Data->Data, 0);
-            if ($Data->Checksum !== null)
+            }
+            if ($Data->Checksum !== null) {
                 $this->SendDebug($Message . ":Checksum", $Data->Checksum, 0);
-        }
-        else if (is_a($Data, 'Plugwise_Data'))
-        {
+            }
+        } elseif (is_a($Data, 'Plugwise_Data')) {
             /* @var $Data Plugwise_Data */
             $this->SendDebug($Message . ":Command", Plugwise_Command::ToString($Data->Command), 0);
-            if ($Data->NodeMAC !== "")
+            if ($Data->NodeMAC !== "") {
                 $this->SendDebug($Message . ":NodeMAC", $Data->NodeMAC, 0);
-            if ($Data->Data !== "")
+            }
+            if ($Data->Data !== "") {
                 $this->SendDebug($Message . ":Payload", $Data->Data, 0);
-        }
-        else if (is_array($Data))
-        {
-            foreach ($Data as $Key => $DebugData)
-            {
+            }
+        } elseif (is_array($Data)) {
+            foreach ($Data as $Key => $DebugData) {
                 $this->SendDebug($Message . ":" . $Key, $DebugData, 0);
             }
-        }
-        else if (is_object($Data))
-        {
-            foreach ($Data as $Key => $DebugData)
-            {
+        } elseif (is_object($Data)) {
+            foreach ($Data as $Key => $DebugData) {
                 $this->SendDebug($Message . "." . $Key, $DebugData, 0);
             }
-        }
-        else if (is_bool($Data))
-        {
+        } elseif (is_bool($Data)) {
             parent::SendDebug($Message, ($Data ? 'TRUE' : 'FALSE'), 0);
-        }
-        else
-        {
+        } else {
             parent::SendDebug($Message, $Data, $Format);
         }
     }
-
 }
 
 /**
@@ -1314,22 +1264,23 @@ trait InstanceStatus
     protected function MessageSink($TimeStamp, $SenderID, $Message, $Data)
     {
         $this->IOChangeState(IS_INACTIVE);
-        switch ($Message)
-        {
+        switch ($Message) {
             case FM_CONNECT:
                 $this->RegisterParent();
-                if ($this->HasActiveParent())
+                if ($this->HasActiveParent()) {
                     $this->IOChangeState(IS_ACTIVE);
-                else
+                } else {
                     $this->IOChangeState(IS_INACTIVE);
+                }
                 break;
             case FM_DISCONNECT:
                 $this->RegisterParent();
                 $this->IOChangeState(IS_INACTIVE);
                 break;
             case IM_CHANGESTATUS:
-                if ($SenderID == $this->ParentID)
+                if ($SenderID == $this->ParentID) {
                     $this->IOChangeState($Data[0]);
+                }
                 break;
         }
     }
@@ -1337,7 +1288,7 @@ trait InstanceStatus
     /**
      * Ermittelt den Parent und verwaltet die Einträge des Parent im MessageSink
      * Ermöglicht es das Statusänderungen des Parent empfangen werden können.
-     * 
+     *
      * @access protected
      * @return int ID des Parent.
      */
@@ -1345,14 +1296,15 @@ trait InstanceStatus
     {
         $OldParentId = $this->ParentID;
         $ParentId = @IPS_GetInstance($this->InstanceID)['ConnectionID'];
-        if ($ParentId <> $OldParentId)
-        {
-            if ($OldParentId > 0)
+        if ($ParentId <> $OldParentId) {
+            if ($OldParentId > 0) {
                 $this->UnregisterMessage($OldParentId, IM_CHANGESTATUS);
-            if ($ParentId > 0)
+            }
+            if ($ParentId > 0) {
                 $this->RegisterMessage($ParentId, IM_CHANGESTATUS);
-            else
+            } else {
                 $ParentId = 0;
+            }
             $this->ParentID = $ParentId;
         }
         return $ParentId;
@@ -1360,22 +1312,21 @@ trait InstanceStatus
 
     /**
      * Prüft den Parent auf vorhandensein und Status.
-     * 
+     *
      * @access protected
      * @return bool True wenn Parent vorhanden und in Status 102, sonst false.
      */
     protected function HasActiveParent()
     {
         $instance = IPS_GetInstance($this->InstanceID);
-        if ($instance['ConnectionID'] > 0)
-        {
+        if ($instance['ConnectionID'] > 0) {
             $parent = IPS_GetInstance($instance['ConnectionID']);
-            if ($parent['InstanceStatus'] == 102)
+            if ($parent['InstanceStatus'] == 102) {
                 return true;
+            }
         }
         return false;
     }
-
 }
 
 /**
@@ -1386,18 +1337,16 @@ trait BufferHelper
 
     /**
      * Wert einer Eigenschaft aus den InstanceBuffer lesen.
-     * 
+     *
      * @access public
      * @param string $name Propertyname
      * @return mixed Value of Name
      */
     public function __get($name)
     {
-        if (strpos($name, 'Multi_') === 0)
-        {
+        if (strpos($name, 'Multi_') === 0) {
             $Lines = "";
-            foreach ($this->{"BufferListe_" . $name} as $BufferIndex)
-            {
+            foreach ($this->{"BufferListe_" . $name} as $BufferIndex) {
                 $Lines .= $this->{'Part_' . $name . $BufferIndex};
             }
             return unserialize($Lines);
@@ -1407,7 +1356,7 @@ trait BufferHelper
 
     /**
      * Wert einer Eigenschaft in den InstanceBuffer schreiben.
-     * 
+     *
      * @access public
      * @param string $name Propertyname
      * @param mixed Value of Name
@@ -1415,28 +1364,25 @@ trait BufferHelper
     public function __set($name, $value)
     {
         $Data = serialize($value);
-        if (strpos($name, 'Multi_') === 0)
-        {
+        if (strpos($name, 'Multi_') === 0) {
             $OldBuffers = $this->{"BufferListe_" . $name};
-            if ($OldBuffers == false)
+            if ($OldBuffers == false) {
                 $OldBuffers = array();
+            }
             $Lines = str_split($Data, 8000);
-            foreach ($Lines as $BufferIndex => $BufferLine)
-            {
+            foreach ($Lines as $BufferIndex => $BufferLine) {
                 $this->{'Part_' . $name . $BufferIndex} = $BufferLine;
             }
             $NewBuffers = array_keys($Lines);
             $this->{"BufferListe_" . $name} = $NewBuffers;
             $DelBuffers = array_diff_key($OldBuffers, $NewBuffers);
-            foreach ($DelBuffers as $DelBuffer)
-            {
+            foreach ($DelBuffers as $DelBuffer) {
                 $this->{'Part_' . $name . $DelBuffer} = "";
             }
             return;
         }
         $this->SetBuffer($name, $Data);
     }
-
 }
 
 /**
@@ -1452,14 +1398,10 @@ trait Semaphore
      */
     private function lock($ident)
     {
-        for ($i = 0; $i < 100; $i++)
-        {
-            if (IPS_SemaphoreEnter(__CLASS__ . '.' . (string) $this->InstanceID . (string) $ident, 1))
-            {
+        for ($i = 0; $i < 100; $i++) {
+            if (IPS_SemaphoreEnter(__CLASS__ . '.' . (string) $this->InstanceID . (string) $ident, 1)) {
                 return true;
-            }
-            else
-            {
+            } else {
                 IPS_Sleep(mt_rand(1, 5));
             }
         }
@@ -1474,7 +1416,6 @@ trait Semaphore
     {
         IPS_SemaphoreLeave(__CLASS__ . '.' . (string) $this->InstanceID . (string) $ident);
     }
-
 }
 
 /**
@@ -1494,8 +1435,9 @@ trait VariableHelper
     protected function SetValueBoolean($Ident, $Value, $Profile = "")
     {
         $id = @$this->GetIDForIdent($Ident);
-        if ($id == false)
+        if ($id == false) {
             $id = $this->RegisterVariableBoolean(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
+        }
         SetValueBoolean($id, $Value);
         return true;
     }
@@ -1511,8 +1453,9 @@ trait VariableHelper
     protected function SetValueInteger($Ident, $Value, $Profile = "")
     {
         $id = @$this->GetIDForIdent($Ident);
-        if ($id == false)
+        if ($id == false) {
             $id = $this->RegisterVariableInteger(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
+        }
         SetValueInteger($id, $Value);
         return true;
     }
@@ -1528,8 +1471,9 @@ trait VariableHelper
     protected function SetValueFloat($Ident, $Value, $Profile = "")
     {
         $id = @$this->GetIDForIdent($Ident);
-        if ($id == false)
+        if ($id == false) {
             $id = $this->RegisterVariableFloat(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
+        }
         SetValueFloat($id, $Value);
         return true;
     }
@@ -1545,12 +1489,12 @@ trait VariableHelper
     protected function SetValueString($Ident, $Value, $Profile = "")
     {
         $id = @$this->GetIDForIdent($Ident);
-        if ($id == false)
+        if ($id == false) {
             $id = $this->RegisterVariableString(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
+        }
         SetValueString($id, $Value);
         return true;
     }
-
 }
 
 /** @} */

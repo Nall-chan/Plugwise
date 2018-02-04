@@ -1,4 +1,4 @@
-<?
+<?php
 
 require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
 
@@ -27,7 +27,6 @@ require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
  */
 class PlugwiseConfigurator extends IPSModule
 {
-
     use DebugHelper;
 
     /**
@@ -43,7 +42,7 @@ class PlugwiseConfigurator extends IPSModule
 
     /**
      * Interne Funktion des SDK.
-     * 
+     *
      * @access public
      */
     public function ApplyChanges()
@@ -58,13 +57,15 @@ class PlugwiseConfigurator extends IPSModule
     private function GetNodes()
     {
         $CirclePlus = @$this->SendFunction('GetCirclePlusMAC');
-        if ($CirclePlus === false)
+        if ($CirclePlus === false) {
             return false;
+        }
 
 
         $Nodes = @$this->SendFunction('ListNodes');
-        if ($Nodes === false)
+        if ($Nodes === false) {
             return false;
+        }
         return array_merge(array(0 => $CirclePlus), $Nodes);
     }
 
@@ -76,8 +77,7 @@ class PlugwiseConfigurator extends IPSModule
     public function GetConfigurationForm()
     {
         $FoundNodes = $this->GetNodes();
-        if ($FoundNodes === false)
-        {
+        if ($FoundNodes === false) {
             return;
         }
         $Total = count($FoundNodes);
@@ -87,11 +87,11 @@ class PlugwiseConfigurator extends IPSModule
         $NewNodes = 0;
         $this->SendDebug('Found', $FoundNodes, 0);
         $InstanceIDListe = IPS_GetInstanceListByModuleID("{5FD73328-68F3-4047-B678-E385C2E31962}");
-        foreach ($InstanceIDListe as $InstanceID)
-        {
+        foreach ($InstanceIDListe as $InstanceID) {
             // Fremde Geräte überspringen
-            if (IPS_GetInstance($InstanceID)['ConnectionID'] != $MyParent)
+            if (IPS_GetInstance($InstanceID)['ConnectionID'] != $MyParent) {
                 continue;
+            }
             $NodeMAC = IPS_GetProperty($InstanceID, 'NodeMAC');
             $Node = array(
                 'InstanceID' => $InstanceID,
@@ -101,14 +101,11 @@ class PlugwiseConfigurator extends IPSModule
             );
             $this->SendDebug('Search', $NodeMAC, 0);
             $FoundIndex = array_search($NodeMAC, $FoundNodes);
-            if ($FoundIndex === false)
-            {
+            if ($FoundIndex === false) {
                 $Node['Index'] = "";
                 $Node["rowColor"] = "#ff0000";
                 $DisconnectedNodes++;
-            }
-            else
-            {
+            } else {
                 $Node['Index'] = (string) $FoundIndex;
                 $Node['rowColor'] = "#00ff00";
                 unset($FoundNodes[$FoundIndex]);
@@ -116,8 +113,7 @@ class PlugwiseConfigurator extends IPSModule
 
             $Liste[] = $Node;
         }
-        foreach ($FoundNodes as $Index => $NodeMAC)
-        {
+        foreach ($FoundNodes as $Index => $NodeMAC) {
             $Node = array(
                 'Index' => (string) $Index,
                 'InstanceID' => 0,
@@ -130,12 +126,15 @@ class PlugwiseConfigurator extends IPSModule
 
 
         $data = json_decode(file_get_contents(__DIR__ . "/form.json"), true);
-        if ($Total > 0)
+        if ($Total > 0) {
             $data['actions'][2]['label'] = sprintf($this->Translate("Nodes in network: %d"), $Total);
-        if ($NewNodes > 0)
+        }
+        if ($NewNodes > 0) {
             $data['actions'][4]['label'] = sprintf($this->Translate("New nodes: %d"), $NewNodes);
-        if ($DisconnectedNodes > 0)
+        }
+        if ($DisconnectedNodes > 0) {
             $data['actions'][5]['label'] = sprintf($this->Translate("Deleted nodes : %d"), $DisconnectedNodes);
+        }
         $data['actions'][7]['values'] = array_merge($data['actions'][7]['values'], $Liste);
 
 
@@ -160,7 +159,7 @@ EOT;
         return json_encode($data);
     }
 
-################## Datapoints
+    ################## Datapoints
 
     /**
      * Konvertiert $Data zu einem JSONString und versendet diese an den Splitter.
@@ -175,8 +174,7 @@ EOT;
         $JSONData = $PlugwiseData->ToJSONStringForSplitter();
         $ResultString = @$this->SendDataToParent($JSONData);
         $this->SendDebug('Send', $JSONData, 0);
-        if ($ResultString === false)
-        {
+        if ($ResultString === false) {
             $this->SendDebug('Receive', 'Error receive data', 0);
             //echo 'Error receive data';
             return false;
@@ -184,8 +182,7 @@ EOT;
         $Result = @unserialize($ResultString);
         $this->SendDebug('Response', $Result, 0);
 
-        if (($Result === NULL) or ( $Result === false))
-        {
+        if (($Result === null) or ($Result === false)) {
             $this->SendDebug('Receive', 'Error receive data', 0);
             //echo 'Error on send data';
             return false;
@@ -195,18 +192,16 @@ EOT;
 
     protected function SendFunction($Function)
     {
-
         $this->SendDebug('Send Function', $Function, 0);
 
-        $JSONData = json_encode(Array(
+        $JSONData = json_encode(array(
             "DataID" => '{53FBE996-B1E9-45C2-B8DB-5BD6E5E3F94C}',
             "Function" => utf8_encode($Function))
         );
         $this->SendDebug('Send', $JSONData, 0);
         $ResultString = $this->SendDataToParent($JSONData);
         $this->SendDebug('ResultString', $ResultString, 0);
-        if ($ResultString === false)
-        {
+        if ($ResultString === false) {
             $this->SendDebug('Result Function', 'Error receive data', 0);
             //echo 'Error receive data';
             return false;
@@ -214,15 +209,13 @@ EOT;
         $Result = @unserialize($ResultString);
         $this->SendDebug('Result Function', $Result, 0);
 
-        if (($Result === NULL) or ( $Result === false))
-        {
+        if (($Result === null) or ($Result === false)) {
             $this->SendDebug('Result Function', 'Error receive data', 0);
             //echo 'Error on send data';
             return false;
         }
         return $Result;
     }
-
 }
 
 /** @} */
