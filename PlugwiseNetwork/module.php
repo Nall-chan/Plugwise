@@ -1,4 +1,5 @@
 <?php
+
 require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
 
 /**
@@ -38,15 +39,14 @@ require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
  */
 class PlugwiseNetwork extends IPSModule
 {
+
     use BufferHelper,
         DebugHelper,
         InstanceStatus,
         Semaphore,
-        VariableHelper
-    {
+        VariableHelper {
         InstanceStatus::MessageSink as IOMessageSink; // MessageSink gibt es sowohl hier in der Klasse, als auch im Trait InstanceStatus. Hier wird für die Methode im Trait ein Alias benannt.
     }
-
     /**
      * Interne Funktion des SDK.
      *
@@ -73,7 +73,9 @@ class PlugwiseNetwork extends IPSModule
      */
     public function Destroy()
     {
-        $this->SetTimerInterval('SearchNodes', 0);
+        if (IPS_InstanceExists($this->InstanceID)) {
+            $this->SetTimerInterval('SearchNodes', 0);
+        }
         parent::Destroy();
     }
 
@@ -263,18 +265,18 @@ class PlugwiseNetwork extends IPSModule
         switch ($this->NetworkState) {
             case Plugwise_NetworkState::StickNotFound:
                 $form['elements'][] = array(
-                    'type' => 'Label',
+                    'type'  => 'Label',
                     'label' => 'No RF-Stick found!'
                 );
 
                 break;
             case Plugwise_NetworkState::CirclePlusMissing:
                 $form['elements'][] = array(
-                    'type' => 'Label',
+                    'type'  => 'Label',
                     'label' => 'No Circle+ associated!'
                 );
                 $form['elements'][] = array(
-                    'type' => 'Label',
+                    'type'  => 'Label',
                     'label' => 'Please pair a Circle+ and create a new Plugwise-Network.'
                 );
                 /* $form['elements'][] = array(
@@ -285,39 +287,39 @@ class PlugwiseNetwork extends IPSModule
                 break;
             case Plugwise_NetworkState::CirclePlusOffline:
                 $form['elements'][] = array(
-                    'type' => 'Label',
+                    'type'  => 'Label',
                     'label' => 'No Circle+ found!'
                 );
 
                 break;
             case Plugwise_NetworkState::SearchingNodes:
                 $form['elements'][] = array(
-                    'type' => 'Label',
+                    'type'  => 'Label',
                     'label' => 'Network discovery is still running. Please wait.'
                 );
                 break;
             case Plugwise_NetworkState::Online:
                 $form['elements'][] = array(
-                    'type' => 'Label',
+                    'type'  => 'Label',
                     'label' => 'Enable joining for discovery of new nodes.'
                 );
                 $form['elements'][] = array(
-                    'type' => 'Button',
-                    'label' => 'Enable joining',
+                    'type'    => 'Button',
+                    'label'   => 'Enable joining',
                     'onClick' => 'PLUGWISE_EnableNetworkJoining($id,true);'
                 );
                 $form['actions'][] = array(
-                    'type' => 'Label',
+                    'type'  => 'Label',
                     'label' => 'Manually connect new node:'
                 );
                 $form['actions'][] = array(
-                    'type' => 'ValidationTextBox',
-                    'name' => 'newnode',
+                    'type'    => 'ValidationTextBox',
+                    'name'    => 'newnode',
                     'caption' => 'Node MAC:'
                 );
                 $form['actions'][] = array(
-                    'type' => 'Button',
-                    'label' => 'Include node',
+                    'type'    => 'Button',
+                    'label'   => 'Include node',
                     'onClick' => 'PLUGWISE_RequestJoiningOfNodeEx($id,$newnode);'
                 );
 
@@ -326,12 +328,12 @@ class PlugwiseNetwork extends IPSModule
                 break;
             case Plugwise_NetworkState::OnlineJoining:
                 $form['elements'][] = array(
-                    'type' => 'Label',
+                    'type'  => 'Label',
                     'label' => 'Disable network for joining of new nodes.'
                 );
                 $form['elements'][] = array(
-                    'type' => 'Button',
-                    'label' => 'Disable joining',
+                    'type'    => 'Button',
+                    'label'   => 'Disable joining',
                     'onClick' => 'PLUGWISE_EnableNetworkJoining($id,false);'
                 );
                 $form['actions'] = array_merge($this->GetOnlineForm(), $this->GetJoiningForm());
@@ -348,14 +350,14 @@ class PlugwiseNetwork extends IPSModule
     private function GetOnlineForm()
     {
         $form[] = array(
-            'type' => 'Label',
+            'type'  => 'Label',
             'label' => '----------------------------------------------------------------------------------------------------------------------------------'
         );
 
         $Nodes = $this->Nodes;
         if (count($Nodes) > 0) {
             $form[] = array(
-                "type" => "Label",
+                "type"  => "Label",
                 "label" => "This nodes are associated, and can be excluded from the network:"
             );
             $items = array();
@@ -363,39 +365,39 @@ class PlugwiseNetwork extends IPSModule
                 $items[] = array('Index' => $Index, 'NodeMAC' => $Node);
             }
             $form[] = array(
-                "type" => "List",
-                "name" => "NodesOnline",
+                "type"     => "List",
+                "name"     => "NodesOnline",
                 "rowCount" => 7,
-                "add" => false,
-                "delete" => false,
-                "sort" =>
+                "add"      => false,
+                "delete"   => false,
+                "sort"     =>
                 array(
-                    "column" => "Index",
+                    "column"    => "Index",
                     "direction" => "ascending"
                 ),
-                "columns" =>
+                "columns"  =>
                 array(
                     array(
                         "label" => "Index",
-                        "name" => "Index",
+                        "name"  => "Index",
                         "width" => "60px"
                     ),
                     array(
                         "label" => "Node MAC",
-                        "name" => "NodeMAC",
+                        "name"  => "NodeMAC",
                         "width" => "auto"
                     )
                 ),
-                "values" => $items
+                "values"   => $items
             );
             $form[] = array(
-                'type' => 'Button',
-                'label' => 'Exclude node from network',
+                'type'    => 'Button',
+                'label'   => 'Exclude node from network',
                 'onClick' => 'PLUGWISE_RequestExcludeOfNodeEx($id,$NodesOnline["NodeMAC"]);'
             );
         } else {
             $form[] = array(
-                'type' => 'Label',
+                'type'  => 'Label',
                 'label' => 'No nodes found.'
             );
         }
@@ -405,14 +407,14 @@ class PlugwiseNetwork extends IPSModule
     private function GetJoiningForm()
     {
         $form[] = array(
-            'type' => 'Label',
+            'type'  => 'Label',
             'label' => '----------------------------------------------------------------------------------------------------------------------------------'
         );
 
         $NewNodes = $this->NewNodes;
         if (count($NewNodes) > 0) {
             $form[] = array(
-                "type" => "Label",
+                "type"  => "Label",
                 "label" => "This nodes can be added to the network:"
             );
             $items = array();
@@ -420,34 +422,34 @@ class PlugwiseNetwork extends IPSModule
                 $items[] = array('NodeMAC' => $NewNode);
             }
             $form[] = array(
-                "type" => "List",
-                "name" => "nodes",
+                "type"     => "List",
+                "name"     => "nodes",
                 "rowCount" => 7,
-                "add" => false,
-                "delete" => false,
-                "sort" =>
+                "add"      => false,
+                "delete"   => false,
+                "sort"     =>
                 array(
-                    "column" => "NodeMAC",
+                    "column"    => "NodeMAC",
                     "direction" => "ascending"
                 ),
-                "columns" =>
+                "columns"  =>
                 array(
                     array(
                         "label" => "Node MAC",
-                        "name" => "NodeMAC",
+                        "name"  => "NodeMAC",
                         "width" => "auto"
                     )
                 ),
-                "values" => $items
+                "values"   => $items
             );
             $form[] = array(
-                'type' => 'Button',
-                'label' => 'Include node to network',
+                'type'    => 'Button',
+                'label'   => 'Include node to network',
                 'onClick' => 'PLUGWISE_RequestJoiningOfNodeEx($id,$nodes["NodeMAC"]);'
             );
         } else {
             $form[] = array(
-                'type' => 'Label',
+                'type'  => 'Label',
                 'label' => 'No unconfigured nodes found.'
             );
         }
@@ -469,7 +471,6 @@ class PlugwiseNetwork extends IPSModule
     }
 
     ################## PRIVATE
-
     /**
      * Initianlisiert den Stick
      */
@@ -674,7 +675,7 @@ class PlugwiseNetwork extends IPSModule
             if ($Result === null) {
                 return false;
             }
-            if (($Result->Command == Plugwise_Command::AckMsgResponse) and (substr($Result->Data, 0, 4) != Plugwise_AckMsg::ACK)) {
+            if (($Result->Command == Plugwise_Command::AckMsgResponse) and ( substr($Result->Data, 0, 4) != Plugwise_AckMsg::ACK)) {
                 return false;
             }
         } else { // Node mit Werkseinstellungen antworten mit Frame 65533
@@ -783,13 +784,13 @@ class PlugwiseNetwork extends IPSModule
       $Values['PanID'] = substr($Result->Data, 66, 4);
       return $Values;
       } */
-
     public function ConnectCirclePlus(string $CirclePlusMac)
     {
         $PlugwiseData = new Plugwise_Frame(Plugwise_Command::ConnectCirclePlusRequest, '00000000000000000000', $CirclePlusMac);
         /* @var $Result Plugwise_Frame */
         $Result = $this->Send($PlugwiseData);
         if ($Result === null) {
+            
         }
         $Values['exists'] = (substr($Result->Data, 0, 2) == '01');
         $Values['allowed'] = (substr($Result->Data, 2, 2) == '01');
@@ -824,7 +825,6 @@ class PlugwiseNetwork extends IPSModule
 
     ################## PUBLIC
     ################## DATAPOINTS DEVICE
-
     /**
      * Interne Funktion des SDK. Nimmt Daten von Childs entgegen und sendet Diese weiter.
      *
@@ -863,7 +863,6 @@ class PlugwiseNetwork extends IPSModule
     }
 
     ################## DATAPOINTS PARENT
-
     /**
      * Empfängt Daten vom Parent.
      *
@@ -1044,7 +1043,6 @@ class PlugwiseNetwork extends IPSModule
     }
 
     ################## SENDQUEUE
-
     /**
      * Fügt eine Anfrage in die SendQueue ein.
      *
@@ -1120,6 +1118,7 @@ class PlugwiseNetwork extends IPSModule
         $SendData->Buffer = utf8_encode($Data);
         return json_encode($SendData);
     }
+
 }
 
 /** @} */

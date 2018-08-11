@@ -739,8 +739,8 @@ class Plugwise_Frame
      *
      * @access public
      * @param string $Command [optional] Kommando
-     * @param string $Data [optional] Payload
      * @param string $NodeMAC [optional] ID des Circle
+     * @param string $Data [optional] Payload
      * @return Plugwise_Frame
      */
     public function __construct($Command = null, $NodeMAC = null, $Data = null)

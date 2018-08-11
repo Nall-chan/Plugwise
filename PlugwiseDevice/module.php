@@ -34,15 +34,14 @@ require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
  */
 class PlugwiseDevice extends IPSModule
 {
+
     use BufferHelper,
         DebugHelper,
         VariableHelper,
         VariableProfile,
-        InstanceStatus
-    {
+        InstanceStatus {
         InstanceStatus::MessageSink as IOMessageSink;
     }
-
     /**
      * Interne Funktion des SDK.
      *
@@ -81,8 +80,10 @@ class PlugwiseDevice extends IPSModule
      */
     public function Destroy()
     {
-        $this->SetTimerInterval('RequestState', 0);
-        $this->SetTimerInterval('SetTime', 0);
+        if (IPS_InstanceExists($this->InstanceID)) {
+            $this->SetTimerInterval('RequestState', 0);
+            $this->SetTimerInterval('SetTime', 0);
+        }
         parent::Destroy();
     }
 
@@ -197,7 +198,6 @@ class PlugwiseDevice extends IPSModule
     }
 
     ################## PRIVATE
-
     /**
      * Dekodiert die empfangenen Events und Anworten.
      *
@@ -232,7 +232,6 @@ class PlugwiseDevice extends IPSModule
     }
 
     ################## ActionHandler
-
     /**
      * Actionhandler der Statusvariablen. Interne SDK-Funktion.
      *
@@ -251,7 +250,6 @@ class PlugwiseDevice extends IPSModule
     }
 
     ################## PUBLIC
-
     public function TimerEvent()
     {
         if ($this->RequestState()) {
@@ -428,36 +426,34 @@ class PlugwiseDevice extends IPSModule
 
 //            if ($watttotal >= 0)
 //            {
-            if ($this->ReadPropertyBoolean("showOverall")) {
-                $vidHour = @$this->GetIDForIdent('ConsumptionCurrentHour');
-                if ($vidHour > 0) {
-                    $OldValueHour = GetValueFloat($vidHour);
-                } else {
-                    $OldValueHour = 0;
-                }
-                $this->SendDebug('OldValueHour', $OldValueHour, 0);
-
-                $this->SetValueFloat('Consumption Current Hour', $watttotal, 'Plugwise.kwh');
-
-                $AddValueTotal = $watttotal - $OldValueHour;
-                if ($AddValueTotal < 0) {
-                    $AddValueTotal = $watttotal;
-                }
-                $this->SendDebug('AddValueTotal', $AddValueTotal, 0);
-
-                $vidOverall = @$this->GetIDForIdent('ConsumptionOverall');
-                if ($vidOverall > 0) {
-                    $OldOverall = GetValueFloat($vidOverall);
-                } else {
-                    $OldOverall = 0;
-                }
-                $this->SendDebug('OldOverall', $OldOverall, 0);
-
-                $NewValueTotal = $OldOverall + $AddValueTotal;
-
-                $this->SetValueFloat('Consumption Overall', $NewValueTotal, 'Plugwise.kwh');
-                $this->SendDebug('NewValueTotal', $NewValueTotal, 0);
+            $vidHour = @$this->GetIDForIdent('ConsumptionCurrentHour');
+            if ($vidHour > 0) {
+                $OldValueHour = GetValueFloat($vidHour);
+            } else {
+                $OldValueHour = 0;
             }
+            $this->SendDebug('OldValueHour', $OldValueHour, 0);
+
+            $this->SetValueFloat('Consumption Current Hour', $watttotal, 'Plugwise.kwh');
+
+            $AddValueTotal = $watttotal - $OldValueHour;
+            if ($AddValueTotal < 0) {
+                $AddValueTotal = $watttotal;
+            }
+            $this->SendDebug('AddValueTotal', $AddValueTotal, 0);
+
+            $vidOverall = @$this->GetIDForIdent('ConsumptionOverall');
+            if ($vidOverall > 0) {
+                $OldOverall = GetValueFloat($vidOverall);
+            } else {
+                $OldOverall = 0;
+            }
+            $this->SendDebug('OldOverall', $OldOverall, 0);
+
+            $NewValueTotal = $OldOverall + $AddValueTotal;
+
+            $this->SetValueFloat('Consumption Overall', $NewValueTotal, 'Plugwise.kwh');
+            $this->SendDebug('NewValueTotal', $NewValueTotal, 0);
 //            }
         }
 
@@ -480,7 +476,6 @@ class PlugwiseDevice extends IPSModule
     }
 
     ################## Datapoints
-
     /**
      * Konvertiert $Data zu einem JSONString und versendet diese an den Splitter.
      *
@@ -507,7 +502,7 @@ class PlugwiseDevice extends IPSModule
         $Result = @unserialize($ResultString);
         /* @var $Result Plugwise_Frame */
         $this->SendDebug('Response', $Result, 0);
-        if (($Result === null) or ($Result === false)) {
+        if (($Result === null) or ( $Result === false)) {
             $this->SendDebug('Receive', 'Error receive data', 0);
             echo $this->Translate('Error on send data');
             return false;
@@ -534,6 +529,7 @@ class PlugwiseDevice extends IPSModule
         $this->Decode($PlugwiseData);
         return false;
     }
+
 }
 
 /** @} */
