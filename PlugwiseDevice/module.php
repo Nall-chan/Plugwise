@@ -34,7 +34,6 @@ require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
  */
 class PlugwiseDevice extends IPSModule
 {
-
     use BufferHelper,
         DebugHelper,
         VariableHelper,
@@ -502,7 +501,7 @@ class PlugwiseDevice extends IPSModule
         $Result = @unserialize($ResultString);
         /* @var $Result Plugwise_Frame */
         $this->SendDebug('Response', $Result, 0);
-        if (($Result === null) or ( $Result === false)) {
+        if (($Result === null) or ($Result === false)) {
             $this->SendDebug('Receive', 'Error receive data', 0);
             echo $this->Translate('Error on send data');
             return false;
@@ -529,7 +528,6 @@ class PlugwiseDevice extends IPSModule
         $this->Decode($PlugwiseData);
         return false;
     }
-
 }
 
 /** @} */
