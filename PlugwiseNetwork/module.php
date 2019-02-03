@@ -39,7 +39,6 @@ require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
  */
 class PlugwiseNetwork extends IPSModule
 {
-
     use BufferHelper,
         DebugHelper,
         InstanceStatus,
@@ -675,7 +674,7 @@ class PlugwiseNetwork extends IPSModule
             if ($Result === null) {
                 return false;
             }
-            if (($Result->Command == Plugwise_Command::AckMsgResponse) and ( substr($Result->Data, 0, 4) != Plugwise_AckMsg::ACK)) {
+            if (($Result->Command == Plugwise_Command::AckMsgResponse) and (substr($Result->Data, 0, 4) != Plugwise_AckMsg::ACK)) {
                 return false;
             }
         } else { // Node mit Werkseinstellungen antworten mit Frame 65533
@@ -790,7 +789,6 @@ class PlugwiseNetwork extends IPSModule
         /* @var $Result Plugwise_Frame */
         $Result = $this->Send($PlugwiseData);
         if ($Result === null) {
-            
         }
         $Values['exists'] = (substr($Result->Data, 0, 2) == '01');
         $Values['allowed'] = (substr($Result->Data, 2, 2) == '01');
@@ -1118,7 +1116,6 @@ class PlugwiseNetwork extends IPSModule
         $SendData->Buffer = utf8_encode($Data);
         return json_encode($SendData);
     }
-
 }
 
 /** @} */
