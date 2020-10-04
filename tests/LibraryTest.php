@@ -13,21 +13,16 @@ class LibraryValidationTest extends TestCaseSymconValidation
 
     public function testValidateIO(): void
     {
-        $this->validateModule(__DIR__ . '/../PRTGIO');
+        $this->validateModule(__DIR__ . '/../PlugwiseNetwork');
     }
 
     public function testValidateConfigurator(): void
     {
-        $this->validateModule(__DIR__ . '/../PRTGConfigurator');
+        $this->validateModule(__DIR__ . '/../PlugwiseConfigurator');
     }
 
     public function testValidateDevice(): void
     {
-        $this->validateModule(__DIR__ . '/../PRTGDevice');
-    }
-
-    public function testValidateSensor(): void
-    {
-        $this->validateModule(__DIR__ . '/../PRTGSensor');
+        $this->validateModule(__DIR__ . '/../PlugwiseDevice');
     }
 }

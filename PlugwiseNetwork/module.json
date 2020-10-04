@@ -7,5 +7,6 @@
     "parentRequirements": ["{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"],
     "childRequirements": ["{CD59EBB4-B313-4ACA-A503-E646CFE0B6FD}"],
     "implemented": ["{018EF6B5-AB94-40C6-AA53-46943E824ACF}", "{E7DA1628-D62B-47BF-A834-E5556DD110E7}", "{53FBE996-B1E9-45C2-B8DB-5BD6E5E3F94C}"],
-    "prefix": "PLUGWISE"
+    "prefix": "PLUGWISE",
+    "url": "https://github.com/Nall-chan/Plugwise/blob/beta/PlugwiseConfigurator/README.md"
 }
