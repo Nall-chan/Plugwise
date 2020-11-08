@@ -464,10 +464,10 @@ class PlugwiseNetwork extends IPSModule
      */
     public function GetConfigurationForParent()
     {
-        $Config['StopBits'] = 1;
-        $Config['BaudRate'] = 115200;
+        $Config['StopBits'] = '1';
+        $Config['BaudRate'] = '115200';
         $Config['Parity'] = 'None';
-        $Config['DataBits'] = 8;
+        $Config['DataBits'] = '8';
         return json_encode($Config);
     }
 
