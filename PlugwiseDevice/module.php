@@ -39,11 +39,10 @@ class PlugwiseDevice extends IPSModule
     use \Plugwise\BufferHelper,
         \Plugwise\DebugHelper,
         \Plugwise\VariableHelper,
-        \Plugwise\VariableProfile,
+        \Plugwise\VariableProfileHelper,
         \Plugwise\InstanceStatus {
         \Plugwise\InstanceStatus::MessageSink as IOMessageSink;
-        //\Plugwise\InstanceStatus::RegisterParent as IORegisterParent;
-        //\Plugwise\InstanceStatus::RequestAction as IORequestAction;
+        \Plugwise\InstanceStatus::RequestAction as IORequestAction;
     }
     /**
      * Interne Funktion des SDK.
@@ -110,10 +109,8 @@ class PlugwiseDevice extends IPSModule
         }
         $this->SetReceiveDataFilter($Filter);
         $this->SendDebug('SetFilter', $Filter, 0);
-
-        // Wenn Kernel nicht bereit, dann warten... KR_READY über Splitter kommt ja gleich
         $this->RegisterParent();
-        if (IPS_GetKernelRunlevel() <> KR_READY) {
+        if (IPS_GetKernelRunlevel() != KR_READY) {
             return;
         }
 
@@ -121,7 +118,6 @@ class PlugwiseDevice extends IPSModule
 
         $this->SetStatus(IS_ACTIVE);
 
-        // Wenn Parent aktiv, dann Anmeldung an der Hardware bzw. Datenabgleich starten
         if ($this->HasActiveParent()) {
             $this->IOChangeState(IS_ACTIVE);
         } else {
@@ -143,14 +139,13 @@ class PlugwiseDevice extends IPSModule
     /**
      * Wird ausgeführt wenn der Kernel hochgefahren wurde.
      */
-    protected function KernelReady()
-    {
-        $this->RegisterParent();
-        if ($this->HasActiveParent()) {
-            $this->IOChangeState(IS_ACTIVE);
-        }
-    }
-
+    /*    protected function KernelReady()
+      {
+      $this->RegisterParent();
+      if ($this->HasActiveParent()) {
+      $this->IOChangeState(IS_ACTIVE);
+      }
+      } */
     /**
      * Wird ausgeführt wenn sich der Status vom Parent ändert.
      * @access protected
@@ -244,6 +239,9 @@ class PlugwiseDevice extends IPSModule
      */
     public function RequestAction($Ident, $Value)
     {
+        if ($this->IORequestAction($Ident, $Value)) {
+            return true;
+        }
         switch ($Ident) {
             case 'State':
                 return $this->SwitchMode($Value);

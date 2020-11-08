@@ -16,6 +16,7 @@ declare(strict_types=1);
 Namespace Plugwise;
 
 eval('declare(strict_types=1);namespace Plugwise {?>' . file_get_contents(__DIR__ . '/helper/BufferHelper.php') . '}');
+eval('declare(strict_types=1);namespace Plugwise {?>' . file_get_contents(__DIR__ . '/helper/SemaphoreHelper.php') . '}');
 eval('declare(strict_types=1);namespace Plugwise {?>' . file_get_contents(__DIR__ . '/helper/ParentIOHelper.php') . '}');
 eval('declare(strict_types=1);namespace Plugwise {?>' . file_get_contents(__DIR__ . '/helper/VariableProfileHelper.php') . '}');
 
@@ -64,7 +65,7 @@ class Plugwise_Switch
     public static $Hertz = [
         133 => 50,
         197 => 60
-       ];
+    ];
 
     public static function ToString($Plugwise_Switch)
     {
@@ -499,7 +500,7 @@ class Plugwise_Typ
         '04' => self::Switche,
         '05' => self::Sense,
         '06' => self::Scan,
-       ];
+    ];
 
     public static function ToString($Plugwise_Type)
     {
@@ -822,7 +823,7 @@ class Plugwise_Frame
             'Command' => utf8_encode($this->Command),
             'NodeMAC' => utf8_encode($this->NodeMAC),
             'Data'    => utf8_encode($this->Data)
-            ]);
+        ]);
     }
 
     public function ToJSONStringForDevices()
@@ -831,7 +832,7 @@ class Plugwise_Frame
             'Command' => utf8_encode($this->Command),
             'NodeMAC' => utf8_encode($this->NodeMAC),
             'Data'    => utf8_encode($this->Data)
-            ]);
+        ]);
     }
 
     public function EncodeFrame()
@@ -940,7 +941,11 @@ trait DebugHelper
         } elseif (is_bool($Data)) {
             parent::SendDebug($Message, ($Data ? 'TRUE' : 'FALSE'), 0);
         } else {
-            parent::SendDebug($Message, $Data, $Format);
+            if (IPS_GetKernelRunlevel() == KR_READY) {
+                parent::SendDebug($Message, (string) $Data, $Format);
+            } else {
+                $this->LogMessage($Message . ':' . (string) $Data, KL_DEBUG);
+            }
         }
     }
 
