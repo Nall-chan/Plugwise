@@ -27,7 +27,7 @@ require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
  */
 class PlugwiseConfigurator extends IPSModule
 {
-    use DebugHelper;
+    use \Plugwise\DebugHelper;
 
     /**
      * Interne Funktion des SDK.
@@ -176,7 +176,6 @@ EOT;
         $this->SendDebug('Send', $JSONData, 0);
         if ($ResultString === false) {
             $this->SendDebug('Receive', 'Error receive data', 0);
-            //echo 'Error receive data';
             return false;
         }
         $Result = @unserialize($ResultString);
@@ -184,7 +183,6 @@ EOT;
 
         if (($Result === null) or ($Result === false)) {
             $this->SendDebug('Receive', 'Error receive data', 0);
-            //echo 'Error on send data';
             return false;
         }
         return $Result;
@@ -194,7 +192,8 @@ EOT;
     {
         $this->SendDebug('Send Function', $Function, 0);
 
-        $JSONData = json_encode(array(
+        $JSONData = json_encode(
+            array(
             "DataID" => '{53FBE996-B1E9-45C2-B8DB-5BD6E5E3F94C}',
             "Function" => utf8_encode($Function))
         );
@@ -203,7 +202,6 @@ EOT;
         $this->SendDebug('ResultString', $ResultString, 0);
         if ($ResultString === false) {
             $this->SendDebug('Result Function', 'Error receive data', 0);
-            //echo 'Error receive data';
             return false;
         }
         $Result = @unserialize($ResultString);
@@ -211,7 +209,6 @@ EOT;
 
         if (($Result === null) or ($Result === false)) {
             $this->SendDebug('Result Function', 'Error receive data', 0);
-            //echo 'Error on send data';
             return false;
         }
         return $Result;

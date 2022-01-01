@@ -10,7 +10,7 @@
                     "label": "----------------------------------------------------------------------------------------------------------------------------------"
                 }, {
                     "type": "Label",
-                    "label": "COM-Port need to be openened manually in the I/O instance!"
+                    "label": "COM-Port need to be opened manually in the I/O instance!"
                 },
                 {
                     "type": "Label",

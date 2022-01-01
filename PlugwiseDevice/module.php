@@ -1,7 +1,10 @@
 <?php
+declare(strict_types=1);
 
+eval('declare(strict_types=1);namespace PlugwiseDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/BufferHelper.php') . '}');
+eval('declare(strict_types=1);namespace PlugwiseDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableProfileHelper.php') . '}');
+eval('declare(strict_types=1);namespace PlugwiseDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/ParentIOHelper.php') . '}');
 require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
-
 /**
  * @addtogroup plugwise
  * @{
@@ -34,12 +37,13 @@ require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
  */
 class PlugwiseDevice extends IPSModule
 {
-    use BufferHelper,
-        DebugHelper,
-        VariableHelper,
-        VariableProfile,
-        InstanceStatus {
-        InstanceStatus::MessageSink as IOMessageSink;
+    use \PlugwiseDevice\BufferHelper,
+        \Plugwise\DebugHelper,
+        \Plugwise\VariableHelper,
+        \PlugwiseDevice\VariableProfileHelper,
+        \PlugwiseDevice\InstanceStatus {
+            \PlugwiseDevice\InstanceStatus::MessageSink as IOMessageSink; // MessageSink gibt es sowohl hier in der Klasse, als auch im Trait InstanceStatus. Hier wird für die Methode im Trait ein Alias benannt.
+            \PlugwiseDevice\InstanceStatus::RequestAction as IORequestAction;
     }
     /**
      * Interne Funktion des SDK.
@@ -137,17 +141,6 @@ class PlugwiseDevice extends IPSModule
     }
 
     /**
-     * Wird ausgeführt wenn der Kernel hochgefahren wurde.
-     */
-    protected function KernelReady()
-    {
-        $this->RegisterParent();
-        if ($this->HasActiveParent()) {
-            $this->IOChangeState(IS_ACTIVE);
-        }
-    }
-
-    /**
      * Wird ausgeführt wenn sich der Status vom Parent ändert.
      * @access protected
      */
@@ -158,7 +151,7 @@ class PlugwiseDevice extends IPSModule
         if ($State == IS_ACTIVE) {
             if ($this->RequestState()) {
                 $this->SetTime();
-                if ($this->Type == Plugwise_Typ::Cricle) {
+                if ($this->Type == Plugwise_Typ::Circle) {
                     $this->RequestCalibration();
                     $this->RequestEnergy();
                 }
@@ -181,11 +174,11 @@ class PlugwiseDevice extends IPSModule
         $this->SendDebug('GetConfigurationForm', Plugwise_Typ::ToString($this->Type), 0);
 
         switch ($this->Type) {
-            case Plugwise_Typ::Cricle:
+            case Plugwise_Typ::Circle:
                 array_splice($form['elements'], 10, 4);
                 break;
             case Plugwise_Typ::Scan:
-            case Plugwise_Typ::Switche:
+            case Plugwise_Typ::Switch:
                 array_splice($form['elements'], 3, 11);
                 break;
             case Plugwise_Typ::Sense:
@@ -198,7 +191,7 @@ class PlugwiseDevice extends IPSModule
 
     ################## PRIVATE
     /**
-     * Dekodiert die empfangenen Events und Anworten.
+     * Dekodiert die empfangenen Events und Antworten.
      *
      * @param Plugwise_Frame $PlugwiseData Der zu dekodierende Datensatz als Objekt.
      */
@@ -240,6 +233,9 @@ class PlugwiseDevice extends IPSModule
      */
     public function RequestAction($Ident, $Value)
     {
+        if ($this->IORequestAction($Ident, $Value)) {
+            return true;
+        }
         switch ($Ident) {
             case "State":
                 return $this->SwitchMode($Value);
@@ -252,7 +248,7 @@ class PlugwiseDevice extends IPSModule
     public function TimerEvent()
     {
         if ($this->RequestState()) {
-            if ($this->Type == Plugwise_Typ::Cricle) {
+            if ($this->Type == Plugwise_Typ::Circle) {
                 $this->RequestEnergy();
             }
         }
@@ -317,7 +313,7 @@ class PlugwiseDevice extends IPSModule
         $this->SetSummary(Plugwise_Typ::ToString($this->Type));
         $this->SendDebug('Type', Plugwise_Typ::ToString($this->Type), 0);
 
-        if ($this->Type == Plugwise_Typ::Cricle) {
+        if ($this->Type == Plugwise_Typ::Circle) {
             if ($this->ReadPropertyBoolean("showState")) {
                 $Value = (substr($Result->Data, 16, 2) == Plugwise_Switch::ON);
                 $this->SetValueBoolean("State", $Value, "~Switch");
@@ -392,7 +388,12 @@ class PlugwiseDevice extends IPSModule
             if ($this->ReadPropertyBoolean("showCurrent")) {
                 $pulses_1 = intval(hexdec($pulses1hex));
                 $pulses1 = Plugwise_Frame::pulsesCorrection(
-                                $pulses_1, 1, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
+                    $pulses_1,
+                    1,
+                    $this->offRuis,
+                    $this->offTot,
+                    $this->gainA,
+                    $this->gainB
                 );
                 $watt1 = Plugwise_Frame::pulsesToWatt($pulses1);
                 $this->SendDebug('watt1', $watt1, 0);
@@ -406,7 +407,12 @@ class PlugwiseDevice extends IPSModule
             if ($this->ReadPropertyBoolean("showAverage")) {
                 $pulses_8 = intval(hexdec($pulses2hex));
                 $pulses8 = Plugwise_Frame::pulsesCorrection(
-                                $pulses_8, 8, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
+                    $pulses_8,
+                    8,
+                    $this->offRuis,
+                    $this->offTot,
+                    $this->gainA,
+                    $this->gainB
                 );
                 $watt8 = Plugwise_Frame::pulsesToWatt($pulses8);
                 $this->SendDebug('watt8', $watt8, 0);
@@ -418,10 +424,15 @@ class PlugwiseDevice extends IPSModule
         if ($this->ReadPropertyBoolean("showOverall")) {
             $pulses_total = intval(hexdec(substr($Result->Data, 8, 8)));
             $pulsestotal = Plugwise_Frame::pulsesCorrection(
-                            $pulses_total, 3600, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
+                $pulses_total,
+                3600,
+                $this->offRuis,
+                $this->offTot,
+                $this->gainA,
+                $this->gainB
             );
             $watttotal = Plugwise_Frame::pulsesToKwh($pulsestotal);
-            $this->SendDebug('watthourtotal', $watttotal, 0);
+            $this->SendDebug('WattHourTotal', $watttotal, 0);
 
 //            if ($watttotal >= 0)
 //            {
@@ -515,7 +526,7 @@ class PlugwiseDevice extends IPSModule
     }
 
     /**
-     * Interne SDK-Funktion. Empfängt Datenpakete vom KodiSplitter.
+     * Interne SDK-Funktion. Empfängt Datenpakete vom PlugwiseSplitter.
      *
      * @access public
      * @param string $JSONString Das Datenpaket als JSON formatierter String.

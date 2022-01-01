@@ -1,28 +1,31 @@
 [![PHP-Modul](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Modul-Version](https://img.shields.io/badge/Modul%20Version-1.0-blue.svg)]()
+[![Modul-Version](https://img.shields.io/badge/Modul%20Version-2.0-blue.svg)]()
+[![Symcon-Version](https://img.shields.io/badge/Symcon%20Version-5.4%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-5-4-%28Stable%29-Changelog)  
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Symcon-Version](https://img.shields.io/badge/Symcon%20Version-4.3%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-4-3-%28Stable%29-Changelog)
-[![StyleCI](https://styleci.io/repos/107307432/shield?style=flat)](https://styleci.io/repos/107307432)  
+[![Check Style](https://github.com/Nall-chan/Plugwise/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Plugwise/actions) [![Run Tests](https://github.com/Nall-chan/Plugwise/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Plugwise/actions)  
+[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#spenden)  
 
-# IPSPlugwise
+# Plugwise <!-- omit in toc -->
 
 Implementierung von Plugwise in IP-Symcon.
 
-## Dokumentation
+## Dokumentation  <!-- omit in toc -->
 
 **Inhaltsverzeichnis**
-
-1. [Funktionsumfang](#1-funktionsumfang) 
-2. [Voraussetzungen](#2-voraussetzungen)
-3. [Installation](#3-installation)
-4. [Vorbereitungen](#4-vorbereitungen)
-5. [Einrichten der Instanzen in IPS](#5-einrichten-der--instanzen-in-ips)
-6. [Anhang](#6-anhang)
-    1. [GUID der Module](#1-guid-der-module)
-    2. [Hinweise](#2-hinweise)
-    3. [Changlog](#3-changlog)
-    4. [Spenden](#4-spenden)
-7. [Lizenz](#7-lizenz)
+- [1. Funktionsumfang](#1-funktionsumfang)
+  - [Plugwise Konfigurator:](#plugwise-konfigurator)
+  - [Plugwise Network:](#plugwise-network)
+  - [Plugwise Device:](#plugwise-device)
+- [2. Voraussetzungen](#2-voraussetzungen)
+- [3. Installation](#3-installation)
+- [4. Vorbereitungen](#4-vorbereitungen)
+- [5. Einrichten der Instanzen in IPS](#5-einrichten-der-instanzen-in-ips)
+- [6. Anhang](#6-anhang)
+  - [1. GUID der Module](#1-guid-der-module)
+  - [2. Datenaustausch](#2-datenaustausch)
+  - [3. Changelog](#3-changelog)
+  - [4. Spenden](#4-spenden)
+- [6. Lizenz](#6-lizenz)
 
 ## 1. Funktionsumfang
 
@@ -33,7 +36,7 @@ Implementierung von Plugwise in IP-Symcon.
 ### [Plugwise Network:](PlugwiseNetwork/)  
 
  - Kommunikation mit dem USB-Stick.  
- - An- und ablernen von Geräten über IPS.  
+ - An- und ab lernen von Geräten über IPS.  
 
 ### [Plugwise Device:](PlugwiseDevice/)  
 
@@ -47,9 +50,9 @@ Implementierung von Plugwise in IP-Symcon.
 
 ## 3. Installation
 
-**IPS 4.3:**  
-   Bei privater Nutzung: Über das Modul-Control folgende URL hinzufügen.  
-   `git://github.com/Nall-chan/IPSPlugiwse.git`  
+**IPS 5.4:**  
+
+  * Über den Module Store das `Plugwise`-Modul installieren.   
 
    **Bei kommerzieller Nutzung (z.B. als Errichter oder Integrator) wenden Sie sich bitte an den Autor.**  
 
@@ -66,11 +69,11 @@ Implementierung von Plugwise in IP-Symcon.
   - Auf den Button 'Neu' klicken.  
   - Den Eintrag 'Plugwise Configurator' wählen und mit OK bestätigen.  
   - Die Instanz über einen weiten Klick auf OK erzeugen.  
-  - Im folgenden Dialog des Konfigurators muss jetzt erst über einen Klick auf ein Zahnrad zum Splitter gewechselt werden.  
+  - Im folgenden Dialog des Konfigurator muss jetzt erst über einen Klick auf ein Zahnrad zum Splitter gewechselt werden.  
   - Im folgenden Dialog des Plugwise Network (der Splitter) muss jetzt erst über einen Klick auf ein Zahnrad zum IO gewechselt werden.  
   - Im Dialog des IO ist der COM-Port auszuwählen. Alle Dialoge sind nach dem Klick auf Übernehmen zu schließen.  
   - Die Instanz Plugwise Network sucht jetzt nach allen bekannten Geräten im Netz.
-  - Das Ergebniss kann durch ein erneutes öffen des Konfigurators angezeigt werden.  
+  - Das Ergebnis kann durch ein erneutes öffen des Konfigurator angezeigt werden.  
   - Dort kann über den Button 'Instant erzeugen' ein oben ausgewählten Gerät in IPS angelegt werden.  
 
 ## 6. Anhang
@@ -91,7 +94,7 @@ Implementierung von Plugwise in IP-Symcon.
 | NodeMAC      | string  | Quell/Ziel MAC des Node oder leer                         |
 | Data         | string  | Payload  ohne NodeMac, Command und Checksumme             |
 
-### 3. Changlog
+### 3. Changelog
 
 Version 1.00:
  - Release
@@ -104,7 +107,7 @@ Version 0.96:
 
 ### 4. Spenden  
   
-  Die Library ist für die nicht kommzerielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
+  Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
 
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>
 

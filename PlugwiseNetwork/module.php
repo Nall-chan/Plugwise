@@ -1,5 +1,9 @@
 <?php
+declare(strict_types=1);
 
+eval('declare(strict_types=1);namespace PlugwiseNetwork {?>' . file_get_contents(__DIR__ . '/../libs/helper/BufferHelper.php') . '}');
+eval('declare(strict_types=1);namespace PlugwiseNetwork {?>' . file_get_contents(__DIR__ . '/../libs/helper/SemaphoreHelper.php') . '}');
+eval('declare(strict_types=1);namespace PlugwiseNetwork {?>' . file_get_contents(__DIR__ . '/../libs/helper/ParentIOHelper.php') . '}');
 require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
 
 /**
@@ -39,12 +43,13 @@ require_once(__DIR__ . "/../libs/Plugwise.php");  // diverse Klassen
  */
 class PlugwiseNetwork extends IPSModule
 {
-    use BufferHelper,
-        DebugHelper,
-        InstanceStatus,
-        Semaphore,
-        VariableHelper {
-        InstanceStatus::MessageSink as IOMessageSink; // MessageSink gibt es sowohl hier in der Klasse, als auch im Trait InstanceStatus. Hier wird für die Methode im Trait ein Alias benannt.
+    use \PlugwiseNetwork\BufferHelper,
+        \Plugwise\DebugHelper,
+        \PlugwiseNetwork\InstanceStatus,
+        \PlugwiseNetwork\Semaphore,
+        \Plugwise\VariableHelper {
+            \PlugwiseNetwork\InstanceStatus::MessageSink as IOMessageSink; // MessageSink gibt es sowohl hier in der Klasse, als auch im Trait InstanceStatus. Hier wird für die Methode im Trait ein Alias benannt.
+            \PlugwiseNetwork\InstanceStatus::RequestAction as IORequestAction;
     }
     /**
      * Interne Funktion des SDK.
@@ -54,15 +59,18 @@ class PlugwiseNetwork extends IPSModule
     public function Create()
     {
         parent::Create();
-        $this->RequireParent("{6DC3D946-0D31-450F-A8C6-C42DB8D7D4F1}");
+        $this->RequireParent('{6DC3D946-0D31-450F-A8C6-C42DB8D7D4F1}');
         $this->ReplyData = array();
         $this->FrameID = 0;
-        $this->Buffer = "";
+        $this->Buffer = '';
         $this->NewNodes = array();
         $this->Nodes = array();
         $this->SearchIndex = 0;
         $this->NetworkState = Plugwise_NetworkState::Online;
         $this->RegisterTimer('SearchNodes', 0, 'PLUGWISE_SearchNodes($_IPS["TARGET"]);');
+        if (IPS_GetKernelRunlevel() != KR_READY) {
+            $this->RegisterMessage(0, IPS_KERNELSTARTED);
+        }
     }
 
     /**
@@ -85,13 +93,11 @@ class PlugwiseNetwork extends IPSModule
      */
     public function ApplyChanges()
     {
-        //$this->SetReceiveDataFilter(".*018EF6B5-AB94-40C6-AA53-46943E824ACF.*");
-//        $this->RegisterMessage(0, IPS_KERNELSTARTED);
         $this->RegisterMessage($this->InstanceID, FM_CONNECT);
         $this->RegisterMessage($this->InstanceID, FM_DISCONNECT);
         $this->ReplyData = array();
         $this->FrameID = 0;
-        $this->Buffer = "";
+        $this->Buffer = '';
         parent::ApplyChanges();
 
 
@@ -121,14 +127,20 @@ class PlugwiseNetwork extends IPSModule
     {
         $this->IOMessageSink($TimeStamp, $SenderID, $Message, $Data);
 
-//        switch ($Message)
-//        {
-//            case IPS_KERNELSTARTED:
-//                $this->KernelReady();
-//                break;
-//        }
+        switch ($Message) {
+            case IPS_KERNELSTARTED:
+                $this->UnregisterMessage(0, IPS_KERNELSTARTED);
+                $this->KernelReady();
+                break;
+        }
     }
-
+    public function RequestAction($Ident, $Value)
+    {
+        if ($this->IORequestAction($Ident, $Value)) {
+            return true;
+        }
+        return false;
+    }
     /**
      * Wird ausgeführt wenn der Kernel hochgefahren wurde.
      */
@@ -146,10 +158,11 @@ class PlugwiseNetwork extends IPSModule
      */
     protected function IOChangeState($State)
     {
+        $this->SendDebug('IOChangeState', $State, 0);
+
         if ($State == IS_ACTIVE) {
             $this->NetworkState = Plugwise_NetworkState::StickNotFound;
             $this->SendDebug('IOChangeState', Plugwise_NetworkState::ToString($this->NetworkState), 0);
-
             $this->StartNetwork();
         } else {
             $this->SetTimerInterval('SearchNodes', 0);
@@ -175,6 +188,7 @@ class PlugwiseNetwork extends IPSModule
             case Plugwise_NetworkState::SearchingNodes:
                 $this->NetworkState = Plugwise_NetworkState::StickNotFound;
                 $this->SetTimerInterval('SearchNodes', 0);
+                // no break
             case Plugwise_NetworkState::CirclePlusOffline:
             case Plugwise_NetworkState::StickNotFound:
             case Plugwise_NetworkState::Online:
@@ -182,7 +196,6 @@ class PlugwiseNetwork extends IPSModule
                 if (!$this->InitStick()) {
                     $this->SetStatus(IS_EBASE + 2 + $this->NetworkState);
                     $this->SendDebug('NewNetworkState', Plugwise_NetworkState::ToString($this->NetworkState), 0);
-
                     return;
                 }
                 if (!$this->VerifyCirclePlus()) {
@@ -217,12 +230,12 @@ class PlugwiseNetwork extends IPSModule
             return false;
         }
 
-        $targetindex = $this->SearchIndex + 5;
-        if ($targetindex > 64) {
-            $targetindex = 64;
+        $TargetIndex = $this->SearchIndex + 5;
+        if ($TargetIndex > 64) {
+            $TargetIndex = 64;
         }
         $Nodes = $this->Nodes;
-        for ($index = $this->SearchIndex; $index < $targetindex; $index++) {
+        for ($index = $this->SearchIndex; $index < $TargetIndex; $index++) {
             $PlugwiseData = new Plugwise_Frame(Plugwise_Command::AssociatedNodesRequest, $this->CirclePlusMAC, sprintf("%02X", $index));
             /* @var $result Plugwise_Frame */
             $Result = $this->Send($PlugwiseData);
@@ -313,13 +326,13 @@ class PlugwiseNetwork extends IPSModule
                 );
                 $form['actions'][] = array(
                     'type'    => 'ValidationTextBox',
-                    'name'    => 'newnode',
+                    'name'    => 'NodeMAC',
                     'caption' => 'Node MAC:'
                 );
                 $form['actions'][] = array(
                     'type'    => 'Button',
                     'label'   => 'Include node',
-                    'onClick' => 'PLUGWISE_RequestJoiningOfNodeEx($id,$newnode);'
+                    'onClick' => 'PLUGWISE_RequestJoiningOfNodeEx($id,$NodeMAC);'
                 );
 
                 $form['actions'] = array_merge($form['actions'], $this->GetOnlineForm(), $this->GetJoiningForm());
@@ -471,7 +484,7 @@ class PlugwiseNetwork extends IPSModule
 
     ################## PRIVATE
     /**
-     * Initianlisiert den Stick
+     * Initialisiert den Stick
      */
     private function InitStick()
     {
@@ -518,7 +531,7 @@ class PlugwiseNetwork extends IPSModule
         if (substr($Result->Data, 0, 4) != Plugwise_AckMsg::CONNECTED) {
             $this->SetValueString('NetworkID', $this->Translate('no Network'));
             $this->NetworkState = Plugwise_NetworkState::CirclePlusOffline;
-            $this->SendDebug('InitStick', Plugwise_NetworkState::ToString($this->NetworkState), 0);
+            $this->SendDebug('VerifyCirclePlus', Plugwise_NetworkState::ToString($this->NetworkState), 0);
             return false;
         }
         $this->CirclePlusMAC = substr($Result->Data, 4);
@@ -796,7 +809,7 @@ class PlugwiseNetwork extends IPSModule
     }
 
     /**
-     * Dekodiert die empfangenen Pakete und Anworten auf.
+     * Dekodiert die empfangenen Pakete und Antworten auf.
      *
      * @access protected
      * @param Plugwise_Frame $PlugwiseData Der zu dekodierende Datensatz als Objekt.
@@ -824,10 +837,10 @@ class PlugwiseNetwork extends IPSModule
     ################## PUBLIC
     ################## DATAPOINTS DEVICE
     /**
-     * Interne Funktion des SDK. Nimmt Daten von Childs entgegen und sendet Diese weiter.
+     * Interne Funktion des SDK. Nimmt Daten von Children entgegen und sendet Diese weiter.
      *
      * @access public
-     * @param string $JSONString Ein Kodi_RPC_Data-Objekt welches als JSONString kodiert ist.
+     * @param string $JSONString Ein Plugwise_Frame-Objekt welches als JSONString kodiert ist.
      * @result bool true wenn Daten gesendet werden konnten, sonst false.
      */
     public function ForwardData($JSONString)
@@ -872,7 +885,7 @@ class PlugwiseNetwork extends IPSModule
     {
         $data = json_decode($JSONString);
 
-        // Datenstream zusammenfügen
+        // Datenstrom zusammenfügen
         $head = $this->BufferIN;
         $Data = $head . utf8_decode($data->Buffer);
         // Stream in einzelne Pakete schneiden
@@ -966,7 +979,7 @@ class PlugwiseNetwork extends IPSModule
 //            $this->SendDebug('ReceiveResult', $Result, 0);
             if ($Result === -10) { // Timeout
                 throw new Exception($this->Translate('Stick did not response.'), E_USER_NOTICE);
-            } elseif ($Result === -4) { // unknow
+            } elseif ($Result === -4) { // unknown
                 throw new Exception($this->Translate('Stick response unknown error.'), E_USER_NOTICE);
             } elseif ($Result === -3) { // OutOfRange
                 throw new Exception($this->Translate('Stick response OutOfRange.'), E_USER_NOTICE);
@@ -986,7 +999,7 @@ class PlugwiseNetwork extends IPSModule
             //$this->SendDebug('Receive', 'ACK', 0);
 
             if ($ReplyPlugwiseFrame === false) {
-                throw new Exception($this->Translate('No anwser from Network.'), E_USER_NOTICE);
+                throw new Exception($this->Translate('No answer from Network.'), E_USER_NOTICE);
             }
             $this->SendDebug('Response', $ReplyPlugwiseFrame, 0);
             if ($ReplyPlugwiseFrame->Checksum !== true) {
@@ -1016,7 +1029,7 @@ class PlugwiseNetwork extends IPSModule
      * Wartet auf eine Antwort.
      *
      * @access private
-     * @result Plugwise_Data|boolean Enthält ein Antwort eines Plugwise_Data-Objekt mit der Antwort, oder false bei einem Timeout.
+     * @result Plugwise_Frame|boolean Enthält ein Antwort eines Plugwise_Frame-Objekt mit der Antwort, oder false bei einem Timeout.
      */
     private function WaitForResponse(int $FrameID, int $Seconds = null)
     {
@@ -1040,7 +1053,7 @@ class PlugwiseNetwork extends IPSModule
         return false;
     }
 
-    ################## SENDQUEUE
+    ################## SEND QUEUE
     /**
      * Fügt eine Anfrage in die SendQueue ein.
      *
@@ -1103,7 +1116,7 @@ class PlugwiseNetwork extends IPSModule
     }
 
     /**
-     * Erzeugt einen, mit der GUDI versehenen, JSON-kodierten String zum versand an den RF-Stick.
+     * Erzeugt einen, mit der GUID versehenen, JSON-kodierten String zum versand an den RF-Stick.
      *
      * @access public
      * @param string $GUID Die Interface-GUID welche mit in den JSON-String integriert werden soll.
