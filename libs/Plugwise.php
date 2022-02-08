@@ -629,7 +629,7 @@ class Plugwise_Frame
         $time = hexdec(substr($TimeString, 4, 4)) % (60 * 24);
         $hour = intval($time / 60);
         $minutes = $time % 60;
-        $circle_time = sprintf(' %02d:%02d', $hour, $minutes);
+        $circle_time = sprintf('%02d:%02d', $hour, $minutes);
         return strtotime($circle_date . $circle_time . ' UTC');
     }
 
