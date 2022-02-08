@@ -1,31 +1,40 @@
 <?php
-namespace {
-    /**
-     * @addtogroup plugwise
-     * @{
-     *
-     * @package       Plugwise
-     * @author        Michael Tröger <micha@nall-chan.net>
-     * @copyright     2018 Michael Tröger
-     * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
-     * @version       1.0
-     * @example <b>Ohne</b>
-     */
 
-    class Plugwise_NetworkState
+declare(strict_types=1);
+
+/**
+ * @addtogroup plugwise
+ * @{
+ *
+ * @package       Plugwise
+ * @author        Michael Tröger <micha@nall-chan.net>
+ * @copyright     2019 Michael Tröger
+ * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
+ * @version       2.0
+ * @example <b>Ohne</b>
+ */
+
+namespace Plugwise;
+
+eval('declare(strict_types=1);namespace Plugwise {?>' . file_get_contents(__DIR__ . '/helper/BufferHelper.php') . '}');
+eval('declare(strict_types=1);namespace Plugwise {?>' . file_get_contents(__DIR__ . '/helper/SemaphoreHelper.php') . '}');
+eval('declare(strict_types=1);namespace Plugwise {?>' . file_get_contents(__DIR__ . '/helper/ParentIOHelper.php') . '}');
+eval('declare(strict_types=1);namespace Plugwise {?>' . file_get_contents(__DIR__ . '/helper/VariableProfileHelper.php') . '}');
+
+class Plugwise_NetworkState
+{
+    const StickNotFound = 0;
+    const CirclePlusMissing = 1;
+    const CirclePlusOffline = 2;
+    const SearchingCirclePlus = 3;
+    const ParingCirclePlus = 4;
+    const SearchingNodes = 5;
+    const Online = 7;
+    const OnlineJoining = 8;
+
+    public static function ToString($NetworkState)
     {
-        const StickNotFound = 0;
-        const CirclePlusMissing = 1;
-        const CirclePlusOffline = 2;
-        const SearchingCirclePlus = 3;
-        const ParingCirclePlus = 4;
-        const SearchingNodes = 5;
-        const Online = 7;
-        const OnlineJoining = 8;
-
-        public static function ToString($NetworkState)
-        {
-            switch ($NetworkState) {
+        switch ($NetworkState) {
             case self::StickNotFound:
                 return 'Stick not found';
             case self::CirclePlusMissing:
@@ -45,22 +54,22 @@ namespace {
             default:
                 return $NetworkState;
         }
-        }
     }
+}
 
-    class Plugwise_Switch
-    {
-        const ON = "01";
-        const OFF = "00";
+class Plugwise_Switch
+{
+    const ON = '01';
+    const OFF = '00';
 
-        public static $Hertz = array(
+    public static $Hertz = [
         133 => 50,
         197 => 60
-    );
+    ];
 
-        public static function ToString($Plugwise_Switch)
-        {
-            switch ($Plugwise_Switch) {
+    public static function ToString($Plugwise_Switch)
+    {
+        switch ($Plugwise_Switch) {
             case self::ON:
                 return 'ON';
             case self::OFF:
@@ -68,24 +77,24 @@ namespace {
             default:
                 return '????????????';
         }
-        }
     }
+}
 
-    class Plugwise_AckMsg
-    {
-        const ACK = "00C1";
-        const NACK = "00C2";
-        const UNKNOW = "00C3";          //	"Command not allowed"
-        const SWITCHON = "00D8";
-        const JOININGENABLE = "00D9";   //	"Allow nodes to join ACK1"
-    const JOININGDISABLE = "00DD";  //	"Allow nodes to join ACK0"
-    const SWITCHOFF = "00DE";
-        const SUCCESSFUL = "00DF";      //	"Set RTC-Data ACK"
-        //                 "00E7";      //	"Set RTC-Data NACK"
-        const OUTOFRANGE = "00E1";
-        const DISCONNECTED = "00F2";    //	"Reply role changed OK"
+class Plugwise_AckMsg
+{
+    const ACK = '00C1';
+    const NACK = '00C2';
+    const UNKNOW = '00C3';          //	"Command not allowed"
+    const SWITCHON = '00D8';
+    const JOININGENABLE = '00D9';   //	"Allow nodes to join ACK1"
+    const JOININGDISABLE = '00DD';  //	"Allow nodes to join ACK0"
+    const SWITCHOFF = '00DE';
+    const SUCCESSFUL = '00DF';      //	"Set RTC-Data ACK"
+    //                 "00E7";      //	"Set RTC-Data NACK"
+    const OUTOFRANGE = '00E1';
+    const DISCONNECTED = '00F2';    //	"Reply role changed OK"
     //                  "00F3";     //	"Reply role changed NOK"
-    const CONNECTED = "00F4";       //	"Set handle on"
+    const CONNECTED = '00F4';       //	"Set handle on"
     //                  "00F5";     //	"Set handle off"
     //                  "00F9";     //	"Clear group MAC-Table"
     //          	"00FA";     //	"Fill Switch-schedule"
@@ -128,17 +137,17 @@ namespace {
     //  	 	"00E0";     //	"Send switchblock NACK"
     //  	 	"00DA";     //	"Send calib-params ACK"
     //  	 	"00E2";     //	"Set relais denied"
-    const SETTIMEACK = "00D7";     //	"Set year, month and flashadress DONE"
+    const SETTIMEACK = '00D7';     //	"Set year, month and flashadress DONE"
 
     //  	 	"00BD";     //	"Start Light-Calibration started"
-        //  	 	"00E9";     //	"Start Pingrun ACK"
-        //  	 	"00EA";     //	"Stop Pingrun ACK"
-        //  	 	"00DC";     //	"Synchronize NC ACK"
-        //  	 	"00D6";     //	"Timeout Powermeter Logdata"
+    //  	 	"00E9";     //	"Start Pingrun ACK"
+    //  	 	"00EA";     //	"Stop Pingrun ACK"
+    //  	 	"00DC";     //	"Synchronize NC ACK"
+    //  	 	"00D6";     //	"Timeout Powermeter Logdata"
 
-        public static function ToString($Plugwise_AckMsg)
-        {
-            switch ($Plugwise_AckMsg) {
+    public static function ToString($Plugwise_AckMsg)
+    {
+        switch ($Plugwise_AckMsg) {
             case self::ACK:
                 return 'ACK';
             case self::NACK:
@@ -164,216 +173,215 @@ namespace {
             default:
                 return $Plugwise_AckMsg . ' = ????????????';
         }
-        }
     }
+}
 
-    class Plugwise_Command
-    {
-
+class Plugwise_Command
+{
     /**
      * Response from stick after request
      */
-        const AckMsgResponse = '0000';
+    const AckMsgResponse = '0000';
 
-        /**
-         * Query any presence off networks. Maybe intended to find a Circle+ from the Stick
-         */
-        const QueryCirclePlusRequest = '0001';
-        const QueryCirclePlusResponse = '0002';
-        const QueryCirclePlusResponseEnd = '0003';
+    /**
+     * Query any presence off networks. Maybe intended to find a Circle+ from the Stick
+     */
+    const QueryCirclePlusRequest = '0001';
+    const QueryCirclePlusResponse = '0002';
+    const QueryCirclePlusResponseEnd = '0003';
 
-        /**
-         * Request connection to the network. Maybe intended to connect a Circle+ to the Stick
-         */
-        const ConnectCirclePlusRequest = '0004';
-        const ConnectCirclePlusResponse = '0005';
+    /**
+     * Request connection to the network. Maybe intended to connect a Circle+ to the Stick
+     */
+    const ConnectCirclePlusRequest = '0004';
+    const ConnectCirclePlusResponse = '0005';
 
-        /**
-         * Broadcast from factory-default nodes
-         */
-        const AdvertiseNodeResponse = '0006';
+    /**
+     * Broadcast from factory-default nodes
+     */
+    const AdvertiseNodeResponse = '0006';
 
-        /**
-         * Send Join nodes request to add a new node to the network
-         */
-        const JoinNodeRequest = '0007';
+    /**
+     * Send Join nodes request to add a new node to the network
+     */
+    const JoinNodeRequest = '0007';
 
-        /*
-         * Send a flag which enables or disables joining nodes request
-         */
-        const EnableJoiningRequest = '0008';
+    /*
+     * Send a flag which enables or disables joining nodes request
+     */
+    const EnableJoiningRequest = '0008';
 
-        /**
-         * Send preset circle request
-         */
-        const ResetRequest = '0009';
+    /**
+     * Send preset circle request
+     */
+    const ResetRequest = '0009';
 
-        /**
-         * message for that initializes the Stick
-         */
-        const StickStatusRequest = '000A';
+    /**
+     * message for that initializes the Stick
+     */
+    const StickStatusRequest = '000A';
 
-        /**
-         * Send ping to node
-         */
-        const Ping = '000D';
-        const PingResponse = '000E';
+    /**
+     * Send ping to node
+     */
+    const Ping = '000D';
+    const PingResponse = '000E';
 
-        /**
-         * Status from stick
-         */
-        const StickStatusResponse = '0011';
+    /**
+     * Status from stick
+     */
+    const StickStatusResponse = '0011';
 
-        /**
-         * Request for power usage
-         */
-        const PowerUsageRequest = '0012';
+    /**
+     * Request for power usage
+     */
+    const PowerUsageRequest = '0012';
 
-        /**
-         * returns power usage as impulse counters for several different TimeFrames
-         */
-        const PowerUsageResponse = '0013';
+    /**
+     * returns power usage as impulse counters for several different TimeFrames
+     */
+    const PowerUsageResponse = '0013';
 
-        /**
-         * Set time on circle+
-         */
-        const ClockSetRequest = '0016'; // an Circle
+    /**
+     * Set time on circle+
+     */
+    const ClockSetRequest = '0016'; // an Circle
 
-        /**
-         * switches Plug on or off
-         */
-        const SwitchRequest = '0017';
+    /**
+     * switches Plug on or off
+     */
+    const SwitchRequest = '0017';
 
-        /**
-         * Send populate request
-         */
-        const AssociatedNodesRequest = '0018';
+    /**
+     * Send populate request
+     */
+    const AssociatedNodesRequest = '0018';
 
-        /**
-         * AssociatedNodes response
-         */
-        const AssociatedNodesResponse = '0019';
+    /**
+     * AssociatedNodes response
+     */
+    const AssociatedNodesResponse = '0019';
 
-        /**
-         * Request remove node from network
-         */
-        const RemoveNodeRequest = '001C';
+    /**
+     * Request remove node from network
+     */
+    const RemoveNodeRequest = '001C';
 
-        /**
-         * RemoveNode response
-         */
-        const RemoveNodeResponse = '001D';
+    /**
+     * RemoveNode response
+     */
+    const RemoveNodeResponse = '001D';
 
-        /**
-         * Info request and response
-         */
-        const InfoRequest = '0023';
-        const InfoResponse = '0024';
+    /**
+     * Info request and response
+     */
+    const InfoRequest = '0023';
+    const InfoResponse = '0024';
 
-        /**
-         * Calibration request and response
-         */
-        const CalibrationRequest = '0026';
-        const CalibrationResponse = '0027';
+    /**
+     * Calibration request and response
+     */
+    const CalibrationRequest = '0026';
+    const CalibrationResponse = '0027';
 
-        /**
-         * DateTime request and response
-         */
-        const SetDateTimeRequest = '0028';
-        const DateTimeInfoRequest = '0029';
-        const DateTimeInfoResponse = '003A';
+    /**
+     * DateTime request and response
+     */
+    const SetDateTimeRequest = '0028';
+    const DateTimeInfoRequest = '0029';
+    const DateTimeInfoResponse = '003A';
 
-        /**
-         * Send chunk of On/Off/StandbyKiller Schedule to Stick
-         */
-        const PrepareScheduleRequest = '003B';
+    /**
+     * Send chunk of On/Off/StandbyKiller Schedule to Stick
+     */
+    const PrepareScheduleRequest = '003B';
 
-        /**
-         * Send chunk of  On/Off/StandbyKiller Schedule to Circle(+)
-         */
-        const SendScheduleRequest = '003C';
-        const SendScheduleResponse = '003D';
+    /**
+     * Send chunk of  On/Off/StandbyKiller Schedule to Circle(+)
+     */
+    const SendScheduleRequest = '003C';
+    const SendScheduleResponse = '003D';
 
-        /**
-         * Clock request and response
-         */
-        const ClockInfoRequest = '003E';
-        const ClockInfoResponse = '003F';
+    /**
+     * Clock request and response
+     */
+    const ClockInfoRequest = '003E';
+    const ClockInfoResponse = '003F';
 
-        /**
-         * switches Schedule on or off
-         */
-        const EnableScheduleRequest = '0040';
+    /**
+     * switches Schedule on or off
+     */
+    const EnableScheduleRequest = '0040';
 
-        /**
-         * Request power usage historical data
-         */
-        const PowerBufferRequest = '0048';
+    /**
+     * Request power usage historical data
+     */
+    const PowerBufferRequest = '0048';
 
-        /**
-         * returns information about historical power usage
-         * each response contains 4 log buffers and each log buffer contains data for 1 hour
-         */
-        const PowerBufferResponse = '0049';
+    /**
+     * returns information about historical power usage
+     * each response contains 4 log buffers and each log buffer contains data for 1 hour
+     */
+    const PowerBufferResponse = '0049';
 
-        /**
-         * Eventuell Anlernmodus Circle+ ???
-         */
-        const GetCirclePlus1 = '004A';
+    /**
+     * Eventuell Anlernmodus Circle+ ???
+     */
+    const GetCirclePlus1 = '004A';
 
-        /**
-         * Verbundenen Circle+ anfordern.
-         */
-        const GetConnectedCirclePlus = '004E';
+    /**
+     * Verbundenen Circle+ anfordern.
+     */
+    const GetConnectedCirclePlus = '004E';
 
-        /**
-         * PushButtons
-         */
-        const PushButtonResponse = '004F';
+    /**
+     * PushButtons
+     */
+    const PushButtonResponse = '004F';
 
-        /**
-         * Keypress on Switch
-         */
-        const KeyPressResponse = '0056';
+    /**
+     * Keypress on Switch
+     */
+    const KeyPressResponse = '0056';
 
-        /**
-         * ???
-         */
-        const LogIntervalRequest = '0057';
+    /**
+     * ???
+     */
+    const LogIntervalRequest = '0057';
 
-        /**
-         * ???
-         */
-        const ClearGroupMacRequest = '0058';
+    /**
+     * ???
+     */
+    const ClearGroupMacRequest = '0058';
 
-        /**
-         * Send chunk of  On/Off/StandbyKiller Schedule to Circle(+)
-         */
-        const SetScheduleValueRequest = '0059';
+    /**
+     * Send chunk of  On/Off/StandbyKiller Schedule to Circle(+)
+     */
+    const SetScheduleValueRequest = '0059';
 
-        /**
-         * ???
-         */
-        const FeatureSetRequest = '005F';
+    /**
+     * ???
+     */
+    const FeatureSetRequest = '005F';
 
-        /**
-         * returns feature set of modules
-         */
-        const FeatureSetResponse = '0060';
+    /**
+     * returns feature set of modules
+     */
+    const FeatureSetResponse = '0060';
 
-        /**
-         * Broadcast when node join network
-         */
-        const AckAssociationResponse = '0061';
+    /**
+     * Broadcast when node join network
+     */
+    const AckAssociationResponse = '0061';
 
-        /**
-         * Sens values
-         */
-        const SensInfoResponse = '0105';
+    /**
+     * Sens values
+     */
+    const SensInfoResponse = '0105';
 
-        public static function ToString($Plugwise_Command)
-        {
-            switch ($Plugwise_Command) {
+    public static function ToString($Plugwise_Command)
+    {
+        switch ($Plugwise_Command) {
             case self::AckMsgResponse:
                 return 'AckMsgResponse';
             case self::QueryCirclePlusRequest:
@@ -469,34 +477,34 @@ namespace {
             default:
                 return $Plugwise_Command . ' ????';
         }
-        }
     }
+}
 
-    class Plugwise_Typ
-    {
-        const unknow = 0;
-        const Circle = 1;
-        const Switch = 2; //No typo, switch is reserved by PHP ;)
-        const Sense = 3;
-        const Scan = 4;
+class Plugwise_Typ
+{
+    const unknow = 0;
+    const Cricle = 1;
+    const Switche = 2; //No typo, switch is reserved by PHP ;)
+    const Sense = 3;
+    const Scan = 4;
 
-        public static $Type = array(
-        0 => self::Circle,
-        '00' => self::Circle,
-        '01' => self::Circle,
-        '02' => self::Circle,
-        '03' => self::Switch,
-        '04' => self::Switch,
+    public static $Type = [
+        0    => self::Cricle,
+        '00' => self::Cricle,
+        '01' => self::Cricle,
+        '02' => self::Cricle,
+        '03' => self::Switche,
+        '04' => self::Switche,
         '05' => self::Sense,
         '06' => self::Scan,
-    );
+    ];
 
-        public static function ToString($Plugwise_Type)
-        {
-            switch ($Plugwise_Type) {
-            case self::Circle:
+    public static function ToString($Plugwise_Type)
+    {
+        switch ($Plugwise_Type) {
+            case self::Cricle:
                 return 'Circle';
-            case self::Switch:
+            case self::Switche:
                 return 'Switch';
             case self::Sense:
                 return 'Sense';
@@ -505,165 +513,161 @@ namespace {
             default:
                 return $Plugwise_Type;
         }
+    }
+}
+
+/**
+ * Enthält einen Plugwise Datenpaket.
+ *
+ * @package       Plugwise
+ * @author        Michael Tröger <micha@nall-chan.net>
+ * @copyright     2016 Michael Tröger
+ * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
+ * @version       0.1
+ * @example <b>Ohne</b>
+ *
+ *
+ * @property string $Command Kommando
+ * @property int $FrameID Frame-ID
+ * @property string $NodeMAC ID des Circle
+ * @property string $Data Payload
+ * @property bool $Checksum Checksumme
+ */
+class Plugwise_Frame
+{
+    const CirclePlusMac = 'FFFFFFFF';
+
+    /**
+     * Kommando
+     * @access private
+     * @var string
+     */
+    public $Command = '';
+
+    /**
+     * Frame-ID
+     * @access private
+     * @var int
+     */
+    public $FrameID = -1;
+
+    /**
+     * ID des Circle
+     * @access private
+     * @var string
+     */
+    public $NodeMAC = '';
+
+    /**
+     * Payload
+     * @access private
+     * @var string
+     */
+    public $Data = '';
+
+    /**
+     * Checksumme
+     * @access private
+     * @var bool
+     */
+    public $Checksum = null;
+
+    /**
+     * Erstellt ein Plugwise_Frame Objekt.
+     *
+     * @access public
+     * @param string $Command [optional] Kommando
+     * @param string $NodeMAC [optional] ID des Circle
+     * @param string $Data [optional] Payload
+     * @return Plugwise_Frame
+     */
+    public function __construct($Command = null, $NodeMAC = null, $Data = null)
+    {
+        if (is_object($Command)) {
+            $this->Command = utf8_decode($Command->Command);
+
+            $NodeMAC2 = utf8_decode($Command->NodeMAC);
+            if ($NodeMAC2 == self::CirclePlusMac) {
+                $this->NodeMAC = $NodeMAC;
+            } else {
+                $this->NodeMAC = $NodeMAC2;
+            }
+            $this->Data = utf8_decode($Command->Data);
+        } else {
+            if (!is_null($Command)) {
+                $this->Command = strtoupper($Command);
+            }
+            if (!is_null($NodeMAC)) {
+                $this->NodeMAC = strtoupper($NodeMAC);
+            }
+            if (!is_null($Data)) {
+                $this->Data = strtoupper($Data);
+            }
         }
     }
 
-    /**
-     * Enthält einen Plugwise Datenpaket.
-     *
-     * @package       Plugwise
-     * @author        Michael Tröger <micha@nall-chan.net>
-     * @copyright     2016 Michael Tröger
-     * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
-     * @version       0.1
-     * @example <b>Ohne</b>
-     *
-     *
-     * @property string $Command Kommando
-     * @property int $FrameID Frame-ID
-     * @property string $NodeMAC ID des Circle
-     * @property string $Data Payload
-     * @property bool $Checksum Checksumme
-     */
-    class Plugwise_Frame
+    public static function Hex2Float($HexString)
     {
-        const CirclePlusMac = 'FFFFFFFF';
+        $intval = hexdec($HexString);
+        $bits = pack('L', $intval);
+        return unpack('f', $bits)[1];
+    }
 
-        /**
-         * Kommando
-         * @access private
-         * @var string
-         */
-        public $Command = "";
+    public static function Timestamp2Hex($TimeStamp)
+    {
+        $date = sprintf('%02X%02X%02X', gmdate('y', $TimeStamp), gmdate('m', $TimeStamp), ((gmdate('j', $TimeStamp) - 1) * 24 + gmdate('G', $TimeStamp)) * 60 + gmdate('i', $TimeStamp));
+        $time = sprintf('%02X%02X%02X%02X', gmdate('G', $TimeStamp), gmdate('i', $TimeStamp), gmdate('s', $TimeStamp), gmdate('N', $TimeStamp));
+        return $date . 'FFFFFFFF' . $time;
+    }
 
-        /**
-         * Frame-ID
-         * @access private
-         * @var int
-         */
-        public $FrameID = -1;
-
-        /**
-         * ID des Circle
-         * @access private
-         * @var string
-         */
-        public $NodeMAC = "";
-
-        /**
-         * Payload
-         * @access private
-         * @var string
-         */
-        public $Data = "";
-
-        /**
-         * Checksumme
-         * @access private
-         * @var bool
-         */
-        public $Checksum = null;
-
-        /**
-         * Erstellt ein Plugwise_Frame Objekt.
-         *
-         * @access public
-         * @param string $Command [optional] Kommando
-         * @param string $NodeMAC [optional] ID des Circle
-         * @param string $Data [optional] Payload
-         * @return Plugwise_Frame
-         */
-        public function __construct($Command = null, $NodeMAC = null, $Data = null)
-        {
-            if (is_object($Command)) {
-                $this->Command = utf8_decode($Command->Command);
-
-                $NodeMAC2 = utf8_decode($Command->NodeMAC);
-                if ($NodeMAC2 == Plugwise_Frame::CirclePlusMac) {
-                    $this->NodeMAC = $NodeMAC;
-                } else {
-                    $this->NodeMAC = $NodeMAC2;
-                }
-                $this->Data = utf8_decode($Command->Data);
-            } else {
-                if (!is_null($Command)) {
-                    $this->Command = strtoupper($Command);
-                }
-                if (!is_null($NodeMAC)) {
-                    $this->NodeMAC = strtoupper($NodeMAC);
-                }
-                if (!is_null($Data)) {
-                    $this->Data = strtoupper($Data);
-                }
-            }
+    public static function Hex2Timestamp($TimeString)
+    {
+        if ($TimeString == 'FFFFFFFF') {
+            return;
         }
+        $circle_date = sprintf('%04d-%02d-%02d', hexdec(substr($TimeString, 0, 2)) + 2000, hexdec(substr($TimeString, 2, 2)), (hexdec(substr($TimeString, 4, 4)) / 60 / 24) + 1);
+        $time = hexdec(substr($TimeString, 4, 4)) % (60 * 24);
+        $hour = intval($time / 60);
+        $minutes = $time % 60;
+        $circle_time = sprintf(' %02d:%02d', $hour, $minutes);
+        return strtotime($circle_date . $circle_time . ' UTC');
+    }
 
-        public static function Hex2Float($HexString)
-        {
-            $intval = hexdec($HexString);
-            $bits = pack("L", $intval);
-            return unpack("f", $bits)[1];
+    public static function pulsesCorrection($pulses, $timespan, $offRuis, $offTot, $gainA, $gainB)
+    {
+        if ($pulses == 0) {
+            $out = 0;
+        } else {
+            $value = $pulses / $timespan;
+            $out = 1 * (((pow($value + $offRuis, 2.0) * $gainB) + (($value + $offRuis) * $gainA)) + $offTot);
         }
+        return $out;
+    }
 
-        public static function Timestamp2Hex($TimeStamp)
-        {
-            $date = sprintf('%02X%02X%02X', gmdate("y", $TimeStamp), gmdate("m", $TimeStamp), ((gmdate("j", $TimeStamp) - 1) * 24 + gmdate("G", $TimeStamp)) * 60 + gmdate("i", $TimeStamp));
-            $time = sprintf('%02X%02X%02X%02X', gmdate("G", $TimeStamp), gmdate("i", $TimeStamp), gmdate("s", $TimeStamp), gmdate("N", $TimeStamp));
-            return $date . 'FFFFFFFF' . $time;
-        }
+    public static function pulsesToKwh($pulses)
+    {
+        return (($pulses / 3600) / 468.9385193) * 3600;
+    }
 
-        public static function Hex2Timestamp($TimeString)
-        {
-            if ($TimeString == 'FFFFFFFF') {
-                return;
-            }
-            if (substr($TimeString, 0, 4) == '0001') {
-                return;
-            }
+    public static function pulsesToWatt($pulses)
+    {
+        return ($pulses / 468.9385193) * 1000;
+        //return (number_format($result, 3, ',', ''));
+    }
 
-            $circle_date = sprintf("%04d-%02d-%02d", hexdec(substr($TimeString, 0, 2)) + 2000, hexdec(substr($TimeString, 2, 2)), (hexdec(substr($TimeString, 4, 4)) / 60 / 24) + 1);
-            $time = hexdec(substr($TimeString, 4, 4)) % (60 * 24);
-            $hour = intval($time / 60);
-            $minutes = $time % 60;
-            $circle_time = sprintf(" %02d:%02d", $hour, $minutes);
-            return strtotime($circle_date . $circle_time . ' UTC');
-        }
+    /**
+     * Zerlegt den String aus $Data in ein Plugwise_Frame-Objekt.
+     * Wird beim Datenempfang vom Stick genutzt.
+     *
+     * @access public
+     * @param string $Data Payload vom Stick
+     */
+    public function DecodeFrame($Data)
+    {
+        $this->Command = strtoupper(substr($Data, 0, 4));
+        $this->FrameID = hexdec(substr($Data, 4, 4));
 
-        public static function pulsesCorrection($pulses, $timespan, $offRuis, $offTot, $gainA, $gainB)
-        {
-            if ($pulses == 0) {
-                $out = 0;
-            } else {
-                $value = $pulses / $timespan;
-                $out = 1 * (((pow($value + $offRuis, 2.0) * $gainB) + (($value + $offRuis) * $gainA)) + $offTot);
-            }
-            return $out;
-        }
-
-        public static function pulsesToKwh($pulses)
-        {
-            return (($pulses / 3600) / 468.9385193) * 3600;
-        }
-
-        public static function pulsesToWatt($pulses)
-        {
-            return ($pulses / 468.9385193) * 1000;
-            //return (number_format($result, 3, ',', ''));
-        }
-
-        /**
-         * Zerlegt den String aus $Data in ein Plugwise_Frame-Objekt.
-         * Wird beim Datenempfang vom Stick genutzt.
-         *
-         * @access public
-         * @param string $Data Payload vom Stick
-         */
-        public function DecodeFrame($Data)
-        {
-            $this->Command = strtoupper(substr($Data, 0, 4));
-            $this->FrameID = hexdec(substr($Data, 4, 4));
-
-            switch ($this->Command) {
+        switch ($this->Command) {
 
             case Plugwise_Command::AdvertiseNodeResponse:
             //   000D6F0000B1A240
@@ -793,100 +797,94 @@ namespace {
                 $this->Data = strtoupper(substr($Data, 8, -4));
         }
 
-            $Checksum = strtoupper(substr($Data, -4, 4));
-            $this->Checksum = ($this->CalculateChecksum() == $Checksum ? true : false);
-            //var_dump($this->Checksum);
-        }
+        $Checksum = strtoupper(substr($Data, -4, 4));
+        $this->Checksum = ($this->CalculateChecksum() == $Checksum ? true : false);
+        //var_dump($this->Checksum);
+    }
 
-        /**
-         * Erzeugt einen, mit der GUID versehenen, JSON-kodierten String zum versand an den Splitter.
-         *
-         * @access public
-         * @param string $GUID Die Interface-GUID welche mit in den JSON-String integriert werden soll.
-         * @return string JSON-kodierter String für IPS-Dateninterface.
-         */
-        public function ToJSONStringForSplitter()
-        {
-            return json_encode(array("DataID" => '{E7DA1628-D62B-47BF-A834-E5556DD110E7}',
-            "Command" => utf8_encode($this->Command),
-            "NodeMAC" => utf8_encode($this->NodeMAC),
-            "Data" => utf8_encode($this->Data)
-        ));
-        }
+    /**
+     * Erzeugt einen, mit der GUDI versehenen, JSON-kodierten String zum versand an den Splitter.
+     *
+     * @access public
+     * @param string $GUID Die Interface-GUID welche mit in den JSON-String integriert werden soll.
+     * @return string JSON-kodierter String für IPS-Dateninterface.
+     */
+    public function ToJSONStringForSplitter()
+    {
+        return json_encode(['DataID'  => '{E7DA1628-D62B-47BF-A834-E5556DD110E7}',
+            'Command'                 => utf8_encode($this->Command),
+            'NodeMAC'                 => utf8_encode($this->NodeMAC),
+            'Data'                    => utf8_encode($this->Data)
+        ]);
+    }
 
-        public function ToJSONStringForDevices()
-        {
-            return json_encode(array("DataID" => '{CD59EBB4-B313-4ACA-A503-E646CFE0B6FD}',
-            "Command" => utf8_encode($this->Command),
-            "NodeMAC" => utf8_encode($this->NodeMAC),
-            "Data" => utf8_encode($this->Data)
-        ));
-        }
+    public function ToJSONStringForDevices()
+    {
+        return json_encode(['DataID'  => '{CD59EBB4-B313-4ACA-A503-E646CFE0B6FD}',
+            'Command'                 => utf8_encode($this->Command),
+            'NodeMAC'                 => utf8_encode($this->NodeMAC),
+            'Data'                    => utf8_encode($this->Data)
+        ]);
+    }
 
-        public function EncodeFrame()
-        {
-            $Data = chr(0x05) . chr(0x05) . chr(0x03) . chr(0x03);
-            $Data .= $this->Command . $this->NodeMAC . $this->Data . $this->CalculateChecksum();
-            $Data .= chr(0x0D) . chr(0x0A);
-            return $Data;
-        }
+    public function EncodeFrame()
+    {
+        $Data = chr(0x05) . chr(0x05) . chr(0x03) . chr(0x03);
+        $Data .= $this->Command . $this->NodeMAC . $this->Data . $this->CalculateChecksum();
+        $Data .= chr(0x0D) . chr(0x0A);
+        return $Data;
+    }
 
-        // this function is used to calculate the (common) crc16c for an entire buffer
-        private function CalculateChecksum()
-        {
-            $buffer = $this->Command;
-            if ($this->FrameID != -1) {
-                $buffer .= sprintf("%04X", $this->FrameID);
+    // this function is used to calculate the (common) crc16c for an entire buffer
+    private function CalculateChecksum()
+    {
+        $buffer = $this->Command;
+        if ($this->FrameID != -1) {
+            $buffer .= sprintf('%04X', $this->FrameID);
+        }
+        $buffer .= $this->NodeMAC . $this->Data;
+        $crc16c = 0x0000;  // the crc initial value laut www.maartendamen.com
+        $buffer_length = strlen($buffer);
+        for ($i = 0; $i < $buffer_length; $i++) {
+            $ch = ord($buffer[$i]);
+            $crc16c = $this->update_common_crc16c($ch, $crc16c);
+        }
+        return sprintf('%04X', $crc16c); //strtoupper(str_pad(dechex($crc16c), 4, '0', STR_PAD_LEFT)); //mit nullen auffüllen
+    }
+    // this function is used to calculate the (common) crc16c byte by byte
+    // $ch is the next byte and $crc16c is the result from the last call, or 0xffff initially
+    private function update_common_crc16c($ch, $crc16c)
+    {
+        $crc16c_polynomial = 0x11021;   //auch laut maartendamen
+        // This comment was in the code from
+        // http://www.joegeluso.com/software/articles/ccitt.htm
+        // Why are they shifting this byte left by 8 bits??
+        // How do the low bits of the poly ever see it?
+        $ch <<= 8;
+        for ($i = 0; $i < 8; $i++) {
+            if (($crc16c ^ $ch) & 0x8000) {
+                $xor_flag = true;
+            } else {
+                $xor_flag = false;
             }
-            $buffer .= $this->NodeMAC . $this->Data;
-            $crc16c = 0x0000;  // the crc initial value laut www.maartendamen.com
-            $buffer_length = strlen($buffer);
-            for ($i = 0; $i < $buffer_length; $i++) {
-                $ch = ord($buffer[$i]);
-                $crc16c = $this->update_common_crc16c($ch, $crc16c);
+            $crc16c = $crc16c << 1;
+            if ($xor_flag) {
+                $crc16c = $crc16c ^ $crc16c_polynomial;
             }
-
-            return sprintf("%04X", $crc16c); //strtoupper(str_pad(dechex($crc16c), 4, '0', STR_PAD_LEFT)); //mit nullen auffüllen
+            $ch = $ch << 1;
         }
-
-        // this function is used to calculate the (common) crc16c byte by byte
-        // $ch is the next byte and $crc16c is the result from the last call, or 0xffff initially
-        private function update_common_crc16c($ch, $crc16c)
-        {
-            $crc16c_polynomial = 0x11021;   //auch laut maartendamen
-            // This comment was in the code from
-            // http://www.joegeluso.com/software/articles/ccitt.htm
-            // Why are they shifting this byte left by 8 bits??
-            // How do the low bits of the poly ever see it?
-            $ch <<= 8;
-            for ($i = 0; $i < 8; $i++) {
-                if (($crc16c ^ $ch) & 0x8000) {
-                    $xor_flag = true;
-                } else {
-                    $xor_flag = false;
-                }
-                $crc16c = $crc16c << 1;
-                if ($xor_flag) {
-                    $crc16c = $crc16c ^ $crc16c_polynomial;
-                }
-                $ch = $ch << 1;
-            }
-            // mask off (zero out) the upper two bytes
-            $crc16c = $crc16c & 0x0000ffff;
-            return $crc16c;
-        }
+        // mask off (zero out) the upper two bytes
+        $crc16c = $crc16c & 0x0000ffff;
+        return $crc16c;
     }
 }
-namespace Plugwise
-{
 
 /**
  * DebugHelper ergänzt SendDebug um die Möglichkeit Array und Objekte auszugeben.
  *
  */
-    trait DebugHelper
-    {
-
+trait DebugHelper
+{
     /**
      * Ergänzt SendDebug um Möglichkeit Objekte und Array auszugeben.
      *
@@ -895,55 +893,57 @@ namespace Plugwise
      * @param array|object|bool|string|int $Data Daten für die Ausgabe.
      * @return int $Format Ausgabeformat für Strings.
      */
-        protected function SendDebug($Message, $Data, $Format)
-        {
-            if (is_a($Data, 'Plugwise_Frame')) {
-                /* @var $Data Plugwise_Frame */
-                $this->SendDebug($Message . ":Command", Plugwise_Command::ToString($Data->Command), 0);
-                if ($Data->FrameID !== -1) {
-                    $this->SendDebug($Message . ":FrameID", $Data->FrameID, 0);
-                }
-                if ($Data->NodeMAC !== "") {
-                    $this->SendDebug($Message . ":NodeMAC", $Data->NodeMAC, 0);
-                }
-                if ($Data->Data !== "") {
-                    $this->SendDebug($Message . ":Payload", $Data->Data, 0);
-                }
-                if ($Data->Checksum !== null) {
-                    $this->SendDebug($Message . ":Checksum", $Data->Checksum, 0);
-                }
-            } elseif (is_a($Data, 'Plugwise_Data')) {
-                /* @var $Data Plugwise_Data */
-                $this->SendDebug($Message . ":Command", Plugwise_Command::ToString($Data->Command), 0);
-                if ($Data->NodeMAC !== "") {
-                    $this->SendDebug($Message . ":NodeMAC", $Data->NodeMAC, 0);
-                }
-                if ($Data->Data !== "") {
-                    $this->SendDebug($Message . ":Payload", $Data->Data, 0);
-                }
-            } elseif (is_array($Data)) {
-                foreach ($Data as $Key => $DebugData) {
-                    $this->SendDebug($Message . ":" . $Key, $DebugData, 0);
-                }
-            } elseif (is_object($Data)) {
-                foreach ($Data as $Key => $DebugData) {
-                    $this->SendDebug($Message . "." . $Key, $DebugData, 0);
-                }
-            } elseif (is_bool($Data)) {
-                parent::SendDebug($Message, ($Data ? 'TRUE' : 'FALSE'), 0);
+    protected function SendDebug($Message, $Data, $Format)
+    {
+        if (is_a($Data, 'Plugwise_Frame')) {
+            /* @var $Data Plugwise_Frame */
+            $this->SendDebug($Message . ':Command', Plugwise_Command::ToString($Data->Command), 0);
+            if ($Data->FrameID !== -1) {
+                $this->SendDebug($Message . ':FrameID', $Data->FrameID, 0);
+            }
+            if ($Data->NodeMAC !== '') {
+                $this->SendDebug($Message . ':NodeMAC', $Data->NodeMAC, 0);
+            }
+            if ($Data->Data !== '') {
+                $this->SendDebug($Message . ':Payload', $Data->Data, 0);
+            }
+            if ($Data->Checksum !== null) {
+                $this->SendDebug($Message . ':Checksum', $Data->Checksum, 0);
+            }
+        } elseif (is_a($Data, 'Plugwise_Data')) {
+            /* @var $Data Plugwise_Data */
+            $this->SendDebug($Message . ':Command', Plugwise_Command::ToString($Data->Command), 0);
+            if ($Data->NodeMAC !== '') {
+                $this->SendDebug($Message . ':NodeMAC', $Data->NodeMAC, 0);
+            }
+            if ($Data->Data !== '') {
+                $this->SendDebug($Message . ':Payload', $Data->Data, 0);
+            }
+        } elseif (is_array($Data)) {
+            foreach ($Data as $Key => $DebugData) {
+                $this->SendDebug($Message . ':' . $Key, $DebugData, 0);
+            }
+        } elseif (is_object($Data)) {
+            foreach ($Data as $Key => $DebugData) {
+                $this->SendDebug($Message . '.' . $Key, $DebugData, 0);
+            }
+        } elseif (is_bool($Data)) {
+            parent::SendDebug($Message, ($Data ? 'TRUE' : 'FALSE'), 0);
+        } else {
+            if (IPS_GetKernelRunlevel() == KR_READY) {
+                parent::SendDebug($Message, (string) $Data, $Format);
             } else {
-                parent::SendDebug($Message, $Data, $Format);
+                $this->LogMessage($Message . ':' . (string) $Data, KL_DEBUG);
             }
         }
     }
+}
 
-
-    /**
-     * Ein Trait welcher es ermöglicht über einen Ident Variablen zu beschreiben.
-     */
-    trait VariableHelper
-    {
-
+/**
+ * Ein Trait welcher es ermöglicht über einen Ident Variablen zu beschreiben.
+ */
+trait VariableHelper
+{
     /**
      * Setzte eine IPS-Variable vom Typ bool auf den Wert von $value
      *
@@ -952,69 +952,56 @@ namespace Plugwise
      * @param bool $Value Neuer Wert der Statusvariable.
      * @return bool true wenn Variable vorhanden sonst false.
      */
-        protected function SetValueBoolean($Ident, $Value, $Profile = "")
-        {
-            $id = @$this->GetIDForIdent($Ident);
-            if ($id == false) {
-                $id = $this->RegisterVariableBoolean(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
-            }
-            SetValueBoolean($id, $Value);
-            return true;
-        }
+    protected function SetValueBoolean($Ident, $Value, $Profile = '')
+    {
+        $this->RegisterVariableBoolean(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
+        $this->SetValueBoolean($Ident, (bool) $Value);
+        return true;
+    }
 
-        /**
-         * Setzte eine IPS-Variable vom Typ integer auf den Wert von $value.
-         *
-         * @access protected
-         * @param string $Ident Ident der Statusvariable.
-         * @param int $Value Neuer Wert der Statusvariable.
-         * @return bool true wenn Variable vorhanden sonst false.
-         */
-        protected function SetValueInteger($Ident, $Value, $Profile = "")
-        {
-            $id = @$this->GetIDForIdent($Ident);
-            if ($id == false) {
-                $id = $this->RegisterVariableInteger(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
-            }
-            SetValueInteger($id, $Value);
-            return true;
-        }
+    /**
+     * Setzte eine IPS-Variable vom Typ integer auf den Wert von $value.
+     *
+     * @access protected
+     * @param string $Ident Ident der Statusvariable.
+     * @param int $Value Neuer Wert der Statusvariable.
+     * @return bool true wenn Variable vorhanden sonst false.
+     */
+    protected function SetValueInteger($Ident, $Value, $Profile = '')
+    {
+        $this->RegisterVariableInteger(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
+        $this->SetValueInteger($Ident, (int) $Value);
+        return true;
+    }
 
-        /**
-         * Setzte eine IPS-Variable vom Typ float auf den Wert von $value.
-         *
-         * @access protected
-         * @param string $Ident Ident der Statusvariable.
-         * @param float $Value Neuer Wert der Statusvariable.
-         * @return bool true wenn Variable vorhanden sonst false.
-         */
-        protected function SetValueFloat($Ident, $Value, $Profile = "")
-        {
-            $id = @$this->GetIDForIdent($Ident);
-            if ($id == false) {
-                $id = $this->RegisterVariableFloat(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
-            }
-            SetValueFloat($id, $Value);
-            return true;
-        }
+    /**
+     * Setzte eine IPS-Variable vom Typ float auf den Wert von $value.
+     *
+     * @access protected
+     * @param string $Ident Ident der Statusvariable.
+     * @param float $Value Neuer Wert der Statusvariable.
+     * @return bool true wenn Variable vorhanden sonst false.
+     */
+    protected function SetValueFloat($Ident, $Value, $Profile = '')
+    {
+        $this->RegisterVariableFloat(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
+        $this->SetValue($Ident, (float) $Value);
+        return true;
+    }
 
-        /**
-         * Setzte eine IPS-Variable vom Typ string auf den Wert von $value.
-         *
-         * @access protected
-         * @param string $Ident Ident der Statusvariable.
-         * @param string $Value Neuer Wert der Statusvariable.
-         * @return bool true wenn Variable vorhanden sonst false.
-         */
-        protected function SetValueString($Ident, $Value, $Profile = "")
-        {
-            $id = @$this->GetIDForIdent($Ident);
-            if ($id == false) {
-                $id = $this->RegisterVariableString(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
-            }
-            SetValueString($id, $Value);
-            return true;
-        }
+    /**
+     * Setzte eine IPS-Variable vom Typ string auf den Wert von $value.
+     *
+     * @access protected
+     * @param string $Ident Ident der Statusvariable.
+     * @param string $Value Neuer Wert der Statusvariable.
+     * @return bool true wenn Variable vorhanden sonst false.
+     */
+    protected function SetValueString($Ident, $Value, $Profile = '')
+    {
+        $this->RegisterVariableString(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
+        $this->SetValue($Ident, (string) $Value);
+        return true;
     }
 }
 
