@@ -777,7 +777,7 @@ class PlugwiseNetwork extends IPSModule
                 $this->SetNetworkTime();
                 $this->NewNodes = [];
                 $this->SearchNodes();
-                $this->LogMessage('Plugwise Network is up an running', KL_SUCCESS);
+                $this->LogMessage('Plugwise Network is up an running', KL_NOTIFY);
                 break;
             case \Plugwise\Plugwise_NetworkState::ParingCirclePlus:
             case \Plugwise\Plugwise_NetworkState::SearchingCirclePlus:
