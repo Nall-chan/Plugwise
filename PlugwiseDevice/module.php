@@ -218,7 +218,7 @@ class PlugwiseDevice extends IPSModule
         }
         $Ok = (substr($ret->Data, 0, 4) == ($Value ? \Plugwise\Plugwise_AckMsg::SWITCHON : \Plugwise\Plugwise_AckMsg::SWITCHOFF));
         if ($Ok) {
-            $this->SetValueBoolean('State', $Value);
+            $this->SetValueBoolean('State', $Value, '~Switch');
             return true;
         }
         echo $this->Translate('Error on send switch state');
