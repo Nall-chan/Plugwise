@@ -23,14 +23,14 @@ eval('declare(strict_types=1);namespace Plugwise {?>' . file_get_contents(__DIR_
 
 class Plugwise_NetworkState
 {
-    const StickNotFound = 0;
-    const CirclePlusMissing = 1;
-    const CirclePlusOffline = 2;
-    const SearchingCirclePlus = 3;
-    const ParingCirclePlus = 4;
-    const SearchingNodes = 5;
-    const Online = 7;
-    const OnlineJoining = 8;
+    public const StickNotFound = 0;
+    public const CirclePlusMissing = 1;
+    public const CirclePlusOffline = 2;
+    public const SearchingCirclePlus = 3;
+    public const ParingCirclePlus = 4;
+    public const SearchingNodes = 5;
+    public const Online = 7;
+    public const OnlineJoining = 8;
 
     public static function ToString($NetworkState)
     {
@@ -59,8 +59,8 @@ class Plugwise_NetworkState
 
 class Plugwise_Switch
 {
-    const ON = '01';
-    const OFF = '00';
+    public const ON = '01';
+    public const OFF = '00';
 
     public static $Hertz = [
         133 => 50,
@@ -82,19 +82,19 @@ class Plugwise_Switch
 
 class Plugwise_AckMsg
 {
-    const ACK = '00C1';
-    const NACK = '00C2';
-    const UNKNOW = '00C3';          //	"Command not allowed"
-    const SWITCHON = '00D8';
-    const JOININGENABLE = '00D9';   //	"Allow nodes to join ACK1"
-    const JOININGDISABLE = '00DD';  //	"Allow nodes to join ACK0"
-    const SWITCHOFF = '00DE';
-    const SUCCESSFUL = '00DF';      //	"Set RTC-Data ACK"
+    public const ACK = '00C1';
+    public const NACK = '00C2';
+    public const UNKNOW = '00C3';          //	"Command not allowed"
+    public const SWITCHON = '00D8';
+    public const JOININGENABLE = '00D9';   //	"Allow nodes to join ACK1"
+    public const JOININGDISABLE = '00DD';  //	"Allow nodes to join ACK0"
+    public const SWITCHOFF = '00DE';
+    public const SUCCESSFUL = '00DF';      //	"Set RTC-Data ACK"
     //                 "00E7";      //	"Set RTC-Data NACK"
-    const OUTOFRANGE = '00E1';
-    const DISCONNECTED = '00F2';    //	"Reply role changed OK"
+    public const OUTOFRANGE = '00E1';
+    public const DISCONNECTED = '00F2';    //	"Reply role changed OK"
     //                  "00F3";     //	"Reply role changed NOK"
-    const CONNECTED = '00F4';       //	"Set handle on"
+    public const CONNECTED = '00F4';       //	"Set handle on"
     //                  "00F5";     //	"Set handle off"
     //                  "00F9";     //	"Clear group MAC-Table"
     //          	"00FA";     //	"Fill Switch-schedule"
@@ -137,7 +137,7 @@ class Plugwise_AckMsg
     //  	 	"00E0";     //	"Send switchblock NACK"
     //  	 	"00DA";     //	"Send calib-params ACK"
     //  	 	"00E2";     //	"Set relais denied"
-    const SETTIMEACK = '00D7';     //	"Set year, month and flashadress DONE"
+    public const SETTIMEACK = '00D7';     //	"Set year, month and flashadress DONE"
 
     //  	 	"00BD";     //	"Start Light-Calibration started"
     //  	 	"00E9";     //	"Start Pingrun ACK"
@@ -181,203 +181,203 @@ class Plugwise_Command
     /**
      * Response from stick after request
      */
-    const AckMsgResponse = '0000';
+    public const AckMsgResponse = '0000';
 
     /**
      * Query any presence off networks. Maybe intended to find a Circle+ from the Stick
      */
-    const QueryCirclePlusRequest = '0001';
-    const QueryCirclePlusResponse = '0002';
-    const QueryCirclePlusResponseEnd = '0003';
+    public const QueryCirclePlusRequest = '0001';
+    public const QueryCirclePlusResponse = '0002';
+    public const QueryCirclePlusResponseEnd = '0003';
 
     /**
      * Request connection to the network. Maybe intended to connect a Circle+ to the Stick
      */
-    const ConnectCirclePlusRequest = '0004';
-    const ConnectCirclePlusResponse = '0005';
+    public const ConnectCirclePlusRequest = '0004';
+    public const ConnectCirclePlusResponse = '0005';
 
     /**
      * Broadcast from factory-default nodes
      */
-    const AdvertiseNodeResponse = '0006';
+    public const AdvertiseNodeResponse = '0006';
 
     /**
      * Send Join nodes request to add a new node to the network
      */
-    const JoinNodeRequest = '0007';
+    public const JoinNodeRequest = '0007';
 
     /*
      * Send a flag which enables or disables joining nodes request
      */
-    const EnableJoiningRequest = '0008';
+    public const EnableJoiningRequest = '0008';
 
     /**
      * Send preset circle request
      */
-    const ResetRequest = '0009';
+    public const ResetRequest = '0009';
 
     /**
      * message for that initializes the Stick
      */
-    const StickStatusRequest = '000A';
+    public const StickStatusRequest = '000A';
 
     /**
      * Send ping to node
      */
-    const Ping = '000D';
-    const PingResponse = '000E';
+    public const Ping = '000D';
+    public const PingResponse = '000E';
 
     /**
      * Status from stick
      */
-    const StickStatusResponse = '0011';
+    public const StickStatusResponse = '0011';
 
     /**
      * Request for power usage
      */
-    const PowerUsageRequest = '0012';
+    public const PowerUsageRequest = '0012';
 
     /**
      * returns power usage as impulse counters for several different TimeFrames
      */
-    const PowerUsageResponse = '0013';
+    public const PowerUsageResponse = '0013';
 
     /**
      * Set time on circle+
      */
-    const ClockSetRequest = '0016'; // an Circle
+    public const ClockSetRequest = '0016'; // an Circle
 
     /**
      * switches Plug on or off
      */
-    const SwitchRequest = '0017';
+    public const SwitchRequest = '0017';
 
     /**
      * Send populate request
      */
-    const AssociatedNodesRequest = '0018';
+    public const AssociatedNodesRequest = '0018';
 
     /**
      * AssociatedNodes response
      */
-    const AssociatedNodesResponse = '0019';
+    public const AssociatedNodesResponse = '0019';
 
     /**
      * Request remove node from network
      */
-    const RemoveNodeRequest = '001C';
+    public const RemoveNodeRequest = '001C';
 
     /**
      * RemoveNode response
      */
-    const RemoveNodeResponse = '001D';
+    public const RemoveNodeResponse = '001D';
 
     /**
      * Info request and response
      */
-    const InfoRequest = '0023';
-    const InfoResponse = '0024';
+    public const InfoRequest = '0023';
+    public const InfoResponse = '0024';
 
     /**
      * Calibration request and response
      */
-    const CalibrationRequest = '0026';
-    const CalibrationResponse = '0027';
+    public const CalibrationRequest = '0026';
+    public const CalibrationResponse = '0027';
 
     /**
      * DateTime request and response
      */
-    const SetDateTimeRequest = '0028';
-    const DateTimeInfoRequest = '0029';
-    const DateTimeInfoResponse = '003A';
+    public const SetDateTimeRequest = '0028';
+    public const DateTimeInfoRequest = '0029';
+    public const DateTimeInfoResponse = '003A';
 
     /**
      * Send chunk of On/Off/StandbyKiller Schedule to Stick
      */
-    const PrepareScheduleRequest = '003B';
+    public const PrepareScheduleRequest = '003B';
 
     /**
      * Send chunk of  On/Off/StandbyKiller Schedule to Circle(+)
      */
-    const SendScheduleRequest = '003C';
-    const SendScheduleResponse = '003D';
+    public const SendScheduleRequest = '003C';
+    public const SendScheduleResponse = '003D';
 
     /**
      * Clock request and response
      */
-    const ClockInfoRequest = '003E';
-    const ClockInfoResponse = '003F';
+    public const ClockInfoRequest = '003E';
+    public const ClockInfoResponse = '003F';
 
     /**
      * switches Schedule on or off
      */
-    const EnableScheduleRequest = '0040';
+    public const EnableScheduleRequest = '0040';
 
     /**
      * Request power usage historical data
      */
-    const PowerBufferRequest = '0048';
+    public const PowerBufferRequest = '0048';
 
     /**
      * returns information about historical power usage
      * each response contains 4 log buffers and each log buffer contains data for 1 hour
      */
-    const PowerBufferResponse = '0049';
+    public const PowerBufferResponse = '0049';
 
     /**
      * Eventuell Anlernmodus Circle+ ???
      */
-    const GetCirclePlus1 = '004A';
+    public const GetCirclePlus1 = '004A';
 
     /**
      * Verbundenen Circle+ anfordern.
      */
-    const GetConnectedCirclePlus = '004E';
+    public const GetConnectedCirclePlus = '004E';
 
     /**
      * PushButtons
      */
-    const PushButtonResponse = '004F';
+    public const PushButtonResponse = '004F';
 
     /**
      * Keypress on Switch
      */
-    const KeyPressResponse = '0056';
+    public const KeyPressResponse = '0056';
 
     /**
      * ???
      */
-    const LogIntervalRequest = '0057';
+    public const LogIntervalRequest = '0057';
 
     /**
      * ???
      */
-    const ClearGroupMacRequest = '0058';
+    public const ClearGroupMacRequest = '0058';
 
     /**
      * Send chunk of  On/Off/StandbyKiller Schedule to Circle(+)
      */
-    const SetScheduleValueRequest = '0059';
+    public const SetScheduleValueRequest = '0059';
 
     /**
      * ???
      */
-    const FeatureSetRequest = '005F';
+    public const FeatureSetRequest = '005F';
 
     /**
      * returns feature set of modules
      */
-    const FeatureSetResponse = '0060';
+    public const FeatureSetResponse = '0060';
 
     /**
      * Broadcast when node join network
      */
-    const AckAssociationResponse = '0061';
+    public const AckAssociationResponse = '0061';
 
     /**
      * Sens values
      */
-    const SensInfoResponse = '0105';
+    public const SensInfoResponse = '0105';
 
     public static function ToString($Plugwise_Command)
     {
@@ -482,11 +482,11 @@ class Plugwise_Command
 
 class Plugwise_Typ
 {
-    const unknow = 0;
-    const Cricle = 1;
-    const Switche = 2; //No typo, switch is reserved by PHP ;)
-    const Sense = 3;
-    const Scan = 4;
+    public const unknow = 0;
+    public const Cricle = 1;
+    public const Switche = 2; //No typo, switch is reserved by PHP ;)
+    public const Sense = 3;
+    public const Scan = 4;
 
     public static $Type = [
         0    => self::Cricle,
@@ -535,7 +535,7 @@ class Plugwise_Typ
  */
 class Plugwise_Frame
 {
-    const CirclePlusMac = 'FFFFFFFF';
+    public const CirclePlusMac = 'FFFFFFFF';
 
     /**
      * Kommando
@@ -668,39 +668,38 @@ class Plugwise_Frame
         $this->FrameID = hexdec(substr($Data, 4, 4));
 
         switch ($this->Command) {
-
             case Plugwise_Command::AdvertiseNodeResponse:
-            //   000D6F0000B1A240
-            //   Device MAC
+                //   000D6F0000B1A240
+                //   Device MAC
             case Plugwise_Command::PingResponse:
-            //   000D6F0000B1B64B | xx  | xx   | xxxx
-            //   Circle+          | in? | out? | Time?
+                //   000D6F0000B1B64B | xx  | xx   | xxxx
+                //   Circle+          | in? | out? | Time?
             case Plugwise_Command::StickStatusResponse:
-            // 000D6F0000B835CB | 01 | 01              | 440D6F0000B1B64B | 3B44 | FF
+                // 000D6F0000B835CB | 01 | 01              | 440D6F0000B1B64B | 3B44 | FF
             //    Stick-MAC     | ?? | Circle+ bekannt |   PANID-long     | PANID| ??
-            // 000D6F0000B835CB | 01 | 00 |
+                // 000D6F0000B835CB | 01 | 00 |
             //    Stick-MAC     | ?? | kein Circle+ bekannt
             case Plugwise_Command::PowerUsageResponse:
             //                  24|      28|      32|        40|         48|   52|
             //                   0|       4|       8|        16|         24|   28|
             //                      000F   | 0075   | 0000A3C1 | 00000000  | 0005
-            //   000D6F0000994CAA | 0000   | FFFF   | 00000000 | FFFFFDB9  | 000D
-            //   Circle MAC       | pulse1 | pulse8 |PulseTotal| PulseHour | ????
-            // pulse8 == 'FFFF' -> Spike, do not log
+                //   000D6F0000994CAA | 0000   | FFFF   | 00000000 | FFFFFDB9  | 000D
+                //   Circle MAC       | pulse1 | pulse8 |PulseTotal| PulseHour | ????
+                // pulse8 == 'FFFF' -> Spike, do not log
             case Plugwise_Command::AssociatedNodesResponse:
-            //   000D6F0000B1B64B | 000D6F0000B1B967 | 00
-            //   Circle+ MAC      | Device MAC       | Index
+                //   000D6F0000B1B64B | 000D6F0000B1B967 | 00
+                //   Circle+ MAC      | Device MAC       | Index
             case Plugwise_Command::RemoveNodeResponse:
-            //   000D6F00004BC34A | C4040E011610173A | 00
-            //   000D6F0000B1B64B | 000D6F0000B1B967 | 00
-            //   Circle+ MAC      | Device MAC       | Index
+                //   000D6F00004BC34A | C4040E011610173A | 00
+                //   000D6F0000B1B64B | 000D6F0000B1B967 | 00
+                //   Circle+ MAC      | Device MAC       | Index
             case Plugwise_Command::InfoResponse:
             //                 16|              24|        32|   34|  36|              48|              56| 58
             //                  0|               8|        16|   18|  20|              32|              40| 42
             //                     11   0A   5855   000515C0   01    85   0000 0440 0107   4E0844C2         02
             //                     11   0A   5807   000515B8   00    85   0000 0440 0107   4E0844C2         02
-            // |000D6F0000994CAA | 0F | 08 | 595B | 00044480 | 80  | 18 | 5653.9070.1402 | 4CCEC22A       | 02
-            // |  Circle+ MAC    |year|mon |min   | curr_log |state| HZ | HW1 .HW2 .HW3  | Firmware d/m/y |Typ
+                // |000D6F0000994CAA | 0F | 08 | 595B | 00044480 | 80  | 18 | 5653.9070.1402 | 4CCEC22A       | 02
+                // |  Circle+ MAC    |year|mon |min   | curr_log |state| HZ | HW1 .HW2 .HW3  | Firmware d/m/y |Typ
 //             $year=2000+intval(hexdec(substr($msg, 16, 2)));
 //            $month=intval(hexdec(substr($msg, 18, 2)));
 //
@@ -724,8 +723,8 @@ class Plugwise_Frame
             case Plugwise_Command::CalibrationResponse:
             //                   0|         8|        16|        24|       32|
             //                      3F7F7F74   B5965F1F   BBBAB054   00000000
-            //   000D6F0000B1B64B | 3F7FA7CC | 3F7FA7CC | 3CD87C2F | 00000000
-            //   Circle+ MAC      | gainA    | gainB    | OffTot   | OffRuis
+                //   000D6F0000B1B64B | 3F7FA7CC | 3F7FA7CC | 3CD87C2F | 00000000
+                //   Circle+ MAC      | gainA    | gainB    | OffTot   | OffRuis
 //            $macaddress=substr($msg,0,16);
 //            $gainA = self::_hexToFloat(substr($msg, 16, 8));
 //            $gainB = self::_hexToFloat(substr($msg, 24, 8));
@@ -736,14 +735,14 @@ class Plugwise_Frame
 //            $this->_devices[$macaddress]["offTot"]=$offTot;
 //            $this->_devices[$macaddress]["offRuis"]=$offRuis;
             case Plugwise_Command::DateTimeInfoResponse:
-            //   000D6F0000B1B64B | 20|43|12 | 06 | 12|05|11
-            //   Device? MAC      | s |i |h  |dow | d |m |y
+                //   000D6F0000B1B64B | 20|43|12 | 06 | 12|05|11
+                //   Device? MAC      | s |i |h  |dow | d |m |y
             case Plugwise_Command::SendScheduleResponse:
-            //   000D6F0000B1A240 | xx
-            //   Device MAC       | ???
+                //   000D6F0000B1A240 | xx
+                //   Device MAC       | ???
             case Plugwise_Command::ClockInfoResponse:
-            //   000D6F0000B1B64B | 0C | 1F | 07 | 06 | 01 | 457A
-            //   Circle+          | H  | M  | S  |DoW | ?? | scheduleCRC
+                //   000D6F0000B1B64B | 0C | 1F | 07 | 06 | 01 | 457A
+                //   Circle+          | H  | M  | S  |DoW | ?? | scheduleCRC
 //            $macaddress = substr($msg,0,16);
 //            $hours = intval(hexdec(substr($msg, 16, 2)));
 //            $minutes = intval(hexdec(substr($msg, 18, 2)));
@@ -755,23 +754,23 @@ class Plugwise_Frame
 //            $this->_devices[$macaddress]["clock_d"]=$day_of_week;
             case Plugwise_Command::PowerBufferResponse:
             //                  16|              24|        32|                 48|                 64|                 96|
-            //   000D6F0000B1A240 | 0B | 04 | 7F80 | 00000A87 |0B|04|7FBC|00000ACF|0B|04|7FF8|00000AAC|FF|FF|FFFF|FFFFFFFF|00044460
-            //   Circle MAC       |year|mon |min   | curr_log |                   |  |  |    |        |  |  |    |        | address
-            //   $log_addr = ( hex($address) - 278528 ) / 8;
-            //   [later] I think the pairs of data is a power-value followed by a timestamp. The timestamp has the same structure as the date-word of the 0016 command. This means that  value 0B 04 7DA0 could mean Year 2011, Month April,  From the start of the month 32160 minutes, this is 536 hour, which is 22 days and 8 hour. Somewhere during the 23rd of april (yesterday), when the data was captured. So that is most likely.
-            //   [days later] The structure of this reply is explained in the plugwise unleased documents, and indeed 4 pairs of data, each pair represents one hour of accummulated power usage
+                //   000D6F0000B1A240 | 0B | 04 | 7F80 | 00000A87 |0B|04|7FBC|00000ACF|0B|04|7FF8|00000AAC|FF|FF|FFFF|FFFFFFFF|00044460
+                //   Circle MAC       |year|mon |min   | curr_log |                   |  |  |    |        |  |  |    |        | address
+                //   $log_addr = ( hex($address) - 278528 ) / 8;
+                //   [later] I think the pairs of data is a power-value followed by a timestamp. The timestamp has the same structure as the date-word of the 0016 command. This means that  value 0B 04 7DA0 could mean Year 2011, Month April,  From the start of the month 32160 minutes, this is 536 hour, which is 22 days and 8 hour. Somewhere during the 23rd of april (yesterday), when the data was captured. So that is most likely.
+                //   [days later] The structure of this reply is explained in the plugwise unleased documents, and indeed 4 pairs of data, each pair represents one hour of accummulated power usage
             case Plugwise_Command::PushButtonResponse:
-            //   000D6F0000B1A240 | xx
-            //   Device MAC       | ??
+                //   000D6F0000B1A240 | xx
+                //   Device MAC       | ??
             case Plugwise_Command::KeyPressResponse:
-            //   000D6F0000B1A240 | xx | yy
-            //   Device MAC       | ?? | ??
+                //   000D6F0000B1A240 | xx | yy
+                //   Device MAC       | ?? | ??
             case Plugwise_Command::FeatureSetResponse:
-            //   000D6F0000B1A240 | 0123456789ABCDEF
-            //   Device MAC       | Feature
+                //   000D6F0000B1A240 | 0123456789ABCDEF
+                //   Device MAC       | Feature
             case Plugwise_Command::AckAssociationResponse:
-            //   000D6F0000B1A240
-            //   Device MAC
+                //   000D6F0000B1A240
+                //   Device MAC
             case Plugwise_Command::SensInfoResponse:
                 //   000D6F0000B1A240 | 01234 | 5678
                 //   Device MAC       | hum   | temp
@@ -781,17 +780,17 @@ class Plugwise_Frame
                 $this->NodeMAC = strtoupper(substr($Data, 8, 16));
                 $this->Data = strtoupper(substr($Data, 24, -4));
                 break;
-//-------------------------------------------only Data without MAC
+                //-------------------------------------------only Data without MAC
             case Plugwise_Command::QueryCirclePlusResponse:
             //     XX    | 000D6F0000B1B64B | 440D6F0000B1B64B | 440D6F0000B1B64B  | 440D6F0000B1B64B | 1234 | xx
             //     0F    | FFFFFFFFFFFFFFFF | 6B0D6F0002588136 | FFFFFFFFFFFFFFFF  | 6B0D6F0002588136 | 2F6B | 01
-            //   channel |  Circle+ MAC     |   PANID-long     | unique_network_id | new_node_mac_id | PANID | ??
+                //   channel |  Circle+ MAC     |   PANID-long     | unique_network_id | new_node_mac_id | PANID | ??
             case Plugwise_Command::ConnectCirclePlusResponse:
             //       XX  | XX
-            // existing | allowed
+                // existing | allowed
             case Plugwise_Command::QueryCirclePlusResponseEnd:
-            //   xxxx
-            //   status
+                //   xxxx
+                //   status
             case Plugwise_Command::AckMsgResponse:
             default:
                 $this->Data = strtoupper(substr($Data, 8, -4));
@@ -955,7 +954,7 @@ trait VariableHelper
     protected function SetValueBoolean($Ident, $Value, $Profile = '')
     {
         $this->RegisterVariableBoolean(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
-        $this->SetValue($Ident, (bool) $Value);
+        $this->SetValue(str_replace(' ', '', $Ident), (bool) $Value);
         return true;
     }
 
@@ -970,7 +969,7 @@ trait VariableHelper
     protected function SetValueInteger($Ident, $Value, $Profile = '')
     {
         $this->RegisterVariableInteger(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
-        $this->SetValue($Ident, (int) $Value);
+        $this->SetValue(str_replace(' ', '', $Ident), (int) $Value);
         return true;
     }
 
@@ -985,7 +984,7 @@ trait VariableHelper
     protected function SetValueFloat($Ident, $Value, $Profile = '')
     {
         $this->RegisterVariableFloat(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
-        $this->SetValue($Ident, (float) $Value);
+        $this->SetValue(str_replace(' ', '', $Ident), (float) $Value);
         return true;
     }
 
@@ -1000,7 +999,7 @@ trait VariableHelper
     protected function SetValueString($Ident, $Value, $Profile = '')
     {
         $this->RegisterVariableString(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
-        $this->SetValue($Ident, (string) $Value);
+        $this->SetValue(str_replace(' ', '', $Ident), (string) $Value);
         return true;
     }
 }
