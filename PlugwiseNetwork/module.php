@@ -532,7 +532,6 @@ class PlugwiseNetwork extends IPSModule
             }
             switch (utf8_decode($Data->Function)) {
                 case 'GetCirclePlusMAC':
-
                     return serialize($this->CirclePlusMAC);
                 case 'ListNodes':
                     return serialize($this->Nodes);
@@ -573,14 +572,12 @@ class PlugwiseNetwork extends IPSModule
             $PlugwiseData = new \Plugwise\Plugwise_Frame();
             $PlugwiseData->DecodeFrame($Line);
             if ($PlugwiseData->Command === \Plugwise\Plugwise_Command::AckMsgResponse) {
-                $this->lock('WaitForStick');
                 if ($this->FrameID === 0) {
                     $this->SendDebug('ReceiveAck', $PlugwiseData, 0);
 
                     if ($PlugwiseData->Checksum !== true) {
                         $this->SendDebug('Receive', 'Receive CRC ERROR', 0);
                         $this->FrameID = -1;
-                        $this->unlock('WaitForStick');
                         continue;
                     }
                     $this->SendDebug('Receive', \Plugwise\Plugwise_AckMsg::ToString($PlugwiseData->Data), 0);
@@ -608,7 +605,6 @@ class PlugwiseNetwork extends IPSModule
 
                     $this->SendQueueUpdate($PlugwiseData);
                 }
-                $this->unlock('WaitForStick');
                 continue;
             }
             if (!$this->SendQueueUpdate($PlugwiseData)) {
@@ -703,9 +699,8 @@ class PlugwiseNetwork extends IPSModule
             $this->FrameID = 0;
 
             $this->SendDataToParent($JsonString);
-            $this->unlock('WaitForStick');
             $Result = $this->WaitForStick();
-//            $this->SendDebug('ReceiveResult', $Result, 0);
+            $this->unlock('WaitForStick');
             if ($Result === -10) { // Timeout
                 throw new Exception($this->Translate('Stick did not response.'), E_USER_NOTICE);
             } elseif ($Result === -4) { // unknown
