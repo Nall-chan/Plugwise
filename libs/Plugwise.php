@@ -895,7 +895,7 @@ trait DebugHelper
      */
     protected function SendDebug($Message, $Data, $Format)
     {
-        if (is_a($Data, 'Plugwise_Frame')) {
+        if (is_a($Data, 'Plugwise\Plugwise_Frame')) {
             /* @var $Data Plugwise_Frame */
             $this->SendDebug($Message . ':Command', Plugwise_Command::ToString($Data->Command), 0);
             if ($Data->FrameID !== -1) {
@@ -910,7 +910,7 @@ trait DebugHelper
             if ($Data->Checksum !== null) {
                 $this->SendDebug($Message . ':Checksum', $Data->Checksum, 0);
             }
-        } elseif (is_a($Data, 'Plugwise_Data')) {
+        } elseif (is_a($Data, 'Plugwise\Plugwise_Data')) {
             /* @var $Data Plugwise_Data */
             $this->SendDebug($Message . ':Command', Plugwise_Command::ToString($Data->Command), 0);
             if ($Data->NodeMAC !== '') {

@@ -1039,7 +1039,7 @@ class PlugwiseNetwork extends IPSModule
             if (!array_key_exists($FrameID, $Buffer)) {
                 return false;
             }
-            if (is_a($Buffer[$FrameID], 'Plugwise_Frame')) {
+            if (is_a($Buffer[$FrameID], 'Plugwise\Plugwise_Frame')) {
                 $this->SendQueueRemove($FrameID);
                 return $Buffer[$FrameID];
             }
