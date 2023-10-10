@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2016 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       0.1
+ * @version       1.1
  * @example <b>Ohne</b>
  */
 require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
@@ -23,7 +23,7 @@ require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2016 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       0.1
+ * @version       1.1
  * @example <b>Ohne</b>
  * @property Plugwise_Typ $Type Typ des Gerätes
  * @property bool $isCalib
@@ -32,6 +32,8 @@ require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
  * @property float $offTot
  * @property float $offRuis
  * @property int $CurrentLogAddress
+ * @method int RegisterParent()
+ * @method void RegisterProfileFloat(string $Name, string $Icon, string $Prefix, string $Suffix, float $MinValue, float $MaxValue, float $StepSize, int $Digits)
  */
 class PlugwiseDevice extends IPSModule
 {
@@ -40,9 +42,9 @@ class PlugwiseDevice extends IPSModule
         \Plugwise\VariableHelper,
         \Plugwise\VariableProfileHelper,
         \Plugwise\InstanceStatus {
-        \Plugwise\InstanceStatus::MessageSink as IOMessageSink;
-        \Plugwise\InstanceStatus::RequestAction as IORequestAction;
-    }
+            \Plugwise\InstanceStatus::MessageSink as IOMessageSink;
+            \Plugwise\InstanceStatus::RequestAction as IORequestAction;
+        }
     /**
      * Interne Funktion des SDK.
      *
@@ -259,7 +261,7 @@ class PlugwiseDevice extends IPSModule
             }
 
             if ($this->ReadPropertyBoolean('showFrequenz')) {
-                $this->SetValueFloat('Frequenz', \Plugwise\Plugwise_Switch::$Hertz[hexdec(intval(substr($Result->Data, 18, 2)))], '~Hertz');
+                $this->SetValueFloat('Frequenz', \Plugwise\Plugwise_Switch::$Hertz[hexdec(substr($Result->Data, 18, 2))], '~Hertz');
             }
 
             if ($this->ReadPropertyBoolean('showTime')) {
@@ -326,7 +328,12 @@ class PlugwiseDevice extends IPSModule
             if ($this->ReadPropertyBoolean('showCurrent')) {
                 $pulses_1 = intval(hexdec($pulses1hex));
                 $pulses1 = \Plugwise\Plugwise_Frame::pulsesCorrection(
-                                $pulses_1, 1, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
+                    $pulses_1,
+                    1,
+                    $this->offRuis,
+                    $this->offTot,
+                    $this->gainA,
+                    $this->gainB
                 );
                 $watt1 = \Plugwise\Plugwise_Frame::pulsesToWatt($pulses1);
                 $this->SendDebug('watt1', $watt1, 0);
@@ -340,7 +347,12 @@ class PlugwiseDevice extends IPSModule
             if ($this->ReadPropertyBoolean('showAverage')) {
                 $pulses_8 = intval(hexdec($pulses2hex));
                 $pulses8 = \Plugwise\Plugwise_Frame::pulsesCorrection(
-                                $pulses_8, 8, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
+                    $pulses_8,
+                    8,
+                    $this->offRuis,
+                    $this->offTot,
+                    $this->gainA,
+                    $this->gainB
                 );
                 $watt8 = \Plugwise\Plugwise_Frame::pulsesToWatt($pulses8);
                 $this->SendDebug('watt8', $watt8, 0);
@@ -352,7 +364,12 @@ class PlugwiseDevice extends IPSModule
         if ($this->ReadPropertyBoolean('showOverall')) {
             $pulses_total = intval(hexdec(substr($Result->Data, 8, 8)));
             $pulsestotal = \Plugwise\Plugwise_Frame::pulsesCorrection(
-                            $pulses_total, 3600, $this->offRuis, $this->offTot, $this->gainA, $this->gainB
+                $pulses_total,
+                3600,
+                $this->offRuis,
+                $this->offTot,
+                $this->gainA,
+                $this->gainB
             );
             $watttotal = \Plugwise\Plugwise_Frame::pulsesToKwh($pulsestotal);
             $this->SendDebug('watthourtotal', $watttotal, 0);

@@ -1,113 +1,119 @@
 {
-    "elements":
-            [{
-                    "name": "NodeMAC",
-                    "type": "ValidationTextBox",
-                    "caption": "Node MAC"
-                }, {
-                    "type": "Label",
-                    "label": "Refresh state of node"
-                }, {
-                    "name": "Interval",
-                    "type": "NumberSpinner",
-                    "caption": "Interval"
-                },
-                {
-                    "type": "Label",
-                    "label": "----------------------------------------------------------------------------------------------------------------------------------"
-                }, 
-                {
-                    "type": "Label",
-                    "label": "Circle and Stealth:"
-                },
-                {
-                    "name": "showState",
-                    "type": "CheckBox",
-                    "caption": "Show switching status"
-                },
-                {
-                    "name": "showCurrent",
-                    "type": "CheckBox",
-                    "caption": "Show current power"
-                },
-                {
-                    "name": "showAverage",
-                    "type": "CheckBox",
-                    "caption": "Show average power"
-                }, {
-                    "name": "showOverall",
-                    "type": "CheckBox",
-                    "caption": "Show overall consumption"
-                }, {
-                    "name": "showFrequenz",
-                    "type": "CheckBox",
-                    "caption": "Show frequenz"
-                },
-                {
-                    "type": "Label",
-                    "label": "----------------------------------------------------------------------------------------------------------------------------------"
-                }, 
-                {
-                    "type": "Label",
-                    "label": "Sens:"
-                }, {
-                    "name": "showTemperature",
-                    "type": "CheckBox",
-                    "caption": "Show temperature"
-                },
-                {
-                    "name": "showHumidity",
-                    "type": "CheckBox",
-                    "caption": "Show humidity"
-                }, {
-                    "type": "Label",
-                    "label": "----------------------------------------------------------------------------------------------------------------------------------"
-                }, 
-                {
-                    "type": "Label",
-                    "label": "Node:"
-                },
-                {
-                    "name": "showTime",
-                    "type": "CheckBox",
-                    "caption": "Show timestamp"
-                },
-                {
-                    "name": "showFirmware",
-                    "type": "CheckBox",
-                    "caption": "Show firmware"
-                },
-                {
-                    "name": "showHardware",
-                    "type": "CheckBox",
-                    "caption": "Show hardware version"
-                } 
-            ],
-    "actions":
-            [
-                {
-                    "type": "Button",
-                    "label": "On",
-                    "onClick": "PLUGWISE_SwitchMode($id, true);"
-                }, {
-                    "type": "Button",
-                    "label": "Off",
-                    "onClick": "PLUGWISE_SwitchMode($id, false);"
-                }, 
-                {
-                    "type": "Button",
-                    "label": "Request state",
-                    "onClick": "PLUGWISE_RequestState($id);"
-                }, {
-                    "type": "Button",
-                    "label": "Read calibration",
-                    "onClick": "PLUGWISE_RequestCalibration($id);"
-                }, 
-                {
-                    "type": "Button",
-                    "label": "Read energy measurement",
-                    "onClick": "PLUGWISE_RequestEnergy($id);"
-                }
-
-            ]
+    "elements": [
+        {
+            "name": "NodeMAC",
+            "type": "ValidationTextBox",
+            "caption": "Node MAC"
+        },
+        {
+            "type": "Label",
+            "label": "Refresh state of node"
+        },
+        {
+            "name": "Interval",
+            "type": "NumberSpinner",
+            "caption": "Interval"
+        },
+        {
+            "type": "Label",
+            "label": "----------------------------------------------------------------------------------------------------------------------------------"
+        },
+        {
+            "type": "Label",
+            "label": "Circle and Stealth:"
+        },
+        {
+            "name": "showState",
+            "type": "CheckBox",
+            "caption": "Show switching status"
+        },
+        {
+            "name": "showCurrent",
+            "type": "CheckBox",
+            "caption": "Show current power"
+        },
+        {
+            "name": "showAverage",
+            "type": "CheckBox",
+            "caption": "Show average power"
+        },
+        {
+            "name": "showOverall",
+            "type": "CheckBox",
+            "caption": "Show overall consumption"
+        },
+        {
+            "name": "showFrequenz",
+            "type": "CheckBox",
+            "caption": "Show frequenz"
+        },
+        {
+            "type": "Label",
+            "label": "----------------------------------------------------------------------------------------------------------------------------------"
+        },
+        {
+            "type": "Label",
+            "label": "Sens:"
+        },
+        {
+            "name": "showTemperature",
+            "type": "CheckBox",
+            "caption": "Show temperature"
+        },
+        {
+            "name": "showHumidity",
+            "type": "CheckBox",
+            "caption": "Show humidity"
+        },
+        {
+            "type": "Label",
+            "label": "----------------------------------------------------------------------------------------------------------------------------------"
+        },
+        {
+            "type": "Label",
+            "label": "Node:"
+        },
+        {
+            "name": "showTime",
+            "type": "CheckBox",
+            "caption": "Show timestamp"
+        },
+        {
+            "name": "showFirmware",
+            "type": "CheckBox",
+            "caption": "Show firmware"
+        },
+        {
+            "name": "showHardware",
+            "type": "CheckBox",
+            "caption": "Show hardware version"
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "label": "On",
+            "onClick": "PLUGWISE_SwitchMode($id, true);"
+        },
+        {
+            "type": "Button",
+            "label": "Off",
+            "onClick": "PLUGWISE_SwitchMode($id, false);"
+        },
+        {
+            "type": "Button",
+            "label": "Request state",
+            "onClick": "PLUGWISE_RequestState($id);"
+        },
+        {
+            "type": "Button",
+            "label": "Read calibration",
+            "onClick": "PLUGWISE_RequestCalibration($id);"
+        },
+        {
+            "type": "Button",
+            "label": "Read energy measurement",
+            "onClick": "PLUGWISE_RequestEnergy($id);"
+        }
+    ]
 }

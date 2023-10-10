@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2019 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.0
+ * @version       1.1
  * @example <b>Ohne</b>
  */
 
@@ -523,7 +523,7 @@ class Plugwise_Typ
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2016 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       0.1
+ * @version       1.1
  * @example <b>Ohne</b>
  *
  *
@@ -955,7 +955,7 @@ trait VariableHelper
     protected function SetValueBoolean($Ident, $Value, $Profile = '')
     {
         $this->RegisterVariableBoolean(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
-        $this->SetValueBoolean($Ident, (bool) $Value);
+        $this->SetValue($Ident, (bool) $Value);
         return true;
     }
 
@@ -970,7 +970,7 @@ trait VariableHelper
     protected function SetValueInteger($Ident, $Value, $Profile = '')
     {
         $this->RegisterVariableInteger(str_replace(' ', '', $Ident), $this->Translate($Ident), $Profile);
-        $this->SetValueInteger($Ident, (int) $Value);
+        $this->SetValue($Ident, (int) $Value);
         return true;
     }
 

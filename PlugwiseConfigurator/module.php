@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2016 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       0.1
+ * @version       1.1
  * @example <b>Ohne</b>
  */
 require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
@@ -23,7 +23,7 @@ require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2016 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       0.1
+ * @version       1.1
  * @example <b>Ohne</b>
  */
 class PlugwiseConfigurator extends IPSModule
@@ -148,7 +148,7 @@ EOT;
      * @param Plugwise_Frame $PlugwiseData Zu versendende Daten.
      * @return Plugwise_Frame Objekt mit der Antwort. NULL im Fehlerfall.
      */
-    protected function Send(Plugwise_Frame $PlugwiseData)
+    protected function Send(\Plugwise\Plugwise_Frame $PlugwiseData)
     {
         $this->SendDebug('Send', $PlugwiseData, 0);
         $JSONData = $PlugwiseData->ToJSONStringForSplitter();

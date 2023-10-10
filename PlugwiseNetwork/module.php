@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2016 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       0.1
+ * @version       1.1
  *
  */
 require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
@@ -25,7 +25,7 @@ require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2016 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       0.1
+ * @version       1.1
  * @example <b>Ohne</b>
  * @property int $FrameID
  * @property array $ReplyData
@@ -37,6 +37,9 @@ require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
  * @property array $Nodes
  * @property int $SearchIndex
  * @property \Plugwise\Plugwise_NetworkState $NetworkState
+ * @method bool lock(string $ident)
+ * @method void unlock(string $ident)
+ * @method int RegisterParent()
  */
 class PlugwiseNetwork extends IPSModule
 {
@@ -45,9 +48,9 @@ class PlugwiseNetwork extends IPSModule
         \Plugwise\InstanceStatus,
         \Plugwise\Semaphore,
         \Plugwise\VariableHelper {
-        \Plugwise\InstanceStatus::MessageSink as IOMessageSink;
-        \Plugwise\InstanceStatus::RequestAction as IORequestAction;
-    }
+            \Plugwise\InstanceStatus::MessageSink as IOMessageSink;
+            \Plugwise\InstanceStatus::RequestAction as IORequestAction;
+        }
     /**
      * Interne Funktion des SDK.
      *
@@ -59,7 +62,7 @@ class PlugwiseNetwork extends IPSModule
         $this->RequireParent('{6DC3D946-0D31-450F-A8C6-C42DB8D7D4F1}');
         $this->ReplyData = [];
         $this->FrameID = 0;
-        $this->Buffer = '';
+        $this->BufferIN = '';
         $this->NewNodes = [];
         $this->Nodes = [];
         $this->SearchIndex = 0;
@@ -96,7 +99,7 @@ class PlugwiseNetwork extends IPSModule
         $this->RegisterMessage($this->InstanceID, FM_DISCONNECT);
         $this->ReplyData = [];
         $this->FrameID = 0;
-        $this->Buffer = '';
+        $this->BufferIN = '';
         parent::ApplyChanges();
         $this->RegisterParent();
 
@@ -122,17 +125,9 @@ class PlugwiseNetwork extends IPSModule
 
         switch ($Message) {
             case IPS_KERNELSTARTED:
-                $this->UnregisterMessage(0, IPS_KERNELSTARTED);
                 $this->KernelReady();
                 break;
         }
-    }
-    public function RequestAction($Ident, $Value)
-    {
-        if ($this->IORequestAction($Ident, $Value)) {
-            return true;
-        }
-        return false;
     }
 
     public function RequestAction($Ident, $Value)
@@ -140,6 +135,7 @@ class PlugwiseNetwork extends IPSModule
         if ($this->IORequestAction($Ident, $Value)) {
             return true;
         }
+        return false;
     }
 
     public function SearchNodes()
@@ -161,7 +157,7 @@ class PlugwiseNetwork extends IPSModule
             $TargetIndex = 64;
         }
         $Nodes = $this->Nodes;
-        for ($index = $this->SearchIndex; $index < $targetindex; $index++) {
+        for ($index = $this->SearchIndex; $index < $TargetIndex; $index++) {
             $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::AssociatedNodesRequest, $this->CirclePlusMAC, sprintf('%02X', $index));
             /* @var $result \Plugwise\Plugwise_Frame */
             $Result = $this->Send($PlugwiseData);
@@ -625,14 +621,15 @@ class PlugwiseNetwork extends IPSModule
     /**
      * Wird ausgeführt wenn der Kernel hochgefahren wurde.
      */
-    /*   protected function KernelReady()
-      {
-      $this->RegisterParent();
-      if ($this->HasActiveParent()) {
-      $this->StartNetwork();
-      }
-      }
-     */
+    protected function KernelReady()
+    {
+        $this->UnregisterMessage(0, IPS_KERNELSTARTED);
+        $this->RegisterParent();
+        if ($this->HasActiveParent()) {
+            $this->StartNetwork();
+        }
+    }
+
     /**
      * Wird ausgeführt wenn sich der Status vom Parent ändert.
      * @access protected
@@ -758,7 +755,8 @@ class PlugwiseNetwork extends IPSModule
             case \Plugwise\Plugwise_NetworkState::SearchingNodes:
                 $this->NetworkState = \Plugwise\Plugwise_NetworkState::StickNotFound;
                 $this->SetTimerInterval('SearchNodes', 0);
-                // FIXME: No break. Please add proper comment if intentional
+                // SearchingNodes disables Timer and continue with InitStick
+                // No break. Add additional comment above this line if intentional
             case \Plugwise\Plugwise_NetworkState::CirclePlusOffline:
             case \Plugwise\Plugwise_NetworkState::StickNotFound:
             case \Plugwise\Plugwise_NetworkState::Online:
@@ -766,7 +764,6 @@ class PlugwiseNetwork extends IPSModule
                 if (!$this->InitStick()) {
                     $this->SetStatus(IS_EBASE + 2 + $this->NetworkState);
                     $this->SendDebug('NewNetworkState', \Plugwise\Plugwise_NetworkState::ToString($this->NetworkState), 0);
-
                     return;
                 }
                 if (!$this->VerifyCirclePlus()) {

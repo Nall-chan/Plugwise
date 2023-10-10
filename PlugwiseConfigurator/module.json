@@ -3,10 +3,16 @@
     "name": "PlugwiseConfigurator",
     "type": 4,
     "vendor": "Plugwise",
-    "aliases": ["Plugwise Configurator"],
-    "parentRequirements": ["{53FBE996-B1E9-45C2-B8DB-5BD6E5E3F94C}"],
+    "aliases": [
+        "Plugwise Configurator"
+    ],
+    "parentRequirements": [
+        "{53FBE996-B1E9-45C2-B8DB-5BD6E5E3F94C}"
+    ],
     "childRequirements": [],
-    "implemented": ["{CD59EBB4-B313-4ACA-A503-E646CFE0B6FD}"],
+    "implemented": [
+        "{CD59EBB4-B313-4ACA-A503-E646CFE0B6FD}"
+    ],
     "prefix": "PLUGWISE",
-    "url": "https://github.com/Nall-chan/Plugwise/blob/beta/PlugwiseConfigurator/README.md"
+    "url": "https://github.com/Nall-chan/Plugwise/blob/master/README.md"
 }

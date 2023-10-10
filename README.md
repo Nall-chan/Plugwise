@@ -1,9 +1,10 @@
-[![PHP-Modul](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Modul-Version](https://img.shields.io/badge/Modul%20Version-2.0-blue.svg)]()
+[![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
+[![Modul-Version](https://img.shields.io/badge/Modul%20Version-1.10-blue.svg)]()
 [![Symcon-Version](https://img.shields.io/badge/Symcon%20Version-5.4%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-5-4-%28Stable%29-Changelog)  
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Check Style](https://github.com/Nall-chan/Plugwise/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Plugwise/actions) [![Run Tests](https://github.com/Nall-chan/Plugwise/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Plugwise/actions)  
-[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#spenden)  
+[![Check Style](https://github.com/Nall-chan/Plugwise/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Plugwise/actions)
+[![Run Tests](https://github.com/Nall-chan/Plugwise/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Plugwise/actions)  
+[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#4-spenden)  
 
 # Plugwise <!-- omit in toc -->
 
@@ -45,7 +46,7 @@ Implementierung von Plugwise in IP-Symcon.
 
 ## 2. Voraussetzungen
 
- - IPS ab Version 4.3
+ - IPS ab Version 5.4
  - Plugwise USB-Stick
 
 ## 3. Installation
@@ -96,6 +97,10 @@ Implementierung von Plugwise in IP-Symcon.
 
 ### 3. Changelog
 
+Version 1.10:
+ - Beta Version zur Vorbereitung des Refactoring  
+ - Diverse kleine Bugfixes  
+  
 Version 1.00:
  - Release
 
@@ -109,7 +114,9 @@ Version 0.96:
   
   Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
 
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>
+<a href="https://www.paypal.com/donate?hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>
+
+[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share)
 
 ## 6. Lizenz
 

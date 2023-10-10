@@ -38,7 +38,7 @@
             "Join of node failed.": "Hinzufügen des Node fehlgeschlagen.",
             "Node MAC already in network associated.": "Node MAC bereits im Netzwerk vorhanden.",
             "OK. Node accepted exclude request.": "OK. Node hat das entfernen aus dem Netzwerk bestätigt.",
-            "Exclude of node failed.": "Entfernen des Node fehlgeschlagen.",   
+            "Exclude of node failed.": "Entfernen des Node fehlgeschlagen.",
             "Network not ready. Try again later.": "Netzwerk nicht bereit. Später nochmal versuchen.",
             "Instance has no active parent.": "Instanz hat keinen aktiven Parent.",
             "Send to Stick is locked.": "Senden zum Stick ist blockiert.",

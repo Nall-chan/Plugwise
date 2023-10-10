@@ -1,25 +1,30 @@
 {
-    "actions": [{
+    "actions": [
+        {
             "type": "Label",
             "label": "IMPORTANT: You must close this page an reopen it to see the changes."
         },
         {
             "type": "Label",
             "label": "----------------------------------------------------------------------------------------------------------------------------------"
-        }, {
+        },
+        {
             "type": "Label",
             "label": "No nodes associated in this network!"
-        }, {
+        },
+        {
             "type": "Label",
             "label": "-----------------------------------------------"
-        }, 
+        },
         {
             "type": "Label",
             "label": "No new nodes found!"
-        }, {
+        },
+        {
             "type": "Label",
             "label": "No deleted nodes!"
-        }, {
+        },
+        {
             "type": "Label",
             "label": "List of all nodes and all instances:"
         },
@@ -33,36 +38,44 @@
                 "column": "Index",
                 "direction": "ascending"
             },
-            "columns": [{
+            "columns": [
+                {
                     "label": "No",
                     "name": "Index",
                     "width": "55px"
-                }, {
+                },
+                {
                     "label": "Node MAC",
                     "name": "NodeMAC",
                     "width": "120px"
-                }, {
+                },
+                {
                     "label": "Name",
                     "name": "Name",
                     "width": "120px"
-                }, {
+                },
+                {
                     "label": "Location",
                     "name": "Location",
                     "width": "auto"
-                }, {
+                },
+                {
                     "label": "InstanceID",
                     "name": "InstanceID",
                     "width": "65px"
                 }
             ],
             "values": []
-        }, {
+        },
+        {
             "name": "Interval",
             "type": "NumberSpinner",
             "caption": "Interval for new instance"
-        }, {
+        },
+        {
             "type": "Button",
             "label": "Create instance",
             "onClick": ""
-        }]
+        }
+    ]
 }
