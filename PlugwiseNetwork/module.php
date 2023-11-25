@@ -254,7 +254,7 @@ class PlugwiseNetwork extends IPSModule
                 $form['actions'][] = [
                     'type'    => 'Button',
                     'label'   => 'Include node',
-                    'onClick' => 'PLUGWISE_RequestJoiningOfNodeEx($id,$newnode);'
+                    'onClick' => 'PLUGWISE_RequestJoiningOfNodeEx($id,$NodeMAC);'
                 ];
 
                 $form['actions'] = array_merge($form['actions'], $this->GetOnlineForm(), $this->GetJoiningForm());
@@ -388,7 +388,7 @@ class PlugwiseNetwork extends IPSModule
                 return false;
             }
         } else { // Node mit Werkseinstellungen antworten mit Frame 65533
-            set_time_limit(40);
+            //set_time_limit(40);
             $this->SendQueuePush(65533);
             $Result = $this->WaitForResponse(65533, 30000);
             /* @var $Result \Plugwise\Plugwise_Frame */
