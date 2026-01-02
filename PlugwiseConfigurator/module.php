@@ -2,15 +2,12 @@
 
 declare(strict_types=1);
 
-/*
- * @addtogroup plugwise
- * @{
- *
+/**
  * @package       Plugwise
  * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2016 Michael Tröger
+ * @copyright     2026 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       1.1
+ * @version       2.00
  * @example <b>Ohne</b>
  */
 require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
@@ -21,143 +18,191 @@ require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
  *
  * @package       Plugwise
  * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2016 Michael Tröger
+ * @copyright     2026 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       1.1
+ * @version       2.00
  * @example <b>Ohne</b>
  */
-class PlugwiseConfigurator extends IPSModule
+class PlugwiseConfigurator extends IPSModuleStrict
 {
     use \Plugwise\DebugHelper;
 
     /**
-     * Interne Funktion des SDK.
+     * GetCompatibleParents
      *
-     * @access public
+     * @return string
      */
-    public function Create()
+    public function GetCompatibleParents(): string
     {
-        parent::Create();
-        $this->ConnectParent('{7C20491F-F145-4F1C-A69C-AAE1F60F5BD5}');
+        return json_encode(
+            [
+                'type'     => 'require',
+                'moduleIDs'=> [
+                    \Plugwise\GUID::Network
+                ]
+            ]
+        );
     }
 
     /**
-     * Interne Funktion des SDK.
+     * GetConfigurationForm
      *
-     * @access public
+     * @return string
      */
-    public function ApplyChanges()
+    public function GetConfigurationForm(): string
     {
-        parent::ApplyChanges();
-    }
 
-    /**
-     * Interne Funktion des SDK.
-     *
-     * @access public
-     */
-    public function GetConfigurationForm()
-    {
-        $FoundNodes = $this->GetNodes();
-        if ($FoundNodes === false) {
-            return;
+        $Form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
+        if ($this->GetStatus() == IS_CREATING) {
+            return json_encode($Form);
         }
-        $Total = count($FoundNodes);
-        $MyParent = IPS_GetInstance($this->InstanceID)['ConnectionID'];
-        $Liste = [];
-        $DisconnectedNodes = 0;
-        $NewNodes = 0;
-        $this->SendDebug('Found', $FoundNodes, 0);
-        $InstanceIDListe = IPS_GetInstanceListByModuleID('{5FD73328-68F3-4047-B678-E385C2E31962}');
-        foreach ($InstanceIDListe as $InstanceID) {
-            // Fremde Geräte überspringen
-            if (IPS_GetInstance($InstanceID)['ConnectionID'] != $MyParent) {
-                continue;
-            }
-            $NodeMAC = IPS_GetProperty($InstanceID, 'NodeMAC');
-            $Node = [
-                'InstanceID' => $InstanceID,
-                'NodeMAC'    => $NodeMAC,
-                'Name'       => IPS_GetName($InstanceID),
-                'Location'   => stristr(IPS_GetLocation($InstanceID), IPS_GetName($InstanceID), true)
+        if (!$this->HasActiveParent()) {
+            $Form['actions'][] = [
+                'type'  => 'PopupAlert',
+                'popup' => [
+                    'items' => [[
+                        'type'    => 'Label',
+                        'caption' => 'Instance has no active parent.'
+                    ]]
+                ]
             ];
-            $this->SendDebug('Search', $NodeMAC, 0);
-            $FoundIndex = array_search($NodeMAC, $FoundNodes);
-            if ($FoundIndex === false) {
-                $Node['Index'] = '';
-                $Node['rowColor'] = '#ff0000';
-                $DisconnectedNodes++;
+            $this->SendDebug('FORM', json_encode($Form), 0);
+            $this->SendDebug('FORM', json_last_error_msg(), 0);
+            return json_encode($Form);
+
+        }
+        $FoundNodes = $this->GetNodes();
+        $this->SendDebug('Found', $FoundNodes, 0);
+        $InstanceIDListe = $this->GetInstanceList(\Plugwise\GUID::Node);
+        $Values = [];
+        foreach ($FoundNodes as $NodeMAC) {
+            $InstanceID = array_search($NodeMAC, $InstanceIDListe);
+            if ($InstanceID !== false) {
+                $AddValue = [
+                    'instanceID' => $InstanceID,
+                    'nodeMAC'    => $NodeMAC,
+                    'name'       => IPS_GetName($InstanceID),
+                    'location'   => stristr(IPS_GetLocation($InstanceID), IPS_GetName($InstanceID), true)
+                ];
+                unset($InstanceIDListe[$InstanceID]);
             } else {
-                $Node['Index'] = (string) $FoundIndex;
-                $Node['rowColor'] = '#00ff00';
-                unset($FoundNodes[$FoundIndex]);
+                $AddValue = [
+                    'instanceID' => 0,
+                    'nodeMAC'    => $NodeMAC,
+                    'name'       => $this->Translate('Plugwise Device - ') . $NodeMAC,
+                    'location'   => ''
+                ];
             }
-
-            $Liste[] = $Node;
-        }
-        foreach ($FoundNodes as $Index => $NodeMAC) {
-            $Node = [
-                'Index'      => (string) $Index,
-                'InstanceID' => 0,
-                'NodeMAC'    => $NodeMAC,
-                'Name'       => '',
-                'Location'   => ''];
-            $Liste[] = $Node;
-            $NewNodes++;
+            $AddValue['create'] = [
+                'moduleID'      => \Plugwise\GUID::Node,
+                'configuration' => [
+                    \Plugwise\Node\Property::NodeMAC => $NodeMAC
+                ]
+            ];
+            $Values[] = $AddValue;
         }
 
-        $data = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
-        if ($Total > 0) {
-            $data['actions'][2]['label'] = sprintf($this->Translate('Nodes in network: %d'), $Total);
+        foreach ($InstanceIDListe as $InstanceID => $NodeMAC) {
+            $Values[] = [
+                'instanceID' => $InstanceID,
+                'nodeMAC'    => $NodeMAC,
+                'name'       => IPS_GetName($InstanceID),
+                'location'   => stristr(IPS_GetLocation($InstanceID), IPS_GetName($InstanceID), true)
+            ];
         }
-        if ($NewNodes > 0) {
-            $data['actions'][4]['label'] = sprintf($this->Translate('New nodes: %d'), $NewNodes);
-        }
-        if ($DisconnectedNodes > 0) {
-            $data['actions'][5]['label'] = sprintf($this->Translate('Deleted nodes : %d'), $DisconnectedNodes);
-        }
-        $data['actions'][7]['values'] = array_merge($data['actions'][7]['values'], $Liste);
-
-        $data['actions'][9]['onClick'] = <<<'EOT'
-if (($Nodes['NodeMAC'] == '') or ($Nodes['InstanceID'] > 0))
-    return;
-$InstanceID = IPS_CreateInstance('{5FD73328-68F3-4047-B678-E385C2E31962}');
-if ($InstanceID == false) return;
-if (IPS_GetInstance($InstanceID)['ConnectionID'] != IPS_GetInstance($id)['ConnectionID'])
-{
-    if (IPS_GetInstance($InstanceID)['ConnectionID'] > 0)
-    IPS_DisconnectInstance($InstanceID);
-    IPS_ConnectInstance($InstanceID, IPS_GetInstance($id)['ConnectionID']);
-}
-@IPS_SetProperty($InstanceID, 'NodeMAC', $Nodes['NodeMAC']);
-@IPS_SetProperty($InstanceID, 'Interval', $Interval);
-@IPS_ApplyChanges($InstanceID);
-IPS_SetName($InstanceID,'Plugwise Node - '.$Nodes['NodeMAC']);
-echo 'OK';
-EOT;
-        //$this->SendDebug('FORM', json_encode($data), 0);
-        return json_encode($data);
+        $Form['actions'][0]['values'] = $Values;
+        $this->SendDebug('FORM', json_encode($Form), 0);
+        $this->SendDebug('FORM', json_last_error_msg(), 0);
+        return json_encode($Form);
     }
 
-    ################## Datapoints
+    /**
+     * SendFunction
+     *
+     * @param  string $Function
+     * @return bool|string|array
+     */
+    protected function SendFunction(string $Function): bool|string|array
+    {
+        $this->SendDebug('Send Function', $Function, 0);
+        $JSONData = json_encode(
+            [
+                'DataID'   => '{53FBE996-B1E9-45C2-B8DB-5BD6E5E3F94C}',
+                'Function' => bin2hex($Function)]
+        );
+        $this->SendDebug('Send', $JSONData, 0);
+        $ResultString = $this->SendDataToParent($JSONData);
+        $this->SendDebug('ResultString', $ResultString, 0);
+        if ($ResultString == false) {
+            $this->SendDebug('Result Function', 'Error receive data', 0);
+            return false;
+        }
+        /** @var string|array  $Result */
+        $Result = @unserialize($ResultString);
+        $this->SendDebug('Result Function', $Result, 0);
+        if (($Result === null) || ($Result === false)) {
+            $this->SendDebug('Result Function', 'Error receive data', 0);
+            return false;
+        }
+        return $Result;
+    }
 
     /**
-     * Konvertiert $Data zu einem JSONString und versendet diese an den Splitter.
+     * GetInstanceList
      *
-     * @access protected
-     * @param Plugwise_Frame $PlugwiseData Zu versendende Daten.
-     * @return Plugwise_Frame Objekt mit der Antwort. NULL im Fehlerfall.
+     * @param  string $GUID
+     * @return array
      */
-    protected function Send(\Plugwise\Plugwise_Frame $PlugwiseData)
+    private function GetInstanceList(string $GUID): array
+    {
+        $InstanceIDList = array_flip(array_values(array_filter(IPS_GetInstanceListByModuleID($GUID), [$this, 'FilterInstances'])));
+        array_walk($InstanceIDList, [$this, 'GetConfigParam'], \Plugwise\Node\Property::NodeMAC);
+        return $InstanceIDList;
+    }
+
+    /**
+     * FilterInstances
+     *
+     * @param  int $InstanceID
+     * @return bool
+     */
+    private function FilterInstances(int $InstanceID): bool
+    {
+        return IPS_GetInstance($InstanceID)['ConnectionID'] == IPS_GetInstance($this->InstanceID)['ConnectionID'];
+    }
+
+    /**
+     * GetConfigParam
+     *
+     * @param  mixed $item1
+     * @param  int $InstanceID
+     * @param  string $ConfigParam
+     * @return void
+     */
+    private function GetConfigParam(mixed &$item1, int $InstanceID, string $ConfigParam): void
+    {
+        $item1 = IPS_GetProperty($InstanceID, $ConfigParam);
+    }
+
+    /**
+     * Send
+     *
+     * Konvertiert $PlugwiseData zu einem JSONString und versendet diese an den Splitter.
+     *
+     * @param \Plugwise\Plugwise_Frame $PlugwiseData Zu versendende Daten.
+     * @return \Plugwise\Plugwise_Frame|bool Objekt mit der Antwort. false im Fehlerfall.
+     */
+    private function Send(\Plugwise\Plugwise_Frame $PlugwiseData): bool|\Plugwise\Plugwise_Frame
     {
         $this->SendDebug('Send', $PlugwiseData, 0);
         $JSONData = $PlugwiseData->ToJSONStringForSplitter();
         $ResultString = @$this->SendDataToParent($JSONData);
         $this->SendDebug('Send', $JSONData, 0);
-        if ($ResultString === false) {
+        if ($ResultString == false) {
             $this->SendDebug('Receive', 'Error receive data', 0);
             return false;
         }
+        /** @var \Plugwise\Plugwise_Frame|bool $Result */
         $Result = @unserialize($ResultString);
         $this->SendDebug('Response', $Result, 0);
 
@@ -168,43 +213,19 @@ EOT;
         return $Result;
     }
 
-    protected function SendFunction($Function)
-    {
-        $this->SendDebug('Send Function', $Function, 0);
-
-        $JSONData = json_encode(
-            [
-                'DataID'   => '{53FBE996-B1E9-45C2-B8DB-5BD6E5E3F94C}',
-                'Function' => utf8_encode($Function)]
-        );
-        $this->SendDebug('Send', $JSONData, 0);
-        $ResultString = $this->SendDataToParent($JSONData);
-        $this->SendDebug('ResultString', $ResultString, 0);
-        if ($ResultString === false) {
-            $this->SendDebug('Result Function', 'Error receive data', 0);
-            return false;
-        }
-        $Result = @unserialize($ResultString);
-        $this->SendDebug('Result Function', $Result, 0);
-
-        if (($Result === null) || ($Result === false)) {
-            $this->SendDebug('Result Function', 'Error receive data', 0);
-            return false;
-        }
-        return $Result;
-    }
-
     /**
+     * GetNodes
+     *
      * Alle bekannten Circles Auslesen
-     * FERTIG
+     *
+     * @return array|bool
      */
-    private function GetNodes()
+    private function GetNodes(): array|bool
     {
         $CirclePlus = @$this->SendFunction('GetCirclePlusMAC');
         if ($CirclePlus === false) {
             return false;
         }
-
         $Nodes = @$this->SendFunction('ListNodes');
         if ($Nodes === false) {
             return false;
@@ -212,5 +233,3 @@ EOT;
         return array_merge([0 => $CirclePlus], $Nodes);
     }
 }
-
-/** @} */

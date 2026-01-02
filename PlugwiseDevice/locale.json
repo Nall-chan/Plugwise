@@ -1,18 +1,19 @@
 {
     "translations": {
         "de": {
-            "Refresh state of node": "Aktualisierung des Node",
-            "Interval": "Intervall",
-            "Circle and Stealth:": "Circle und Stealth:",
+            "Plugwise Device": "Plugwise Gerät",
+            "Device MAC": "Geräte MAC",
+            "Refresh Interval": "Aktualisierungsintervall",
+            "Circle and Stealth": "Circle und Stealth",
             "Show switching status": "Zeige Schaltzustand",
             "Show current power": "Zeige aktuelle Leistung",
             "Show average power": "Zeige durchschnittliche Leistung",
             "Show overall consumption": "Zeige Gesamtverbrauch",
             "Show frequenz": "Zeige Frequenz",
-            "Sens:": "Sens:",
+            "Sens": "Sens",
             "Show temperature": "Zeige Temperatur",
             "Show humidity": "Zeige Luftfeuchtigkeit",
-            "Node:": "Node:",
+            "Device": "Gerät",
             "Show timestamp": "Zeige Zeitstempel",
             "Show firmware": "Zeige Firmware",
             "Show hardware version": "Zeige Hardware Version",
@@ -35,11 +36,12 @@
             "No calibration found": "Keine Kalibrierung vorhanden",
             "Power Current": "Leistung Aktuell",
             "Power Average": "Leistung Durchschnitt",
-            "Consumption Current Hour": "Verbrauch aktuelle Stunde",
-            "Consumption Overall": "Verbrauch Gesamt",
+            "Consumption last hour": "Verbrauch letzte Stunde",
+            "Consumption overall": "Verbrauch Gesamt",
             "Timeout error": "Zeitüberschreitung",
             "Error on send data": "Fehler beim senden der Daten",
-            "Node not reachable": "Node nicht erreichbar"
+            "Node not reachable": "Node nicht erreichbar",
+            "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:"
         }
     }
 }

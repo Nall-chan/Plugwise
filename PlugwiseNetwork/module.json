@@ -1,11 +1,9 @@
 {
     "id": "{7C20491F-F145-4F1C-A69C-AAE1F60F5BD5}",
-    "name": "PlugwiseNetwork",
+    "name": "Plugwise Network",
     "type": 2,
     "vendor": "Plugwise",
-    "aliases": [
-        "Plugwise Network"
-    ],
+    "aliases": [],
     "parentRequirements": [
         "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"
     ],
