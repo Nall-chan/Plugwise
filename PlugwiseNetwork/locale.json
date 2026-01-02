@@ -15,13 +15,6 @@
             "Circle+ offline": "Circle+ offline",
             "Search for Circle+": "Suche nach Circle+",
             "Ongoing paring with Circle+": "Laufendes paring mit Circle+",
-            "No RF-Stick found!": "Kein RF-Stick gefunden!",
-            "No Circle+ associated!": "Kein Circle+ zugeordnet",
-            "Please pair a Circle+ and create a new Plugwise-Network.": "Bitte einen Circle+ verbinden und ein neues Plugwise Netzwerk erzeugen.",
-            "Start paring of Circle+": "Starte paring mit Circle+",
-            "Sorry, not working": "Ohne Funktion",
-            "No Circle+ found!": "Kein Circle+ gefunden",
-            "Network discovery is still running. Please wait.": "Netzwerk wird durchsucht. Bitte warten.",
             "Enable joining for discovery of new nodes.": "Anlernen aktivieren für das erkennen von neuen Nodes.",
             "Enable joining": "Anlernen aktivieren",
             "Manually connect new node:": "Neuen Node direkt anlernen:",
@@ -53,6 +46,11 @@
             "Stick send NACK.": "Stick meldet NACK.",
             "Wrong CRC received.": "Falsche CRC erhalten.",
             "No answer from Network.": "Keine Antwort vom Netzwerk.",
+            "Start Plugwise Network": "Starte Plugwise Netzwerk",
+            "Finished scanning of the Plugwise network": "Durchsuchen des Plugwise Netzwerk abgeschlossen",
+            "Plugwise Network is up an running": "Plugwise Netzwerk ist online und bereit",
+            "Circle+ not found": "Circle+ nicht gefunden",
+            "Network ID:": "Netzwerk ID:",
             "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:"
         }
     }

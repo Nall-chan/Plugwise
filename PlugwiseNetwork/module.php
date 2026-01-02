@@ -40,6 +40,7 @@ eval('declare(strict_types=1);namespace PlugwiseNetwork {?>' . file_get_contents
  * @method bool lock(string $ident)
  * @method void unlock(string $ident)
  * @method void SetValueBoolean(string $Ident, bool $value)
+ * @method void SetValueInteger(string $Ident, int $value)
  * @method void SetValueString(string $Ident, string $value)
  * @method int RegisterParent()
  * @method bool IORequestAction(string $Ident, mixed $Value)
@@ -64,10 +65,14 @@ class PlugwiseNetwork extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
-        $this->ReplyData = [];
+        $this->ParentID = 0;
         $this->FrameID = 0;
         $this->LastFrameID = 0;
+        $this->ReplyData = [];
         $this->BufferIN = '';
+        $this->CirclePlusMAC = '';
+        $this->StickMAC = '';
+        $this->NetworkID = '';
         $this->NewNodes = [];
         $this->Nodes = [];
         $this->SearchIndex = 0;
@@ -85,14 +90,17 @@ class PlugwiseNetwork extends IPSModuleStrict
      */
     public function ApplyChanges(): void
     {
-
         $this->SetStatus(IS_INACTIVE);
         $this->RegisterMessage($this->InstanceID, FM_CONNECT);
         $this->RegisterMessage($this->InstanceID, FM_DISCONNECT);
         $this->ReplyData = [];
-        $this->FrameID = 0;
-        $this->LastFrameID = 0;
         $this->BufferIN = '';
+        $this->CirclePlusMAC = '';
+        $this->StickMAC = '';
+        $this->NetworkID = '';
+        $this->NewNodes = [];
+        $this->Nodes = [];
+        $this->SearchIndex = 0;
         parent::ApplyChanges();
         $this->RegisterParent();
         $this->RegisterVariableString(
@@ -246,7 +254,7 @@ class PlugwiseNetwork extends IPSModuleStrict
         } else {
             $this->SearchIndex = 0;
             $this->NetworkState = \Plugwise\Plugwise_NetworkState::Online;
-            $this->LogMessage('Finished scanning of the Plugwise network', KL_NOTIFY);
+            $this->LogMessage($this->Translate('Finished scanning of the Plugwise network'), KL_NOTIFY);
             $this->SetValueBoolean('ScanNetwork', false);
             $this->SetStatus(IS_ACTIVE);
         }
@@ -667,10 +675,12 @@ class PlugwiseNetwork extends IPSModuleStrict
                         //case \Plugwise\Plugwise_AckMsg::SUCCESSFUL:
                         //case \Plugwise\Plugwise_AckMsg::DISCONNECTED:
                     default:
-                        if ($this->SendQueueUpdate($PlugwiseData)) {
+                        $this->SendQueueUpdate($PlugwiseData);
+                        /*if ($this->SendQueueUpdate($PlugwiseData)) {
                             $this->SendDebug('ReceiveQueueUpdate (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
                         }
                         break;
+                         */
                         //default:
                         //$this->FrameID = -10;
                         //break;
@@ -683,12 +693,12 @@ class PlugwiseNetwork extends IPSModuleStrict
                                 }
                  */
             }
-            if ($this->SendQueueUpdate($PlugwiseData)) {
-                $this->SendDebug('ReceiveQueueUpdate (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
-            } else {
+            if (!$this->SendQueueUpdate($PlugwiseData)) {
                 $this->SendDebug('EVENT (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
                 $this->Decode($PlugwiseData);
-            }
+            } /*else {
+                $this->SendDebug('ReceiveQueueUpdate (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
+            }*/
         }
         return '';
     }
@@ -834,7 +844,7 @@ class PlugwiseNetwork extends IPSModuleStrict
      */
     private function StartNetwork(): void
     {
-        $this->LogMessage('Start Plugwise Network', KL_NOTIFY);
+        $this->LogMessage($this->Translate('Start Plugwise Network'), KL_NOTIFY);
         $this->SendDebug('StartNetwork', \Plugwise\Plugwise_NetworkState::ToString($this->NetworkState), 0);
 
         switch ($this->NetworkState) {
@@ -865,7 +875,7 @@ class PlugwiseNetwork extends IPSModuleStrict
                 $this->SendDebug('NewNetworkState', \Plugwise\Plugwise_NetworkState::ToString($this->NetworkState), 0);
                 $this->GetStickHardwareInfo();
                 $this->SetNetworkTime();
-                $this->LogMessage('Plugwise Network is up an running', KL_NOTIFY);
+                $this->LogMessage($this->Translate('Plugwise Network is up an running'), KL_NOTIFY);
                 $this->NewNodes = [];
                 $this->SearchNodes();
                 break;
@@ -1005,7 +1015,7 @@ class PlugwiseNetwork extends IPSModuleStrict
             $this->SetValueString('NetworkID', $this->Translate('no Network'));
             $this->NetworkState = \Plugwise\Plugwise_NetworkState::StickNotFound;
             $this->SendDebug('InitStick', \Plugwise\Plugwise_NetworkState::ToString($this->NetworkState), 0);
-            $this->LogMessage('Stick not found', KL_ERROR);
+            $this->LogMessage($this->Translate('RF-Stick not found'), KL_ERROR);
             return false;
         }
         $this->StickMAC = $Result->NodeMAC;
@@ -1015,14 +1025,16 @@ class PlugwiseNetwork extends IPSModuleStrict
             $this->SetValueString('NetworkID', $this->Translate('no Network'));
             $this->NetworkState = \Plugwise\Plugwise_NetworkState::CirclePlusMissing;
             $this->SendDebug('InitStick', \Plugwise\Plugwise_NetworkState::ToString($this->NetworkState), 0);
-            $this->LogMessage('Circle+ not found', KL_ERROR);
+            $this->LogMessage($this->Translate('Circle+ not found'), KL_ERROR);
             return false;
         }
-        $this->CirclePlusMAC = '00' . substr($Result->Data, 6, 14);
+        $CirclePlusMAC = '00' . substr($Result->Data, 6, 14);
+        $this->CirclePlusMAC = $CirclePlusMAC;
+        $this->LogMessage($this->Translate('Circle+ MAC:') . $CirclePlusMAC, KL_NOTIFY);
         $NetworkID = substr($Result->Data, 20, 4);
         $this->NetworkID = $NetworkID;
         $this->SetValueString('NetworkID', $NetworkID);
-        $this->LogMessage('NetworkID:' . $NetworkID, KL_NOTIFY);
+        $this->LogMessage($this->Translate('Network ID:') . $NetworkID, KL_NOTIFY);
         return true;
     }
 
@@ -1044,12 +1056,9 @@ class PlugwiseNetwork extends IPSModuleStrict
             $this->SetValueString('NetworkID', $this->Translate('no Network'));
             $this->NetworkState = \Plugwise\Plugwise_NetworkState::CirclePlusOffline;
             $this->SendDebug('InitStick', \Plugwise\Plugwise_NetworkState::ToString($this->NetworkState), 0);
-            $this->LogMessage('Circle+ is offline', KL_WARNING);
+            $this->LogMessage($this->Translate('Circle+ offline'), KL_WARNING);
             return false;
         }
-        $CirclePlusMAC = substr($Result->Data, 4);
-        $this->CirclePlusMAC = $CirclePlusMAC;
-        $this->LogMessage('Circle+ MAC:' . $CirclePlusMAC, KL_NOTIFY);
         return true;
     }
 
@@ -1070,15 +1079,6 @@ class PlugwiseNetwork extends IPSModuleStrict
         $this->SetValueString('Hardware', $Hardware);
         $this->SetValueInteger('Firmware', $Firmware);
         return true;
-        //$Result = $this->GetStatus();
-        //
-        //                 16|              24|        32|   34|  36|              48|              56| 58
-        // |000D6F0000994CAA | 0F | 08 | 595B | 00044480 | 80  | 18 | 5653.9070.1402 | 4CCEC22A       | 02
-        // |  Circle+ MAC    |year|mon |min   | curr_log |state| HZ | HW1 .HW2 .HW3  | Firmware d/m/y |Typ
-        //                     11   0A   3C98   0004ADE8   01    85   6539 0700 7326   4E0843A9         01
-        //                     00   00   0000   00000000   00    80   6539 0700 8512   4E0842BB         00  //Stick
-        //  000D6F0002588136   11   0A   52D2   00044038   01    85   6539 0700 7326   4E0843A9         01 //Circle
-        //                     00010001 000515C801850000044001074E0844C202
     }
 
     /**
@@ -1090,15 +1090,11 @@ class PlugwiseNetwork extends IPSModuleStrict
     {
         $Data = gmdate('siH0Ndmy', time());
         $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::SetDateTimeRequest, $this->CirclePlusMAC, $Data);
-
         $Result = $this->Send($PlugwiseData);
         if ($Result === false) {
             $this->SetValueBoolean('TimeSync', false);
             return false;
         }
-        // todo
-        // prüfen ?
-        // ($Result->Command == \Plugwise\Plugwise_Command::AckMsgResponse)
         if (substr($Result->Data, 0, 4) != \Plugwise\Plugwise_AckMsg::SUCCESSFUL) {
             $this->SetValueBoolean('TimeSync', false);
             trigger_error($this->Translate('Error on set time in Circle+'), E_USER_NOTICE);
@@ -1115,9 +1111,6 @@ class PlugwiseNetwork extends IPSModuleStrict
             trigger_error($this->Translate('Error on verify time in Circle+'), E_USER_NOTICE);
             return false;
         }
-        // 25 47 17  07   15  10 17
-        // 08 48 17  07   15  10 17
-        // s |i |h  |dow | d |m |y
         $this->SetValueBoolean('TimeSync', true);
         return true;
     }

@@ -803,8 +803,8 @@ namespace Plugwise{
                     //   000D6F0000B1B64B | xx  | xx   | xxxx
                     //   Circle+          | in? | out? | Time?
                 case Plugwise_Command::StickStatusResponse:
-                    // 000D6F0000B835CB | 01 | 01              | 440D6F0000B1B64B | 3B44 | FF
-                    //    Stick-MAC     | ?? | Circle+ bekannt |   PANID-long     | PANID| ??
+                    // 000D6F0000B835CB | 01 | 01              | 44          |    0D6F0000B1B64B | 3B44 | FF
+                    //    Stick-MAC     | ?? | Circle+ bekannt |  PANID High | 00 CirclePlusMAC  | PANID| ??
                     // 000D6F0000B835CB | 01 | 00 |
                     //    Stick-MAC     | ?? | kein Circle+ bekannt
                 case Plugwise_Command::PowerUsageResponse:
@@ -826,7 +826,11 @@ namespace Plugwise{
                     //                  0|               8|        16|   18|  20|              32|              40| 42
                     //                     11   0A   5855   000515C0   01    85   0000 0440 0107   4E0844C2         02
                     //                     11   0A   5807   000515B8   00    85   0000 0440 0107   4E0844C2         02
-                    // |000D6F0000994CAA | 0F | 08 | 595B | 00044480 | 80  | 18 | 5653.9070.1402 | 4CCEC22A       | 02
+                    //  000D6F0000994CAA   0F   08   595B   00044480   80    18   5653.9070.1402   4CCEC22A         02
+                    //                     11   0A   3C98   0004ADE8   01    85   6539 0700 7326   4E0843A9         01
+                    //                     00   00   0000   00000000   00    80   6539 0700 8512   4E0842BB         00 // Stick
+                    //  000D6F0002588136   11   0A   52D2   00044038   01    85   6539 0700 7326   4E0843A9         01 // Circle
+                    //                     00   01   0001   000515C8   01    85   0000 0440 0107   4E0844C2         02 // Switch?
                     // |  Circle+ MAC    |year|mon |min   | curr_log |state| HZ | HW1 .HW2 .HW3  | Firmware d/m/y |Typ
                     //             $year=2000+intval(hexdec(substr($msg, 16, 2)));
                     //            $month=intval(hexdec(substr($msg, 18, 2)));
