@@ -197,7 +197,7 @@ class PlugwiseNetwork extends IPSModuleStrict
         switch ($Ident) {
             case 'JoiningActive':
                 if (!$this->EnableNetworkJoining((bool) $Value)) {
-                    echo $this->Translate('Invalid Ident');
+                    echo $this->Translate('Error');
                 }
                 break;
             default:
@@ -238,13 +238,8 @@ class PlugwiseNetwork extends IPSModuleStrict
                 break;
             }
             $NodeMac = substr($Result->Data, 0, -2);
-            $NodeIndex = (hexdec(substr($Result->Data, -2))) + 1;
-            if ($NodeMac == 'FFFFFFFFFFFFFFFF') {
-                if (array_key_exists($NodeIndex, $Nodes)) {
-                    unset($Nodes[$NodeIndex]);
-                }
-            } else {
-                $Nodes[$NodeIndex] = $NodeMac;
+            if ($NodeMac != 'FFFFFFFFFFFFFFFF') {
+                $Nodes[] = $NodeMac;
             }
         }
         $this->Nodes = $Nodes;
@@ -256,7 +251,9 @@ class PlugwiseNetwork extends IPSModuleStrict
             $this->NetworkState = \Plugwise\Plugwise_NetworkState::Online;
             $this->LogMessage($this->Translate('Finished scanning of the Plugwise network'), KL_NOTIFY);
             $this->SetValueBoolean('ScanNetwork', false);
+            if ($this->GetStatus() != IS_ACTIVE) {
             $this->SetStatus(IS_ACTIVE);
+        }
         }
         return true;
     }
@@ -343,21 +340,6 @@ class PlugwiseNetwork extends IPSModuleStrict
     }
 
     /**
-     * SendDataStick
-     *
-     * @param  string $Command
-     * @param  string $Data
-     * @param  string $NodeMAC
-     * @return bool|\Plugwise\Plugwise_Frame
-     */
-    public function SendDataStick(string $Command, string $Data, string $NodeMAC): bool|\Plugwise\Plugwise_Frame
-    {
-        $PlugwiseData = new \Plugwise\Plugwise_Frame($Command, $Data, $NodeMAC);
-        $result = $this->Send($PlugwiseData);
-        return $result;
-    }
-
-    /**
      * EnableNetworkJoining
      *
      * @param  bool $Value
@@ -418,8 +400,6 @@ class PlugwiseNetwork extends IPSModuleStrict
                 unset($NewNodes[$Index]);
                 $this->NewNodes = $NewNodes;
             }
-            trigger_error($this->Translate('Node MAC already in network associated.'), E_USER_NOTICE);
-            return false;
         }
         if ($this->NetworkState < \Plugwise\Plugwise_NetworkState::Online) {
             trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
@@ -431,7 +411,6 @@ class PlugwiseNetwork extends IPSModuleStrict
         $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::JoinNodeRequest, '', \Plugwise\Plugwise_Switch::ON . $NodeMAC);
         $Result = $this->Send($PlugwiseData);
         $this->NetworkState = \Plugwise\Plugwise_NetworkState::Online;
-        $this->SetValueBoolean('JoiningActive', false);
         if ($Result !== true) {
             return false;
         }
@@ -446,10 +425,11 @@ class PlugwiseNetwork extends IPSModuleStrict
             if (($Result->Command == \Plugwise\Plugwise_Command::AckMsgResponse) && (substr($Result->Data, 0, 4) != \Plugwise\Plugwise_AckMsg::ACK)) {
                 return false;
             }
-        } else { // Node mit Werkseinstellungen antworten mit Frame 65533
+        } else {
+            // Node mit Werkseinstellungen antworten mit Frame 65533
             $this->SendQueuePush(65533);
             $Result = $this->WaitForResponse(65533, 30000);
-            $this->SendDebug('Response', $Result, 0);
+            $this->SendDebug('Response (65533)', $Result, 0);
             if ($Result === false) {
                 return false;
             }
@@ -459,9 +439,13 @@ class PlugwiseNetwork extends IPSModuleStrict
                 unset($NewNodes[$Index]);
                 $this->NewNodes = $NewNodes;
             }
-            //Neuer Node einfügen in $this->Nodes
         }
-        $this->SearchNodes();
+        $Nodes = $this->Nodes;
+        $Index = array_search($NodeMAC, $Nodes);
+        if ($Index === false) {
+            $Nodes[] = $NodeMAC;
+        }
+        $this->Nodes = $Nodes;
         return true;
     }
 
@@ -494,24 +478,13 @@ class PlugwiseNetwork extends IPSModuleStrict
             trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
             return false;
         }
-        if ($this->NetworkState == \Plugwise\Plugwise_NetworkState::Online) {
-            $this->EnableNetworkJoining(true);
-        }
         $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::RemoveNodeRequest, $this->CirclePlusMAC, $NodeMAC);
         $Result = $this->Send($PlugwiseData);
-        $this->SendDebug('Response', $Result, 0);
         $this->NetworkState = \Plugwise\Plugwise_NetworkState::Online;
-        $this->SetValueBoolean('JoiningActive', false);
         if ($Result === false) {
             return false;
         }
         if (substr($Result->Data, -2) == \Plugwise\Plugwise_Switch::ON) {
-            $Nodes = $this->Nodes;
-            $Index = array_search($NodeMAC, $Nodes);
-            if ($Index !== false) {
-                unset($Nodes[$Index]);
-                $this->Nodes = $Nodes;
-            }
             return $this->ResetNode($NodeMAC);
         }
         return false;
@@ -529,13 +502,19 @@ class PlugwiseNetwork extends IPSModuleStrict
             trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
             return false;
         }
-        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::ResetRequest, $NodeMAC, '0001');
+        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::ResetRequest, $NodeMAC, \Plugwise\Plugwise_Command::QueryCirclePlusRequest);
         $Result = $this->Send($PlugwiseData);
         $this->SendDebug('Response', $Result, 0);
         if ($Result === false) {
             return false;
         }
         if (substr($Result->Data, 0, 4) == \Plugwise\Plugwise_AckMsg::DISCONNECTED) {
+            $Nodes = $this->Nodes;
+            $Index = array_search($NodeMAC, $Nodes);
+            if ($Index !== false) {
+                unset($Nodes[$Index]);
+                $this->Nodes = $Nodes;
+            }
             return true;
         }
         return false;
@@ -615,7 +594,6 @@ class PlugwiseNetwork extends IPSModuleStrict
         return serialize(false);
     }
 
-    ################## DATAPOINTS PARENT
     /**
      * ReceiveData
      *
@@ -646,9 +624,7 @@ class PlugwiseNetwork extends IPSModuleStrict
             $this->SendDebug('ReceiveRaw', $Line, 0);
             $PlugwiseData = new \Plugwise\Plugwise_Frame();
             $PlugwiseData->DecodeFrame($Line);
-            $this->LastFrameID = $PlugwiseData->FrameID;
             if ($PlugwiseData->Command === \Plugwise\Plugwise_Command::AckMsgResponse) {
-                //if ($this->FrameID === 0) {
                 $this->SendDebug('ReceiveAck (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
                 if ($PlugwiseData->Checksum !== true) {
                     $this->SendDebug('ReceiveCRC (' . $PlugwiseData->FrameID . ')', 'Receive CRC ERROR', 0);
@@ -662,43 +638,18 @@ class PlugwiseNetwork extends IPSModuleStrict
                         $this->SendQueuePush($PlugwiseData->FrameID);
                         $this->FrameID = $PlugwiseData->FrameID;
                         break;
-                        /*case \Plugwise\Plugwise_AckMsg::NACK:
+                    case \Plugwise\Plugwise_AckMsg::NACK:
                             $this->FrameID = -2;
                             break;
-                        case \Plugwise\Plugwise_AckMsg::OUTOFRANGE:
-                            $this->FrameID = -3;
-                            break;
-                        case \Plugwise\Plugwise_AckMsg::UNKNOWN:
-                            $this->FrameID = -4;
-                            break;*/
-                        //case \Plugwise\Plugwise_AckMsg::CONNECTED:
-                        //case \Plugwise\Plugwise_AckMsg::SUCCESSFUL:
-                        //case \Plugwise\Plugwise_AckMsg::DISCONNECTED:
                     default:
                         $this->SendQueueUpdate($PlugwiseData);
-                        /*if ($this->SendQueueUpdate($PlugwiseData)) {
-                            $this->SendDebug('ReceiveQueueUpdate (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
-                        }
-                        break;
-                         */
-                        //default:
-                        //$this->FrameID = -10;
-                        //break;
                 }
                 continue;
-                //}
-                /*                } else {
-                                    $this->SendDebug('ReceiveAckWithoutRequest ('.$PlugwiseData->FrameID.')', $PlugwiseData, 0);
-                                    $this->SendQueueUpdate($PlugwiseData);
-                                }
-                 */
             }
             if (!$this->SendQueueUpdate($PlugwiseData)) {
                 $this->SendDebug('EVENT (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
                 $this->Decode($PlugwiseData);
-            } /*else {
-                $this->SendDebug('ReceiveQueueUpdate (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
-            }*/
+            }
         }
         return '';
     }
@@ -757,6 +708,7 @@ class PlugwiseNetwork extends IPSModuleStrict
         $this->SendDebug('Splitter Decode', $PlugwiseData, 0);
         switch ($PlugwiseData->Command) {
             case \Plugwise\Plugwise_Command::AdvertiseNodeResponse:
+                $this->SetValueBoolean('JoiningActive', true);
                 $NewNodes = $this->NewNodes;
                 if (!in_array($PlugwiseData->NodeMAC, $NewNodes)) {
                     $NewNodes[] = $PlugwiseData->NodeMAC;
@@ -764,12 +716,30 @@ class PlugwiseNetwork extends IPSModuleStrict
                 }
                 break;
             case \Plugwise\Plugwise_Command::AckAssociationResponse:
-                $this->SearchNodes();
+                $Nodes = $this->Nodes;
+                $Index = array_search($PlugwiseData->NodeMAC, $Nodes);
+                if ($Index === false) {
+                    $Nodes[] = $PlugwiseData->NodeMAC;
+                    $this->Nodes = $Nodes;
+                }
+                $NewNodes = $this->NewNodes;
+                $Index = array_search($PlugwiseData->NodeMAC, $NewNodes);
+                if ($Index !== false) {
+                    unset($NewNodes[$Index]);
+                    $this->NewNodes = $NewNodes;
+                }
                 break;
             default:
                 $this->SendDataToChildren($PlugwiseData->ToJSONStringForDevices());
         }
     }
+
+    /**
+     * SetStatus
+     *
+     * @param  int $State
+     * @return bool
+     */
     protected function SetStatus(int $State): bool
     {
         $OldState = $this->GetStatus();
@@ -781,6 +751,7 @@ class PlugwiseNetwork extends IPSModuleStrict
         }
         return parent::SetStatus($State);
     }
+
     /**
      * Send
      *
@@ -792,13 +763,14 @@ class PlugwiseNetwork extends IPSModuleStrict
     private function Send(\Plugwise\Plugwise_Frame $PlugwiseFrame): bool|\Plugwise\Plugwise_Frame
     {
         try {
-            $LastFrameId = $this->LastFrameID + 1;
+            $LastFrameId = 'no frame';
             if (!$this->HasActiveParent()) {
                 throw new Exception($this->Translate('Instance has no active parent.'), E_USER_NOTICE);
             }
             if (!$this->lock('WaitForStick')) {
                 throw new Exception($this->Translate('Send to Stick is locked.'), E_USER_NOTICE);
             }
+            $LastFrameId = $this->LastFrameID + 1;
             $DataLine = $PlugwiseFrame->EncodeFrame();
             $JsonString = $this->ToJSONStringForStick($DataLine);
             $this->SendDebug('Send (' . $LastFrameId . ')', $PlugwiseFrame, 0);
@@ -806,6 +778,8 @@ class PlugwiseNetwork extends IPSModuleStrict
             $this->FrameID = 0;
             $this->SendDataToParent($JsonString);
             $Result = $this->WaitForStick();
+            $this->LastFrameID = $Result;
+            $this->FrameID = 0;
             $this->unlock('WaitForStick');
             if ($Result === -10) { // Timeout
                 throw new Exception($this->Translate('Stick did not response.'), E_USER_NOTICE);
@@ -818,7 +792,9 @@ class PlugwiseNetwork extends IPSModuleStrict
             } elseif ($Result === -1) { // CRC Error
                 throw new Exception($this->Translate('Wrong CRC received.'), E_USER_NOTICE);
             }
+            // JoinNodeRequest liefert nur ACK und keine Antwort
             if ($PlugwiseFrame->Command == \Plugwise\Plugwise_Command::JoinNodeRequest) {
+                $this->SendQueueRemove($Result);
                 return true;
             }
             $ReplyPlugwiseFrame = $this->WaitForResponse($Result);
@@ -831,7 +807,7 @@ class PlugwiseNetwork extends IPSModuleStrict
             }
             return $ReplyPlugwiseFrame;
         } catch (Exception $ex) {
-            $this->SendDebug('Receive', $ex->getMessage() . ' (' . $LastFrameId . ')', 0);
+            $this->SendDebug('Response Error', $ex->getMessage() . ' (' . $LastFrameId . ')', 0);
             trigger_error($ex->getMessage(), $ex->getCode());
         }
         return false;
@@ -905,7 +881,7 @@ class PlugwiseNetwork extends IPSModuleStrict
             ];
             $items = [];
             foreach ($Nodes as $Index => $Node) {
-                $items[] = ['Index' => $Index, 'NodeMAC' => $Node];
+                $items[] = ['NodeMAC' => $Node];
             }
             $Form[] = [
                 'type'     => 'List',
@@ -914,14 +890,10 @@ class PlugwiseNetwork extends IPSModuleStrict
                 'add'      => false,
                 'delete'   => false,
                 'sort'     => [
-                    'column'    => 'Index',
+                    'column'    => 'NodeMAC',
                     'direction' => 'ascending'
                 ],
                 'columns'  => [
-                    ['label'    => 'Index',
-                        'name'  => 'Index',
-                        'width' => '60px'
-                    ],
                     ['label'    => 'Node MAC',
                         'name'  => 'NodeMAC',
                         'width' => 'auto'

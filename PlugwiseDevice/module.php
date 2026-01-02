@@ -87,6 +87,12 @@ class PlugwiseDevice extends IPSModuleStrict
      */
     public function ApplyChanges(): void
     {
+        $this->isCalib = false;
+        $this->Type = \Plugwise\Plugwise_Typ::unknown;
+        $this->gainA = 0;
+        $this->gainB = 0;
+        $this->offTot = 0;
+        $this->offRuis = 0;
         parent::ApplyChanges();
         $NodeMAC = $this->ReadPropertyString(\Plugwise\Node\Property::NodeMAC);
         if ($NodeMAC == '') {
@@ -103,6 +109,14 @@ class PlugwiseDevice extends IPSModuleStrict
         $this->RegisterParent();
 
         //$this->RegisterProfileFloat('Plugwise.kwh', 'Electricity', '', ' kWh', 0, 0, 0, 3);
+
+        $this->RegisterVariableBoolean(
+            'Reachable',
+            $this->Translate('Reachable'),
+            '~Alert.Reversed'
+            //[]
+        );
+
         if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showState)) {
             $this->UnregisterVariable('State');
         }
@@ -134,12 +148,10 @@ class PlugwiseDevice extends IPSModuleStrict
         if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showHumidity)) {
             $this->UnregisterVariable('Humidity');
         }
-        $this->SetStatus(IS_ACTIVE);
-        if ($this->HasActiveParent()) {
+        if ($NodeMAC != '' && $this->HasActiveParent()) {
             $this->IOChangeState(IS_ACTIVE);
         } else {
-            $this->SetTimerInterval(\Plugwise\Node\Timer::RequestState, 0);
-            $this->SetTimerInterval(\Plugwise\Node\Timer::SetTime, 0);
+            $this->IOChangeState(IS_INACTIVE);
         }
     }
 
@@ -643,11 +655,12 @@ class PlugwiseDevice extends IPSModuleStrict
             echo $this->Translate('Error on send data') . PHP_EOL;
             return false;
         }
-        if ($Result->Data === '00E1') {
+        if ($Result->Data === \Plugwise\Plugwise_AckMsg::OUTOFRANGE) {
+            $this->SetValueBoolean('Reachable', false);
             echo $this->Translate('Node not reachable') . PHP_EOL;
             return false;
         }
-
+        $this->SetValueBoolean('Reachable', true);
         return $Result;
     }
 }

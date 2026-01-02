@@ -41,6 +41,7 @@
             "Timeout error": "Zeitüberschreitung",
             "Error on send data": "Fehler beim senden der Daten",
             "Node not reachable": "Node nicht erreichbar",
+            "Reachable": "Erreichbar",
             "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:"
         }
     }

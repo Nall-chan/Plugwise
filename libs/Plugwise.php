@@ -820,7 +820,7 @@ namespace Plugwise{
                 case Plugwise_Command::RemoveNodeResponse:
                     //   000D6F00004BC34A | C4040E011610173A | 00
                     //   000D6F0000B1B64B | 000D6F0000B1B967 | 00
-                    //   Circle+ MAC      | Device MAC       | Index
+                    //   Circle+ MAC      | Device MAC       | 01 OK 00 Fehler
                 case Plugwise_Command::InfoResponse:
                     //                 16|              24|        32|   34|  36|              48|              56| 58
                     //                  0|               8|        16|   18|  20|              32|              40| 42
