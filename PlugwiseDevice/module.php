@@ -35,7 +35,7 @@ eval('declare(strict_types=1);namespace PlugwiseDevice {?>' . file_get_contents(
  * @method void SetValueInteger(string $Ident, int $value)
  * @method void SetValueString(string $Ident, string $value)
  * @method int RegisterParent()
- * @method void RegisterProfileFloat(string $Name, string $Icon, string $Prefix, string $Suffix, float $MinValue, float $MaxValue, float $StepSize, int $Digits)
+ * @method void UnregisterProfile(string $Name)
  * @method bool IORequestAction(string $Ident, mixed $Value)
  * @method void IOMessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data)
  */
@@ -107,16 +107,40 @@ class PlugwiseDevice extends IPSModuleStrict
             return;
         }
         $this->RegisterParent();
-
-        //$this->RegisterProfileFloat('Plugwise.kwh', 'Electricity', '', ' kWh', 0, 0, 0, 3);
-
         $this->RegisterVariableBoolean(
             'Reachable',
             $this->Translate('Reachable'),
-            '~Alert.Reversed'
-            //[]
+            ['MIN'                 => 0,
+                'DIGITS'           => 0,
+                'MULTILINE'        => false,
+                'ICON'             => 'Warning',
+                'INTERVALS_ACTIVE' => true,
+                'MAX'              => 1,
+                'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'PERCENTAGE'       => false,
+                'OPTIONS'          => json_encode(
+                    [
+                        [
+                            'Value'       => false,
+                            'Caption'     => $this->Translate('Alert'),
+                            'IconActive'  => false,
+                            'IconValue'   => '',
+                            'ColorActive' => true,
+                            'ColorValue'  => 16711680,
+                        ],
+                        1 => [
+                            'Value'       => true,
+                            'Caption'     => 'OK',
+                            'IconActive'  => false,
+                            'IconValue'   => '',
+                            'ColorActive' => true,
+                            'ColorValue'  => -1,
+                        ]]
+                ),
+                'PREFIX'           => '',
+                'SUFFIX'           => '',
+                'USAGE_TYPE'       => 0]
         );
-
         if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showState)) {
             $this->UnregisterVariable('State');
         }
@@ -133,7 +157,6 @@ class PlugwiseDevice extends IPSModuleStrict
             $this->UnregisterVariable('PowerAverage');
         }
         if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showOverall)) {
-            $this->UnregisterVariable('ConsumptionCurrentHour');
             $this->UnregisterVariable('ConsumptionOverall');
         }
         if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showHardware)) {
@@ -148,6 +171,7 @@ class PlugwiseDevice extends IPSModuleStrict
         if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showHumidity)) {
             $this->UnregisterVariable('Humidity');
         }
+        $this->UnregisterProfile('Plugwise.kwh');
         if ($NodeMAC != '' && $this->HasActiveParent()) {
             $this->IOChangeState(IS_ACTIVE);
         } else {
@@ -300,8 +324,10 @@ class PlugwiseDevice extends IPSModuleStrict
             $this->RegisterVariableInteger(
                 'Firmware',
                 $this->Translate('Firmware'),
-                '~UnixTimestampDate'
-                //[]
+                [
+                    'PRESENTATION'    => VARIABLE_PRESENTATION_DATE_TIME,
+                    'TEMPLATE'        => VARIABLE_TEMPLATE_DATE
+                ]
             );
             $Firmware = intval(hexdec(substr($Result->Data, 32, 8)));
             $this->SetValueInteger('Firmware', $Firmware);
@@ -316,20 +342,32 @@ class PlugwiseDevice extends IPSModuleStrict
                     $this->RegisterVariableBoolean(
                         'State',
                         $this->Translate('State'),
-                        '~Switch'
-                        //[]
+                        [
+                            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH
+                        ]
                     );
                     $this->EnableAction('State');
                     $Value = (substr($Result->Data, 16, 2) == \Plugwise\Plugwise_Switch::ON);
                     $this->SetValueBoolean('State', $Value);
-
                 }
                 if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showFrequenz)) {
                     $this->RegisterVariableFloat(
                         'Frequenz',
                         $this->Translate('Frequenz'),
-                        '~Hertz'
-                        //[]
+                        [
+                            'MIN'              => 0,
+                            'DIGITS'           => 2,
+                            'MULTILINE'        => false,
+                            'ICON'             => 'Electricity',
+                            'MAX'              => 0,
+                            'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                            'INTERVALS'        => '[]',
+                            'INTERVALS_ACTIVE' => false,
+                            'PERCENTAGE'       => false,
+                            'PREFIX'           => '',
+                            'SUFFIX'           => ' Hz',
+                            'USAGE_TYPE'       => 0,
+                        ]
                     );
                     $this->SetValueFloat('Frequenz', (float) \Plugwise\Plugwise_Switch::$Hertz[hexdec(substr($Result->Data, 18, 2))]);
                 }
@@ -337,8 +375,10 @@ class PlugwiseDevice extends IPSModuleStrict
                     $this->RegisterVariableInteger(
                         'Timestamp',
                         $this->Translate('Timestamp'),
-                        '~UnixTimestamp'
-                        //[]
+                        [
+                            'PRESENTATION'    => VARIABLE_PRESENTATION_DATE_TIME,
+                            'TEMPLATE'        => VARIABLE_TEMPLATE_DATE_TIME
+                        ]
                     );
                     $Timestamp = \Plugwise\Plugwise_Frame::Hex2Timestamp(substr($Result->Data, 0, 8));
                     $this->SetValueInteger('Timestamp', $Timestamp);
@@ -352,31 +392,215 @@ class PlugwiseDevice extends IPSModuleStrict
                 if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showCurrent)) {
                     $this->RegisterVariableFloat(
                         'PowerCurrent',
-                        $this->Translate('Power Current'),
-                        '~Watt.3680'
-                        //[]
+                        $this->Translate('Power current'),
+                        [
+                            'PRESENTATION'      => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                            'ICON'              => 'bolt',
+                            'DECIMAL_SEPARATOR' => 'Client',
+                            'COLOR'             => -1,
+                            'DISPLAY_TYPE'      => 0,
+                            'CONTENT_COLOR'     => -1,
+                            'DIGITS'            => 2,
+                            'INTERVALS'         => json_encode(
+                                [
+                                    [
+                                        'ColorDisplay'        => -1,
+                                        'ContentColorDisplay' => -1,
+                                        'IntervalMinValue'    => 0.001,
+                                        'IntervalMaxValue'    => 1,
+                                        'ConstantActive'      => false,
+                                        'ConstantValue'       => '',
+                                        'ConversionFactor'    => 0.001,
+                                        'PrefixActive'        => false,
+                                        'PrefixValue'         => '',
+                                        'SuffixActive'        => true,
+                                        'SuffixValue'         => ' mW',
+                                        'DigitsActive'        => false,
+                                        'DigitsValue'         => 0,
+                                        'IconActive'          => false,
+                                        'IconValue'           => '',
+                                        'ColorActive'         => false,
+                                        'ColorValue'          => -1,
+                                        'ContentColorActive'  => false,
+                                        'ContentColorValue'   => -1,
+                                    ],
+                                    [
+                                        'ColorDisplay'        => -1,
+                                        'ContentColorDisplay' => -1,
+                                        'IntervalMinValue'    => 1000,
+                                        'IntervalMaxValue'    => 999999,
+                                        'ConstantActive'      => false,
+                                        'ConstantValue'       => '',
+                                        'ConversionFactor'    => 1000,
+                                        'PrefixActive'        => false,
+                                        'PrefixValue'         => '',
+                                        'SuffixActive'        => true,
+                                        'SuffixValue'         => ' kW',
+                                        'DigitsActive'        => true,
+                                        'DigitsValue'         => 2,
+                                        'IconActive'          => false,
+                                        'IconValue'           => '',
+                                        'ColorActive'         => false,
+                                        'ColorValue'          => -1,
+                                        'ContentColorActive'  => false,
+                                        'ContentColorValue'   => -1,
+                                    ]
+                                ]
+                            ),
+                            'INTERVALS_ACTIVE'    => true,
+                            'MAX'                 => 0,
+                            'MIN'                 => 0,
+                            'PERCENTAGE'          => false,
+                            'PREFIX'              => '',
+                            'PREVIEW_STYLE'       => 1,
+                            'SHOW_PREVIEW'        => true,
+                            'SUFFIX'              => ' W',
+                            'THOUSANDS_SEPARATOR' => '',
+                            'USAGE_TYPE'          => 0,
+
+                        ]
                     );
                 }
                 if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showAverage)) {
                     $this->RegisterVariableFloat(
                         'PowerAverage',
-                        $this->Translate('Power Current'),
-                        '~Watt.3680'
-                        //[]
+                        $this->Translate('Power average'),
+                        [
+                            'PRESENTATION'      => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                            'ICON'              => 'bolt',
+                            'DECIMAL_SEPARATOR' => 'Client',
+                            'COLOR'             => -1,
+                            'DISPLAY_TYPE'      => 0,
+                            'CONTENT_COLOR'     => -1,
+                            'DIGITS'            => 2,
+                            'INTERVALS'         => json_encode(
+                                [
+                                    [
+                                        'ColorDisplay'        => -1,
+                                        'ContentColorDisplay' => -1,
+                                        'IntervalMinValue'    => 0.001,
+                                        'IntervalMaxValue'    => 1,
+                                        'ConstantActive'      => false,
+                                        'ConstantValue'       => '',
+                                        'ConversionFactor'    => 0.001,
+                                        'PrefixActive'        => false,
+                                        'PrefixValue'         => '',
+                                        'SuffixActive'        => true,
+                                        'SuffixValue'         => ' mW',
+                                        'DigitsActive'        => false,
+                                        'DigitsValue'         => 0,
+                                        'IconActive'          => false,
+                                        'IconValue'           => '',
+                                        'ColorActive'         => false,
+                                        'ColorValue'          => -1,
+                                        'ContentColorActive'  => false,
+                                        'ContentColorValue'   => -1,
+                                    ],
+                                    [
+                                        'ColorDisplay'        => -1,
+                                        'ContentColorDisplay' => -1,
+                                        'IntervalMinValue'    => 1000,
+                                        'IntervalMaxValue'    => 999999,
+                                        'ConstantActive'      => false,
+                                        'ConstantValue'       => '',
+                                        'ConversionFactor'    => 1000,
+                                        'PrefixActive'        => false,
+                                        'PrefixValue'         => '',
+                                        'SuffixActive'        => true,
+                                        'SuffixValue'         => ' kW',
+                                        'DigitsActive'        => true,
+                                        'DigitsValue'         => 2,
+                                        'IconActive'          => false,
+                                        'IconValue'           => '',
+                                        'ColorActive'         => false,
+                                        'ColorValue'          => -1,
+                                        'ContentColorActive'  => false,
+                                        'ContentColorValue'   => -1,
+                                    ]
+                                ]
+                            ),
+                            'INTERVALS_ACTIVE'    => true,
+                            'MAX'                 => 0,
+                            'MIN'                 => 0,
+                            'PERCENTAGE'          => false,
+                            'PREFIX'              => '',
+                            'PREVIEW_STYLE'       => 1,
+                            'SHOW_PREVIEW'        => true,
+                            'SUFFIX'              => ' W',
+                            'THOUSANDS_SEPARATOR' => '',
+                            'USAGE_TYPE'          => 0,
+
+                        ]
                     );
                 }
                 if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showOverall)) {
                     $this->RegisterVariableFloat(
-                        'ConsumptionCurrentHour',
-                        $this->Translate('Consumption last hour'),
-                        'Plugwise.kwh'
-                        //[]
-                    );
-                    $this->RegisterVariableFloat(
                         'ConsumptionOverall',
-                        $this->Translate('Consumption Overall'),
-                        'Plugwise.kwh'
-                        //[]
+                        $this->Translate('Consumption overall'),
+                        [
+                            'ICON'                => 'bolt',
+                            'DECIMAL_SEPARATOR'   => 'Client',
+                            'COLOR'               => -1,
+                            'DISPLAY_TYPE'        => 0,
+                            'CONTENT_COLOR'       => -1,
+                            'DIGITS'              => 2,
+                            'INTERVALS'           => json_encode([
+                                [
+                                    'ColorDisplay'        => -1,
+                                    'ContentColorDisplay' => -1,
+                                    'IntervalMinValue'    => 0.001,
+                                    'IntervalMaxValue'    => 1,
+                                    'ConstantActive'      => false,
+                                    'ConstantValue'       => '',
+                                    'ConversionFactor'    => 0.001,
+                                    'PrefixActive'        => false,
+                                    'PrefixValue'         => '',
+                                    'SuffixActive'        => true,
+                                    'SuffixValue'         => ' Wh',
+                                    'DigitsActive'        => false,
+                                    'DigitsValue'         => 2,
+                                    'IconActive'          => false,
+                                    'IconValue'           => '',
+                                    'ColorActive'         => false,
+                                    'ColorValue'          => -1,
+                                    'ContentColorActive'  => false,
+                                    'ContentColorValue'   => -1,
+                                ],
+
+                                [
+                                    'ColorDisplay'        => -1,
+                                    'ContentColorDisplay' => -1,
+                                    'IntervalMinValue'    => 1000,
+                                    'IntervalMaxValue'    => 999999,
+                                    'ConstantActive'      => false,
+                                    'ConstantValue'       => '',
+                                    'ConversionFactor'    => 1000,
+                                    'PrefixActive'        => false,
+                                    'PrefixValue'         => '',
+                                    'SuffixActive'        => true,
+                                    'SuffixValue'         => 'MWh',
+                                    'DigitsActive'        => true,
+                                    'DigitsValue'         => 2,
+                                    'IconActive'          => false,
+                                    'IconValue'           => '',
+                                    'ColorActive'         => false,
+                                    'ColorValue'          => -1,
+                                    'ContentColorActive'  => false,
+                                    'ContentColorValue'   => -1,
+                                ],
+                            ]),
+                            'INTERVALS_ACTIVE'    => true,
+                            'MAX'                 => 0,
+                            'PRESENTATION'        => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                            'MIN'                 => 0,
+                            'PERCENTAGE'          => false,
+                            'PREFIX'              => '',
+                            'PREVIEW_STYLE'       => 1,
+                            'SHOW_PREVIEW'        => true,
+                            'SUFFIX'              => ' kWh',
+                            'THOUSANDS_SEPARATOR' => '',
+                            'USAGE_TYPE'          => 0,
+                        ]
                     );
                 }
                 break;
@@ -385,16 +609,40 @@ class PlugwiseDevice extends IPSModuleStrict
                     $this->RegisterVariableFloat(
                         'Temperature',
                         $this->Translate('Temperature'),
-                        '~Temperature'
-                        //[]
+                        [
+                            'MIN'              => -30,
+                            'DIGITS'           => 1,
+                            'MULTILINE'        => false,
+                            'ICON'             => 'Temperature',
+                            'MAX'              => 70,
+                            'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                            'INTERVALS'        => '[]',
+                            'INTERVALS_ACTIVE' => false,
+                            'PERCENTAGE'       => false,
+                            'PREFIX'           => '',
+                            'SUFFIX'           => ' °C',
+                            'USAGE_TYPE'       => 1,
+                        ]
                     );
                 }
                 if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showHumidity)) {
                     $this->RegisterVariableFloat(
                         'Humidity',
                         $this->Translate('Humidity'),
-                        '~Humidity.F'
-                        //[]
+                        [
+                            'MIN'              => 0,
+                            'DIGITS'           => 1,
+                            'MULTILINE'        => false,
+                            'ICON'             => 'Gauge',
+                            'MAX'              => 100,
+                            'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                            'INTERVALS'        => '[]',
+                            'INTERVALS_ACTIVE' => false,
+                            'PERCENTAGE'       => true,
+                            'PREFIX'           => '',
+                            'SUFFIX'           => ' %',
+                            'USAGE_TYPE'       => 0,
+                        ]
                     );
                 }
                 break;
@@ -480,7 +728,7 @@ class PlugwiseDevice extends IPSModuleStrict
             $this->SetValueFloat('PowerAverage', $Watt);
         }
         if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showOverall)) {
-            $PulsesTotal = \Plugwise\Plugwise_Frame::pulsesCorrection(
+            $Pulses = \Plugwise\Plugwise_Frame::pulsesCorrection(
                 $PulsesTotalHex,
                 3600,
                 $this->offRuis,
@@ -488,35 +736,9 @@ class PlugwiseDevice extends IPSModuleStrict
                 $this->gainA,
                 $this->gainB
             );
-            //if ($PulsesTotal < 0) {
-            //    $PulsesTotal = 0;
-            //}
-            $this->SendDebug('PulsesTotal', $PulsesTotal, 0);
-            $WattTotal = \Plugwise\Plugwise_Frame::pulsesToKwh($PulsesTotal);
-            $VidHour = @$this->GetIDForIdent('ConsumptionCurrentHour');
-            if ($VidHour > 0) {
-                $OldValueHour = GetValueFloat($VidHour);
-            } else {
-                $OldValueHour = 0;
-            }
-            $this->SendDebug('Old Consumption last hour', $OldValueHour, 0);
-            $this->SendDebug('Consumption last hour', $WattTotal, 0);
-            $this->SetValueFloat('ConsumptionCurrentHour', $WattTotal);
-            $AddValueTotal = $WattTotal - $OldValueHour;
-            //if ($AddValueTotal < 0) {
-            //    $AddValueTotal = $WattTotal;
-            //}
-            $this->SendDebug('AddValueTotal', $AddValueTotal, 0);
-            $VidOverall = @$this->GetIDForIdent('ConsumptionOverall');
-            if ($VidOverall > 0) {
-                $OldOverall = GetValueFloat($VidOverall);
-            } else {
-                $OldOverall = 0;
-            }
-            $this->SendDebug('OldOverall', $OldOverall, 0);
-            $NewValueTotal = $OldOverall + $AddValueTotal;
-            $this->SetValueFloat('ConsumptionOverall', $NewValueTotal);
-            $this->SendDebug('NewValueTotal', $NewValueTotal, 0);
+            $WattTotal = \Plugwise\Plugwise_Frame::pulsesToKwh($Pulses);
+            $this->SendDebug('Consumption total', $WattTotal, 0);
+            $this->SetValueFloat('ConsumptionOverall', $WattTotal);
         }
         return true;
     }
@@ -535,6 +757,25 @@ class PlugwiseDevice extends IPSModuleStrict
         $PlugwiseData = new \Plugwise\Plugwise_Frame($Data);
         $this->Decode($PlugwiseData);
         return '';
+    }
+
+    /**
+     * SetTime
+     *
+     * @return bool
+     */
+    public function SetTime(): bool
+    {
+        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::ClockSetRequest, null, \Plugwise\Plugwise_Frame::Timestamp2Hex(time()));
+        $Result = $this->Send($PlugwiseData);
+        if ($Result === false) {
+            return false;
+        }
+        if (substr($Result->Data, 0, 4) != \Plugwise\Plugwise_AckMsg::SETTIMEACK) {
+            trigger_error($this->Translate('Error on set time in Node'), E_USER_NOTICE);
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -567,25 +808,6 @@ class PlugwiseDevice extends IPSModuleStrict
     }
 
     /**
-     * SetTime
-     *
-     * @return bool
-     */
-    private function SetTime(): bool
-    {
-        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::ClockSetRequest, null, \Plugwise\Plugwise_Frame::Timestamp2Hex(time()));
-        $Result = $this->Send($PlugwiseData);
-        if ($Result === false) {
-            return false;
-        }
-        if (substr($Result->Data, 0, 4) != \Plugwise\Plugwise_AckMsg::SETTIMEACK) {
-            trigger_error($this->Translate('Error on set time in Node'), E_USER_NOTICE);
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * Decode
      *
      * Dekodiert die empfangenen Events und Antworten.
@@ -599,12 +821,12 @@ class PlugwiseDevice extends IPSModuleStrict
 
         switch ($PlugwiseData->Command) {
             case \Plugwise\Plugwise_Command::PushButtonResponse: //switch ???
-                $this->RegisterVariableBoolean('Switch', $this->Translate('Switch'));
+                $this->RegisterVariableBoolean('Switch', $this->Translate('Switch'), []);
                 $this->SetValueBoolean('Switch', (substr($PlugwiseData->Data, 0, 2) == \Plugwise\Plugwise_Switch::ON));
                 break;
             case \Plugwise\Plugwise_Command::KeyPressResponse: //switch
-                $this->RegisterVariableBoolean('Switch1', $this->Translate('Switch 1'));
-                $this->RegisterVariableBoolean('Switch2', $this->Translate('Switch 2'));
+                $this->RegisterVariableBoolean('Switch1', $this->Translate('Switch 1'), []);
+                $this->RegisterVariableBoolean('Switch2', $this->Translate('Switch 2'), []);
                 $this->SetValueBoolean('Switch1', (substr($PlugwiseData->Data, 0, 2) == \Plugwise\Plugwise_Switch::ON));
                 $this->SetValueBoolean('Switch2', (substr($PlugwiseData->Data, 2, 2) == \Plugwise\Plugwise_Switch::ON));
                 break;

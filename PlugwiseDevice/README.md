@@ -72,29 +72,25 @@ Das abwählen einer Statusvariable führt zum löschen derselbigen.
 
 Folgende Statusvariablen werden, je nach Gerätetyp, automatisch angelegt.  
 
-| Name                    |   Typ   | Ident                  | Beschreibung                            |
-| :---------------------- | :-----: | :--------------------- | :-------------------------------------- |
-| Erreichbar              | boolean | Reachable              | Wiedergabemodus                         |
-| Status                  | boolean | State                  | Player                                  |
-| Frequenz                |  float  | Frequenz               | Wiedergabemodus                         |
-| Zeitstempel             |  float  | Timestamp              | letzte empfangene Uhrzeit von dem Gerät |
-| Leistung Aktuell        |  float  | PowerCurrent           | Aktuell ermittelte Leistung             |
-| Leistung Durchschnitt   |  float  | PowerAverage           | Durchschnitt der letzten 8 Messungen    |
-| Verbrauch letzte Stunde |  float  | ConsumptionCurrentHour | wird vom Gerät ermittelt                |
-| Verbrauch Gesamt        |  float  | ConsumptionOverall     | Wird vom Modul aufsummiert              |
-| Hardware                | string  | Hardware               | Kennung der Hardware                    |
-| Firmware                | integer | Firmware               | Datum der Firmware                      |
-| Temperatur              |  float  | Temperature            | Temperatur (nur bei Sens)               |
-| Luftfeuchtigkeit        |  float  | Humidity               | Luftfeuchtigkeit (nur bei Sens)         |
+| Name                  |   Typ   | Ident              | Beschreibung                            |
+| :-------------------- | :-----: | :----------------- | :-------------------------------------- |
+| Erreichbar            | boolean | Reachable          | Wiedergabemodus                         |
+| Status                | boolean | State              | Player                                  |
+| Frequenz              |  float  | Frequenz           | Wiedergabemodus                         |
+| Zeitstempel           |  float  | Timestamp          | letzte empfangene Uhrzeit von dem Gerät |
+| Leistung Aktuell      |  float  | PowerCurrent       | Aktuell ermittelte Leistung             |
+| Leistung Durchschnitt |  float  | PowerAverage       | Durchschnitt der letzten 8 Messungen    |
+| Verbrauch Gesamt      |  float  | ConsumptionOverall | Gesamter Verbrauch                      |
+| Hardware              | string  | Hardware           | Kennung der Hardware                    |
+| Firmware              | integer | Firmware           | Datum der Firmware                      |
+| Temperatur            |  float  | Temperature        | Temperatur (nur bei Sens)               |
+| Luftfeuchtigkeit      |  float  | Humidity           | Luftfeuchtigkeit (nur bei Sens)         |
 
 ## 6. Visualisierung
 
 Die direkte Darstellung in der Visualisierung ist möglich, es wird aber empfohlen mit Links zu arbeiten.  
 
 ### Kachel Visualisierung
-
-Darstellung als Kachel:  
-![Kachel Beispiel](imgs/visu_tile.png)  
 
 Darstellung als Liste:  
 ![Kachel Beispiel](imgs/visu_list.png)  

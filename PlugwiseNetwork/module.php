@@ -138,7 +138,10 @@ class PlugwiseNetwork extends IPSModuleStrict
         $this->RegisterVariableString(
             'Firmware',
             $this->Translate('Firmware'),
-            '~UnixTimestampDate'
+            [
+                'PRESENTATION'    => VARIABLE_PRESENTATION_DATE_TIME,
+                'TEMPLATE'        => VARIABLE_TEMPLATE_DATE
+            ]
         );
         if (IPS_GetKernelRunlevel() != KR_READY) {
             return;
@@ -473,29 +476,6 @@ class PlugwiseNetwork extends IPSModuleStrict
         }
         return false;
     }
-
-    /*
-      public function QueryCirclePlus()
-      {
-      $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::QueryCirclePlusRequest);
-
-      $Result = $this->Send($PlugwiseData);
-      if ($Result === NULL)
-      {
-
-      }
-      //          2|                18|                34|                 50|                66|    70|
-      //     XX    | 000D6F0000B1B64B | 440D6F0000B1B64B | 440D6F0000B1B64B  | 440D6F0000B1B64B | 1234 | xx
-      //     0F    | FFFFFFFFFFFFFFFF | 6B0D6F0002588136 | FFFFFFFFFFFFFFFF  | 6B0D6F0002588136 | 2F6B | 01
-      //   channel |  Circle+ MAC     |   PANID-long     | unique_network_id | new_node_mac_id  | PANID | ??
-      $Values['Channel'] = hexdec(substr($Result->Data, 0, 2));
-      $Values['Stick MAC'] = substr($Result->Data, 2, 16);
-      $Values['PanID long'] = substr($Result->Data, 18, 16);
-      $Values['Unique Network ID'] = substr($Result->Data, 34, 16);
-      $Values['new_node_mac_id'] = substr($Result->Data, 50, 16);
-      $Values['PanID'] = substr($Result->Data, 66, 4);
-      return $Values;
-      } */
 
     /**
      * ConnectCirclePlus

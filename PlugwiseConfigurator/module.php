@@ -60,7 +60,7 @@ class PlugwiseConfigurator extends IPSModuleStrict
     {
         return json_encode(
             [
-                'type'     => 'require',
+                'type'     => 'connect',
                 'moduleIDs'=> [
                     \Plugwise\GUID::Network
                 ]

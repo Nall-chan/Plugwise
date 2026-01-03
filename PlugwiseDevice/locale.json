@@ -34,13 +34,13 @@
             "State": "Status",
             "Timestamp": "Zeitstempel",
             "No calibration found": "Keine Kalibrierung vorhanden",
-            "Power Current": "Leistung Aktuell",
-            "Power Average": "Leistung Durchschnitt",
-            "Consumption last hour": "Verbrauch letzte Stunde",
+            "Power current": "Leistung Aktuell",
+            "Power average": "Leistung Durchschnitt",
             "Consumption overall": "Verbrauch Gesamt",
             "Timeout error": "Zeitüberschreitung",
             "Error on send data": "Fehler beim senden der Daten",
             "Node not reachable": "Node nicht erreichbar",
+            "Alert": "Alarm",
             "Reachable": "Erreichbar",
             "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:"
         }
