@@ -21,11 +21,35 @@ require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
  * @copyright     2026 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  * @version       2.00
- * @example <b>Ohne</b>
+ * @property int $ParentID Die InstanzeID des IO-Parent
+ * @method int RegisterParent()
+ * @method void RegisterProfileFloat(string $Name, string $Icon, string $Prefix, string $Suffix, float $MinValue, float $MaxValue, float $StepSize, int $Digits)
+ * @method bool IORequestAction(string $Ident, mixed $Value)
+ * @method void IOMessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data)
  */
 class PlugwiseConfigurator extends IPSModuleStrict
 {
+    use \Plugwise\BufferHelper;
     use \Plugwise\DebugHelper;
+    use \Plugwise\InstanceStatus{
+        \Plugwise\InstanceStatus::MessageSink as IOMessageSink;
+        \Plugwise\InstanceStatus::RequestAction as IORequestAction;
+    }
+
+    /**
+     * ApplyChanges
+     *
+     * @return void
+     */
+    public function ApplyChanges(): void
+    {
+        $this->RegisterMessage($this->InstanceID, FM_CONNECT);
+        $this->RegisterMessage($this->InstanceID, FM_DISCONNECT);
+        if (IPS_GetKernelRunlevel() != KR_READY) {
+            return;
+        }
+        $this->RegisterParent();
+    }
 
     /**
      * GetCompatibleParents
@@ -114,6 +138,52 @@ class PlugwiseConfigurator extends IPSModuleStrict
         $this->SendDebug('FORM', json_encode($Form), 0);
         $this->SendDebug('FORM', json_last_error_msg(), 0);
         return json_encode($Form);
+    }
+
+    /**
+     * MessageSink
+     *
+     * @param  int $TimeStamp
+     * @param  int $SenderID
+     * @param  int $Message
+     * @param  array $Data
+     * @return void
+     */
+    public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
+    {
+        $this->IOMessageSink($TimeStamp, $SenderID, $Message, $Data);
+    }
+
+    /**
+     * RequestAction
+     *
+     * Actionhandler der Statusvariablen. Interne SDK-Funktion.
+     *
+     * @param string $Ident Der Ident der Statusvariable.
+     * @param bool|float|int|string $Value Der angeforderte neue Wert.
+     */
+    public function RequestAction(string $Ident, mixed $Value): void
+    {
+        if ($this->IORequestAction($Ident, $Value)) {
+            return;
+        }
+    }
+
+    /**
+     * IOChangeState
+     *
+     * Wird ausgeführt wenn sich der Status vom Parent ändert.
+     *
+     * @param  int $State
+     * @return void
+     */
+    protected function IOChangeState(int $State): void
+    {
+        if ($State == IS_ACTIVE) {
+            if ($this->HasActiveParent()) {
+                $this->ReloadForm();
+            }
+        }
     }
 
     /**

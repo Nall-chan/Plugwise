@@ -5,7 +5,7 @@
 [![Check Style](https://github.com/Nall-chan/SqueezeBox/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/SqueezeBox/actions) [![Run Tests](https://github.com/Nall-chan/SqueezeBox/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/SqueezeBox/actions)  
 [![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#4-spenden)[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#4-spenden)
 
-# Plugwise <!-- omit in toc -->
+# Symcon-Modul: Plugwise <!-- omit in toc -->
 
 Implementierung von Plugwise in IP-Symcon.
 
@@ -18,7 +18,7 @@ Implementierung von Plugwise in IP-Symcon.
 - [2. Voraussetzungen](#2-voraussetzungen)
 - [3. Software-Installation](#3-software-installation)
 - [4. Vorbereitungen](#4-vorbereitungen)
-- [5. Einrichten der Instanzen in IPS](#5-einrichten-der-instanzen-in-ips)
+- [5. Einrichten der Instanzen in Symcon](#5-einrichten-der-instanzen-in-symcon)
 - [6. Anhang](#6-anhang)
   - [1. GUID der Module](#1-guid-der-module)
   - [2. Datenaustausch](#2-datenaustausch)
@@ -30,48 +30,40 @@ Implementierung von Plugwise in IP-Symcon.
 
 ### [Plugwise Konfigurator:](PlugwiseConfigurator/)  
 
-- Einrichten von Plugwise Geräten-Instanzen in IPS.  
+- Darstellen alle in Symcon und den Plugwise-Netzwerk  bekannten Geräte und Instanzen.  
+- Einfaches Anlagen von Instanzen in Symcon.  
 
 ### [Plugwise Network:](PlugwiseNetwork/)  
 
 - Kommunikation mit dem USB-Stick.  
-- An- und ab lernen von Geräten über IPS.  
+- An- und ab lernen von Geräten im Plugwise-Netzwerk.  
 
 ### [Plugwise Device:](PlugwiseDevice/)  
 
-- Darstellen der Messwerte in IPS.  
+- Darstellen der Messwerte in Variablen.  
 - Darstellen und ansteuern des Schaltzustandes.  
 
 ## 2. Voraussetzungen
 
-- Symcon ab Version 8.1
-- Plugwise USB-Stick
+- Symcon ab Version 8.1  
+- Plugwise USB-Stick inklusive Circle+  
+- Weitere Plugwise-Geräte wie Circle, Stealth oder Sens  
 
 ## 3. Software-Installation
 
-Über den 'Module-Store' in IPS das Modul 'Plugwise' hinzufügen.  
+Über den 'Module-Store' in Symcon das Modul 'Plugwise' hinzufügen.  
 **Bei kommerzieller Nutzung (z.B. als Errichter oder Integrator) wenden Sie sich bitte an den Autor.**  
 ![Module-Store](imgs/install.png)  
 
 ## 4. Vorbereitungen
 
-- Der USB-Stick und der Circle+ müssen gekoppelt sein.  
-- Die Plugwise Software darf nicht ausgeführt werden.
+- Der USB-Stick und der Circle+ müssen gekoppelt sein  
+- Die Plugwise Software darf nicht gleichzeitig ausgeführt werden
 
-## 5. Einrichten der Instanzen in IPS
+## 5. Einrichten der Instanzen in Symcon
 
-Es wird empfohlen die Einrichtung mit dem Plugwise-Konfigurator durchzuführen.  
-  
-- Auf der Willkommen-Seite von IPS dem Link 'Konfiguratoren verwalten' öffnen.  ![Konfiguratoren verwalten](imgs/config.png)  
-- Auf den Button 'Neu' klicken.  
-- Den Eintrag 'Plugwise Configurator' wählen und mit OK bestätigen.  
-- Die Instanz über einen weiten Klick auf OK erzeugen.  
-- Im folgenden Dialog des Konfigurator muss jetzt erst über einen Klick auf ein Zahnrad zum Splitter gewechselt werden.  
-- Im folgenden Dialog des Plugwise Network (der Splitter) muss jetzt erst über einen Klick auf ein Zahnrad zum IO gewechselt werden.  
-- Im Dialog des IO ist der COM-Port auszuwählen. Alle Dialoge sind nach dem Klick auf Übernehmen zu schließen.  
-- Die Instanz Plugwise Network sucht jetzt nach allen bekannten Geräten im Netz.
-- Das Ergebnis kann durch ein erneutes öffnen des Konfigurator angezeigt werden.  
-- Dort kann über den Button 'Instant erzeugen' ein oben ausgewählten Gerät in IPS angelegt werden.  
+Nach der Installation über den 'Modul-Store' fragt Symcon ob die enthaltende [Konfiguratoren Instanz](PlugwiseConfigurator/) erstellt werden soll.  
+Das Anlegen der erforderlichen Instanzen wird in der Dokumentation des [Plugwise-Konfigurator](PlugwiseConfigurator/) beschrieben.  
 
 ## 6. Anhang
 
@@ -117,7 +109,7 @@ Es wird empfohlen die Einrichtung mit dem Plugwise-Konfigurator durchzuführen.
 
 **Version 0.98:**  
 
-- Fixes für IPS 5.0  
+- Fixes für Symcon 5.0  
 
 **Version 0.96:**  
 

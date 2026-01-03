@@ -488,9 +488,9 @@ class PlugwiseDevice extends IPSModuleStrict
                 $this->gainA,
                 $this->gainB
             );
-            if ($PulsesTotal < 0) {
-                $PulsesTotal = 0;
-            }
+            //if ($PulsesTotal < 0) {
+            //    $PulsesTotal = 0;
+            //}
             $this->SendDebug('PulsesTotal', $PulsesTotal, 0);
             $WattTotal = \Plugwise\Plugwise_Frame::pulsesToKwh($PulsesTotal);
             $VidHour = @$this->GetIDForIdent('ConsumptionCurrentHour');
@@ -503,9 +503,9 @@ class PlugwiseDevice extends IPSModuleStrict
             $this->SendDebug('Consumption last hour', $WattTotal, 0);
             $this->SetValueFloat('ConsumptionCurrentHour', $WattTotal);
             $AddValueTotal = $WattTotal - $OldValueHour;
-            if ($AddValueTotal < 0) {
-                $AddValueTotal = $WattTotal;
-            }
+            //if ($AddValueTotal < 0) {
+            //    $AddValueTotal = $WattTotal;
+            //}
             $this->SendDebug('AddValueTotal', $AddValueTotal, 0);
             $VidOverall = @$this->GetIDForIdent('ConsumptionOverall');
             if ($VidOverall > 0) {
@@ -517,25 +517,6 @@ class PlugwiseDevice extends IPSModuleStrict
             $NewValueTotal = $OldOverall + $AddValueTotal;
             $this->SetValueFloat('ConsumptionOverall', $NewValueTotal);
             $this->SendDebug('NewValueTotal', $NewValueTotal, 0);
-        }
-        return true;
-    }
-
-    /**
-     * SetTime
-     *
-     * @return bool
-     */
-    public function SetTime(): bool
-    {
-        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::ClockSetRequest, null, \Plugwise\Plugwise_Frame::Timestamp2Hex(time()));
-        $Result = $this->Send($PlugwiseData);
-        if ($Result === false) {
-            return false;
-        }
-        if (substr($Result->Data, 0, 4) != \Plugwise\Plugwise_AckMsg::SETTIMEACK) {
-            trigger_error($this->Translate('Error on set time in Node'), E_USER_NOTICE);
-            return false;
         }
         return true;
     }
@@ -583,6 +564,25 @@ class PlugwiseDevice extends IPSModuleStrict
                 $this->SetTimerInterval(\Plugwise\Node\Timer::SetTime, 60 * 60 * 1000);
             }
         }
+    }
+
+    /**
+     * SetTime
+     *
+     * @return bool
+     */
+    private function SetTime(): bool
+    {
+        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::ClockSetRequest, null, \Plugwise\Plugwise_Frame::Timestamp2Hex(time()));
+        $Result = $this->Send($PlugwiseData);
+        if ($Result === false) {
+            return false;
+        }
+        if (substr($Result->Data, 0, 4) != \Plugwise\Plugwise_AckMsg::SETTIMEACK) {
+            trigger_error($this->Translate('Error on set time in Node'), E_USER_NOTICE);
+            return false;
+        }
+        return true;
     }
 
     /**

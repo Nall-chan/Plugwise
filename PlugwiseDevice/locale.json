@@ -31,7 +31,7 @@
             "Value must be boolean": "Value muss vom Typ boolean sein",
             "Switch state not active in instance": "Schaltzustand nicht aktiv in der Instanz",
             "Error on send switch state": "Fehler beim senden des Schaltzustand",
-            "State": "Schaltzustand",
+            "State": "Status",
             "Timestamp": "Zeitstempel",
             "No calibration found": "Keine Kalibrierung vorhanden",
             "Power Current": "Leistung Aktuell",

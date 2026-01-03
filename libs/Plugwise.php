@@ -767,7 +767,7 @@ namespace Plugwise{
          */
         public static function pulsesToKwh(float $pulses): float
         {
-            return (($pulses / 3600) / 468.9385193) * 3600;
+            return round((($pulses / 3600) / 468.9385193) * 3600, 3);
         }
 
         /**
@@ -778,8 +778,7 @@ namespace Plugwise{
          */
         public static function pulsesToWatt(float $pulses): float
         {
-            return ($pulses / 468.9385193) * 1000;
-            //return (number_format($result, 3, ',', ''));
+            return round(($pulses / 468.9385193) * 1000, 3);
         }
 
         /**
