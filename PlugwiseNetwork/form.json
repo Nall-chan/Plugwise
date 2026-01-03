@@ -1,5 +1,5 @@
 {
-    "actions": [
+    "elements": [
         {
             "type": "Label",
             "caption": "COM-Port need to be opened manually in the I/O instance!"
@@ -9,6 +9,83 @@
             "caption": "Open I/O instance",
             "objectID": -1,
             "enabled": false
+        }
+    ],
+    "actions": [
+        {
+            "type": "PopupButton",
+            "name": "AddNodePopup",
+            "caption": "Add devices to network",
+            "onClick": "PLUGWISE_EnableNetworkJoining($id,true);",
+            "popup": {
+                "caption": "Searching...",
+                "items": [
+                    {
+                        "type": "List",
+                        "name": "NewNodes",
+                        "caption": "Founded devices",
+                        "add": false,
+                        "delete": false,
+                        "columns": [
+                            {
+                                "caption": "Node MAC",
+                                "name": "NodeMAC",
+                                "width": "auto"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "Label",
+                        "color": 16711680,
+                        "name": "DisableNetworkJoining",
+                        "caption": "Searching started"
+                    }
+                ],
+                "buttons": [
+                    {
+                        "caption": "Include selected node to network",
+                        "onClick": "if (isset($NewNodes[\"NodeMAC\"])) PLUGWISE_UIRequestJoiningOfNode($id,$NewNodes[\"NodeMAC\"]);"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "PopupButton",
+            "name": "RemoveNodePopup",
+            "caption": "Remove devices from network",
+            "popup": {
+                "caption": "Network devices",
+                "items": [
+                    {
+                        "type": "List",
+                        "name": "Nodes",
+                        "add": false,
+                        "delete": false,
+                        "sort": {
+                            "column": "name",
+                            "direction": "ascending"
+                        },
+                        "columns": [
+                            {
+                                "caption": "Node MAC",
+                                "name": "NodeMAC",
+                                "width": "200px"
+                            },
+                            {
+                                "caption": "Name",
+                                "name": "name",
+                                "width": "auto"
+                            }
+                        ]
+                    }
+                ],
+                "buttons": [
+                    {
+                        "caption": "Remove selected node from network",
+                        "onClick": "if (isset($Nodes[\"NodeMAC\"])) PLUGWISE_UIRequestExcludeOfNode($id,$Nodes[\"NodeMAC\"]);"
+                    }
+                ]
+            }
         },
         {
             "type": "RowLayout",

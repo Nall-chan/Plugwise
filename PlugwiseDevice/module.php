@@ -59,7 +59,7 @@ class PlugwiseDevice extends IPSModuleStrict
     {
         parent::Create();
         $this->RegisterPropertyString(\Plugwise\Node\Property::NodeMAC, '');
-        $this->RegisterPropertyInteger(\Plugwise\Node\Property::Interval, 0);
+        $this->RegisterPropertyInteger(\Plugwise\Node\Property::Interval, 5);
         $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showState, true);
         $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showCurrent, true);
         $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showAverage, true);

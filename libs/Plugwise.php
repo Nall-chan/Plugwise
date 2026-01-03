@@ -46,6 +46,7 @@ namespace Plugwise\Network{
     class Timer
     {
         public const SearchNodes = 'SearchNodes';
+        public const DisableNetworkJoining = 'DisableNetworkJoining';
     }
 }
 

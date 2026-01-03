@@ -1,24 +1,22 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Modul-Version](https://img.shields.io/badge/Modul%20Version-1.10-blue.svg)]()
-[![Symcon-Version](https://img.shields.io/badge/Symcon%20Version-5.4%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-5-4-%28Stable%29-Changelog)  
+[![Module Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FPlugwise%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.version&label=Modul%20Version&color=blue)](https://community.symcon.de/t/modul-plugwise/142771)
+[![Symcon Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FPlugwise%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.compatibility.version&suffix=%3E&label=Symcon%20Version&color=green)](https://www.symcon.de/de/service/dokumentation/installation/migrationen/v80-v81-q3-2025/)  
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Check Style](https://github.com/Nall-chan/Plugwise/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Plugwise/actions)
-[![Run Tests](https://github.com/Nall-chan/Plugwise/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Plugwise/actions)  
-[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#4-spenden)  
+[![Check Style](https://github.com/Nall-chan/SqueezeBox/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/SqueezeBox/actions) [![Run Tests](https://github.com/Nall-chan/SqueezeBox/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/SqueezeBox/actions)  
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#4-spenden)[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#4-spenden)
 
 # Plugwise <!-- omit in toc -->
 
 Implementierung von Plugwise in IP-Symcon.
 
-## Dokumentation  <!-- omit in toc -->
+## Inhaltsverzeichnis  <!-- omit in toc -->
 
-**Inhaltsverzeichnis**
 - [1. Funktionsumfang](#1-funktionsumfang)
   - [Plugwise Konfigurator:](#plugwise-konfigurator)
   - [Plugwise Network:](#plugwise-network)
   - [Plugwise Device:](#plugwise-device)
 - [2. Voraussetzungen](#2-voraussetzungen)
-- [3. Installation](#3-installation)
+- [3. Software-Installation](#3-software-installation)
 - [4. Vorbereitungen](#4-vorbereitungen)
 - [5. Einrichten der Instanzen in IPS](#5-einrichten-der-instanzen-in-ips)
 - [6. Anhang](#6-anhang)
@@ -32,93 +30,110 @@ Implementierung von Plugwise in IP-Symcon.
 
 ### [Plugwise Konfigurator:](PlugwiseConfigurator/)  
 
- - Einrichten von Plugwise Geräten-Instanzen in IPS.  
+- Einrichten von Plugwise Geräten-Instanzen in IPS.  
 
 ### [Plugwise Network:](PlugwiseNetwork/)  
 
- - Kommunikation mit dem USB-Stick.  
- - An- und ab lernen von Geräten über IPS.  
+- Kommunikation mit dem USB-Stick.  
+- An- und ab lernen von Geräten über IPS.  
 
 ### [Plugwise Device:](PlugwiseDevice/)  
 
- - Darstellen der Messwerte in IPS.    
- - Darstellen und ansteuern des Schaltzustandes.  
+- Darstellen der Messwerte in IPS.  
+- Darstellen und ansteuern des Schaltzustandes.  
 
 ## 2. Voraussetzungen
 
- - IPS ab Version 5.4
- - Plugwise USB-Stick
+- Symcon ab Version 8.1
+- Plugwise USB-Stick
 
-## 3. Installation
+## 3. Software-Installation
 
-**IPS 5.4:**  
-
-  * Über den Module Store das `Plugwise`-Modul installieren.   
-
-   **Bei kommerzieller Nutzung (z.B. als Errichter oder Integrator) wenden Sie sich bitte an den Autor.**  
+Über den 'Module-Store' in IPS das Modul 'Plugwise' hinzufügen.  
+**Bei kommerzieller Nutzung (z.B. als Errichter oder Integrator) wenden Sie sich bitte an den Autor.**  
+![Module-Store](imgs/install.png)  
 
 ## 4. Vorbereitungen
 
- - Der USB-Stick und der Circle+ müssen gekoppelt sein.  
- - Die Plugwise Software darf nicht ausgeführt werden.
+- Der USB-Stick und der Circle+ müssen gekoppelt sein.  
+- Die Plugwise Software darf nicht ausgeführt werden.
 
 ## 5. Einrichten der Instanzen in IPS
 
-  Es wird empfohlen die Einrichtung mit dem Plugwise-Konfigurator durchzuführen.  
+Es wird empfohlen die Einrichtung mit dem Plugwise-Konfigurator durchzuführen.  
   
-  - Auf der Willkommen-Seite von IPS dem Link 'Konfiguratoren verwalten' öffnen.  ![Konfiguratoren verwalten](Doku/Konfigurator0.png)  
-  - Auf den Button 'Neu' klicken.  
-  - Den Eintrag 'Plugwise Configurator' wählen und mit OK bestätigen.  
-  - Die Instanz über einen weiten Klick auf OK erzeugen.  
-  - Im folgenden Dialog des Konfigurator muss jetzt erst über einen Klick auf ein Zahnrad zum Splitter gewechselt werden.  
-  - Im folgenden Dialog des Plugwise Network (der Splitter) muss jetzt erst über einen Klick auf ein Zahnrad zum IO gewechselt werden.  
-  - Im Dialog des IO ist der COM-Port auszuwählen. Alle Dialoge sind nach dem Klick auf Übernehmen zu schließen.  
-  - Die Instanz Plugwise Network sucht jetzt nach allen bekannten Geräten im Netz.
-  - Das Ergebnis kann durch ein erneutes öffen des Konfigurator angezeigt werden.  
-  - Dort kann über den Button 'Instant erzeugen' ein oben ausgewählten Gerät in IPS angelegt werden.  
+- Auf der Willkommen-Seite von IPS dem Link 'Konfiguratoren verwalten' öffnen.  ![Konfiguratoren verwalten](imgs/config.png)  
+- Auf den Button 'Neu' klicken.  
+- Den Eintrag 'Plugwise Configurator' wählen und mit OK bestätigen.  
+- Die Instanz über einen weiten Klick auf OK erzeugen.  
+- Im folgenden Dialog des Konfigurator muss jetzt erst über einen Klick auf ein Zahnrad zum Splitter gewechselt werden.  
+- Im folgenden Dialog des Plugwise Network (der Splitter) muss jetzt erst über einen Klick auf ein Zahnrad zum IO gewechselt werden.  
+- Im Dialog des IO ist der COM-Port auszuwählen. Alle Dialoge sind nach dem Klick auf Übernehmen zu schließen.  
+- Die Instanz Plugwise Network sucht jetzt nach allen bekannten Geräten im Netz.
+- Das Ergebnis kann durch ein erneutes öffnen des Konfigurator angezeigt werden.  
+- Dort kann über den Button 'Instant erzeugen' ein oben ausgewählten Gerät in IPS angelegt werden.  
 
 ## 6. Anhang
 
-###  1. GUID der Module
+### 1. GUID der Module
 
-| Modul                 | Typ          | Prefix   | GUID                                   |
+|         Modul         |     Typ      |  Prefix  |                  GUID                  |
 | :-------------------: | :----------: | :------: | :------------------------------------: |
-| Plugwise Device       | Device       | PLUGWISE | {5FD73328-68F3-4047-B678-E385C2E31962} |
+|    Plugwise Device    |    Device    | PLUGWISE | {5FD73328-68F3-4047-B678-E385C2E31962} |
 | Plugwise Configurator | Configurator | PLUGWISE | {4C481455-ACE8-45FF-9C5E-02C8F70CEBC7} |
-| Plugwise Network      | Splitter     | PLUGWISE | {7C20491F-F145-4F1C-A69C-AAE1F60F5BD5} |
+|   Plugwise Network    |   Splitter   | PLUGWISE | {7C20491F-F145-4F1C-A69C-AAE1F60F5BD5} |
 
 ### 2. Datenaustausch
 
-| Parameter    | Typ     | Beschreibung                                              |
-| :----------: | :-----: | :-------------------------------------------------------: |
-| Command      | string  | Plugwise_Command 4 Byte                                   |
-| NodeMAC      | string  | Quell/Ziel MAC des Node oder leer                         |
-| Data         | string  | Payload  ohne NodeMac, Command und Checksumme             |
+| Parameter |  Typ   |                 Beschreibung                  |
+| :-------: | :----: | :-------------------------------------------: |
+|  Command  | string |            Plugwise_Command 4 Byte            |
+|  NodeMAC  | string |       Quell/Ziel MAC des Node oder leer       |
+|   Data    | string | Payload  ohne NodeMac, Command und Checksumme |
 
 ### 3. Changelog
 
-Version 1.10:
- - Beta Version zur Vorbereitung des Refactoring  
- - Diverse kleine Bugfixes  
+**Version 2.00:**  
+
+- Kommunikation mit dem Stick verbessert  
+- Statusabfrage der Nodes erfolgt erst nachdem die Netzwerksuche abgeschlossen wurde  
+- Debug Ausgaben angepasst, um bei Fehlern besser analysieren zu können  
+- Berechnung von Energy Variablen angepasst  
+- Konfigurationsformulare überarbeitet  
+- Variablenhandling angepasst  
+- Umstellung von Profile auf Darstellungen  
+- Statusvariable für Erreichbar ergänzt  
+- Übersetzungen ergänzt  
+- Dokumentation überarbeitet  
   
-Version 1.00:
- - Release
+**Version 1.10:**  
 
-Version 0.98:  
- - Fixes für IPS 5.0  
+- Beta Version zur Vorbereitung des Refactoring  
+- Diverse kleine Bugfixes  
+  
+**Version 1.00:**  
 
-Version 0.96:  
- - Erstes offizielles Release  
+- Release
+
+**Version 0.98:**  
+
+- Fixes für IPS 5.0  
+
+**Version 0.96:**  
+
+- Erstes offizielles Release  
 
 ### 4. Spenden  
   
-  Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
+Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
 
-<a href="https://www.paypal.com/donate?hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>
+PayPal:  
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](https://paypal.me/Nall4chan)  
 
-[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share)
+Wunschliste:  
+[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share)  
 
 ## 6. Lizenz
 
-  IPS-Modul:  
-  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
+IPS-Modul:  
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
