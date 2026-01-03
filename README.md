@@ -79,7 +79,7 @@ Das Anlegen der erforderlichen Instanzen wird in der Dokumentation des [Plugwise
 
 | Parameter |  Typ   |                 Beschreibung                  |
 | :-------: | :----: | :-------------------------------------------: |
-|  Command  | string |            Plugwise_Command 4 Byte            |
+|  Command  | string |                Command 4 Byte                 |
 |  NodeMAC  | string |       Quell/Ziel MAC des Node oder leer       |
 |   Data    | string | Payload  ohne NodeMac, Command und Checksumme |
 

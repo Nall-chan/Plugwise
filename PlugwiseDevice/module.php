@@ -73,7 +73,7 @@ class PlugwiseDevice extends IPSModuleStrict
         $this->RegisterTimer(\Plugwise\Node\Timer::RequestState, 0, 'PLUGWISE_TimerEvent($_IPS["TARGET"]);');
         $this->RegisterTimer(\Plugwise\Node\Timer::SetTime, 0, 'PLUGWISE_SetTime($_IPS["TARGET"]);');
         $this->isCalib = false;
-        $this->Type = \Plugwise\Plugwise_Typ::unknown;
+        $this->Type = \Plugwise\NodeTyp::unknown;
         $this->gainA = 0;
         $this->gainB = 0;
         $this->offTot = 0;
@@ -88,7 +88,7 @@ class PlugwiseDevice extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         $this->isCalib = false;
-        $this->Type = \Plugwise\Plugwise_Typ::unknown;
+        $this->Type = \Plugwise\NodeTyp::unknown;
         $this->gainA = 0;
         $this->gainB = 0;
         $this->offTot = 0;
@@ -204,20 +204,20 @@ class PlugwiseDevice extends IPSModuleStrict
         if ($this->GetStatus() == IS_CREATING) {
             return json_encode($Form);
         }
-        $this->SendDebug('GetConfigurationForm', \Plugwise\Plugwise_Typ::ToString($this->Type), 0);
+        $this->SendDebug('GetConfigurationForm', \Plugwise\NodeTyp::ToString($this->Type), 0);
         switch ($this->Type) {
-            case \Plugwise\Plugwise_Typ::Cricle:
-            case \Plugwise\Plugwise_Typ::CriclePlus:
+            case \Plugwise\NodeTyp::Cricle:
+            case \Plugwise\NodeTyp::CriclePlus:
                 $Form['elements'][2]['visible'] = false;
                 break;
-            case \Plugwise\Plugwise_Typ::Scan:
-            case \Plugwise\Plugwise_Typ::Switche:
+            case \Plugwise\NodeTyp::Scan:
+            case \Plugwise\NodeTyp::Switche:
                 $Form['elements'][1]['visible'] = false;
                 $Form['elements'][2]['visible'] = false;
                 $Form['actions'][2]['visible'] = false;
                 $Form['actions'][3]['visible'] = false;
                 break;
-            case \Plugwise\Plugwise_Typ::Sense:
+            case \Plugwise\NodeTyp::Sense:
                 $Form['elements'][1]['visible'] = false;
                 $Form['actions'][2]['visible'] = false;
                 $Form['actions'][3]['visible'] = false;
@@ -259,7 +259,7 @@ class PlugwiseDevice extends IPSModuleStrict
     public function TimerEvent(): void
     {
         if ($this->RequestState()) {
-            if (($this->Type == \Plugwise\Plugwise_Typ::Cricle) || ($this->Type == \Plugwise\Plugwise_Typ::CriclePlus)) {
+            if (($this->Type == \Plugwise\NodeTyp::Cricle) || ($this->Type == \Plugwise\NodeTyp::CriclePlus)) {
                 $this->RequestEnergy();
             }
         }
@@ -268,7 +268,7 @@ class PlugwiseDevice extends IPSModuleStrict
     /**
      * SwitchMode
      *
-     * IPS-Instanz-Funktion 'PLUGWISE_SwitchMode'. Schaltet den Circle ein oder aus.
+     * IPS-Instanz-Funktion 'SwitchStateMode'. Schaltet den Circle ein oder aus.
      *
      * @param bool $Value True für Ein,  False für aus.
      * @return bool true bei erfolgreicher Ausführung, sonst false.
@@ -283,12 +283,12 @@ class PlugwiseDevice extends IPSModuleStrict
             echo $this->Translate('Switch state not active in instance') . PHP_EOL;
             return false;
         }
-        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::SwitchRequest, null, ($Value ? \Plugwise\Plugwise_Switch::ON : \Plugwise\Plugwise_Switch::OFF));
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::SwitchRequest, null, ($Value ? \Plugwise\SwitchState::ON : \Plugwise\SwitchState::OFF));
         $ret = $this->Send($PlugwiseData);
         if ($ret === false) {
             return false;
         }
-        $Ok = (substr($ret->Data, 0, 4) == ($Value ? \Plugwise\Plugwise_AckMsg::SWITCHON : \Plugwise\Plugwise_AckMsg::SWITCHOFF));
+        $Ok = (substr($ret->Data, 0, 4) == ($Value ? \Plugwise\AckMsg::SWITCHON : \Plugwise\AckMsg::SWITCHOFF));
         if ($Ok) {
             $this->SetValueBoolean('State', $Value);
             return true;
@@ -306,7 +306,7 @@ class PlugwiseDevice extends IPSModuleStrict
      */
     public function RequestState(): bool
     {
-        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::InfoRequest);
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::InfoRequest);
         $Result = $this->Send($PlugwiseData);
         if ($Result == false || strlen($Result->Data) != 42) {
             return false;
@@ -332,12 +332,12 @@ class PlugwiseDevice extends IPSModuleStrict
             $Firmware = intval(hexdec(substr($Result->Data, 32, 8)));
             $this->SetValueInteger('Firmware', $Firmware);
         }
-        $this->Type = \Plugwise\Plugwise_Typ::$Type[substr($Result->Data, 40, 2)];
-        $this->SetSummary(\Plugwise\Plugwise_Typ::ToString($this->Type));
-        $this->SendDebug('Type', \Plugwise\Plugwise_Typ::ToString($this->Type), 0);
+        $this->Type = \Plugwise\NodeTyp::$Type[substr($Result->Data, 40, 2)];
+        $this->SetSummary(\Plugwise\NodeTyp::ToString($this->Type));
+        $this->SendDebug('Type', \Plugwise\NodeTyp::ToString($this->Type), 0);
         switch ($this->Type) {
-            case \Plugwise\Plugwise_Typ::Cricle:
-            case \Plugwise\Plugwise_Typ::CriclePlus:
+            case \Plugwise\NodeTyp::Cricle:
+            case \Plugwise\NodeTyp::CriclePlus:
                 if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showState)) {
                     $this->RegisterVariableBoolean(
                         'State',
@@ -347,7 +347,7 @@ class PlugwiseDevice extends IPSModuleStrict
                         ]
                     );
                     $this->EnableAction('State');
-                    $Value = (substr($Result->Data, 16, 2) == \Plugwise\Plugwise_Switch::ON);
+                    $Value = (substr($Result->Data, 16, 2) == \Plugwise\SwitchState::ON);
                     $this->SetValueBoolean('State', $Value);
                 }
                 if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showFrequenz)) {
@@ -369,7 +369,7 @@ class PlugwiseDevice extends IPSModuleStrict
                             'USAGE_TYPE'       => 0,
                         ]
                     );
-                    $this->SetValueFloat('Frequenz', (float) \Plugwise\Plugwise_Switch::$Hertz[hexdec(substr($Result->Data, 18, 2))]);
+                    $this->SetValueFloat('Frequenz', (float) \Plugwise\SwitchState::$Hertz[hexdec(substr($Result->Data, 18, 2))]);
                 }
                 if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showTime)) {
                     $this->RegisterVariableInteger(
@@ -380,7 +380,7 @@ class PlugwiseDevice extends IPSModuleStrict
                             'TEMPLATE'        => VARIABLE_TEMPLATE_DATE_TIME
                         ]
                     );
-                    $Timestamp = \Plugwise\Plugwise_Frame::Hex2Timestamp(substr($Result->Data, 0, 8));
+                    $Timestamp = \Plugwise\Frame::Hex2Timestamp(substr($Result->Data, 0, 8));
                     $this->SetValueInteger('Timestamp', $Timestamp);
                     $this->SendDebug('Timestamp', $Timestamp, 0);
                     $this->SendDebug('Timestamp', gmdate('H:i:s d.m.Y', $Timestamp), 0);
@@ -604,7 +604,7 @@ class PlugwiseDevice extends IPSModuleStrict
                     );
                 }
                 break;
-            case \Plugwise\Plugwise_Typ::Sense:
+            case \Plugwise\NodeTyp::Sense:
                 if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showTemperature)) {
                     $this->RegisterVariableFloat(
                         'Temperature',
@@ -659,17 +659,17 @@ class PlugwiseDevice extends IPSModuleStrict
      */
     public function RequestCalibration(): bool
     {
-        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::CalibrationRequest);
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::CalibrationRequest);
         $Result = $this->Send($PlugwiseData);
         if ($Result == false) {
             return false;
         }
         $this->isCalib = true;
         $Values = str_split($Result->Data, 8);
-        $this->gainA = \Plugwise\Plugwise_Frame::Hex2Float($Values[0]);
-        $this->gainB = \Plugwise\Plugwise_Frame::Hex2Float($Values[1]);
-        $this->offTot = \Plugwise\Plugwise_Frame::Hex2Float($Values[2]);
-        $this->offRuis = \Plugwise\Plugwise_Frame::Hex2Float($Values[3]);
+        $this->gainA = \Plugwise\Frame::Hex2Float($Values[0]);
+        $this->gainB = \Plugwise\Frame::Hex2Float($Values[1]);
+        $this->offTot = \Plugwise\Frame::Hex2Float($Values[2]);
+        $this->offRuis = \Plugwise\Frame::Hex2Float($Values[3]);
         $this->SendDebug('gainA', $this->gainA, 0);
         $this->SendDebug('gainB', $this->gainB, 0);
         $this->SendDebug('offTot', $this->offTot, 0);
@@ -686,7 +686,7 @@ class PlugwiseDevice extends IPSModuleStrict
      */
     public function RequestEnergy(): bool
     {
-        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::PowerUsageRequest);
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::PowerUsageRequest);
         $Result = $this->Send($PlugwiseData);
         if ($Result == false) {
             return false;
@@ -702,7 +702,7 @@ class PlugwiseDevice extends IPSModuleStrict
         $Pulses2Hex = substr($Result->Data, 4, 4);
         $PulsesTotalHex = substr($Result->Data, 8, 8);
         if ($Pulses1Hex != 'FFFF' && $this->ReadPropertyBoolean(\Plugwise\Node\Property::showCurrent)) {
-            $Pulses = \Plugwise\Plugwise_Frame::pulsesCorrection(
+            $Pulses = \Plugwise\Frame::pulsesCorrection(
                 $Pulses1Hex,
                 1,
                 $this->offRuis,
@@ -710,12 +710,12 @@ class PlugwiseDevice extends IPSModuleStrict
                 $this->gainA,
                 $this->gainB
             );
-            $Watt = \Plugwise\Plugwise_Frame::pulsesToWatt($Pulses);
+            $Watt = \Plugwise\Frame::pulsesToWatt($Pulses);
             $this->SendDebug('PowerCurrent', $Watt, 0);
             $this->SetValueFloat('PowerCurrent', $Watt);
         }
         if ($Pulses2Hex != 'FFFF' && $this->ReadPropertyBoolean(\Plugwise\Node\Property::showAverage)) {
-            $Pulses = \Plugwise\Plugwise_Frame::pulsesCorrection(
+            $Pulses = \Plugwise\Frame::pulsesCorrection(
                 $Pulses2Hex,
                 8,
                 $this->offRuis,
@@ -723,12 +723,12 @@ class PlugwiseDevice extends IPSModuleStrict
                 $this->gainA,
                 $this->gainB
             );
-            $Watt = \Plugwise\Plugwise_Frame::pulsesToWatt($Pulses);
+            $Watt = \Plugwise\Frame::pulsesToWatt($Pulses);
             $this->SendDebug('PowerAverage', $Watt, 0);
             $this->SetValueFloat('PowerAverage', $Watt);
         }
         if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showOverall)) {
-            $Pulses = \Plugwise\Plugwise_Frame::pulsesCorrection(
+            $Pulses = \Plugwise\Frame::pulsesCorrection(
                 $PulsesTotalHex,
                 3600,
                 $this->offRuis,
@@ -736,7 +736,7 @@ class PlugwiseDevice extends IPSModuleStrict
                 $this->gainA,
                 $this->gainB
             );
-            $WattTotal = \Plugwise\Plugwise_Frame::pulsesToKwh($Pulses);
+            $WattTotal = \Plugwise\Frame::pulsesToKwh($Pulses);
             $this->SendDebug('Consumption total', $WattTotal, 0);
             $this->SetValueFloat('ConsumptionOverall', $WattTotal);
         }
@@ -754,7 +754,7 @@ class PlugwiseDevice extends IPSModuleStrict
     public function ReceiveData(string $JSONString): string
     {
         $Data = json_decode($JSONString);
-        $PlugwiseData = new \Plugwise\Plugwise_Frame($Data);
+        $PlugwiseData = new \Plugwise\Frame($Data);
         $this->Decode($PlugwiseData);
         return '';
     }
@@ -766,12 +766,12 @@ class PlugwiseDevice extends IPSModuleStrict
      */
     public function SetTime(): bool
     {
-        $PlugwiseData = new \Plugwise\Plugwise_Frame(\Plugwise\Plugwise_Command::ClockSetRequest, null, \Plugwise\Plugwise_Frame::Timestamp2Hex(time()));
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::ClockSetRequest, null, \Plugwise\Frame::Timestamp2Hex(time()));
         $Result = $this->Send($PlugwiseData);
         if ($Result === false) {
             return false;
         }
-        if (substr($Result->Data, 0, 4) != \Plugwise\Plugwise_AckMsg::SETTIMEACK) {
+        if (substr($Result->Data, 0, 4) != \Plugwise\AckMsg::SETTIMEACK) {
             trigger_error($this->Translate('Error on set time in Node'), E_USER_NOTICE);
             return false;
         }
@@ -794,7 +794,7 @@ class PlugwiseDevice extends IPSModuleStrict
             if ($this->HasActiveParent()) {
                 if ($this->RequestState()) {
                     $this->SetTime();
-                    if (($this->Type == \Plugwise\Plugwise_Typ::Cricle) || ($this->Type == \Plugwise\Plugwise_Typ::CriclePlus)) {
+                    if (($this->Type == \Plugwise\NodeTyp::Cricle) || ($this->Type == \Plugwise\NodeTyp::CriclePlus)) {
                         $this->RequestCalibration();
                         $this->RequestEnergy();
                     }
@@ -812,25 +812,25 @@ class PlugwiseDevice extends IPSModuleStrict
      *
      * Dekodiert die empfangenen Events und Antworten.
      *
-     * @param \Plugwise\Plugwise_Frame $PlugwiseData Der zu dekodierende Datensatz als Objekt.
+     * @param \Plugwise\Frame $PlugwiseData Der zu dekodierende Datensatz als Objekt.
      * @return void
      */
-    private function Decode(\Plugwise\Plugwise_Frame $PlugwiseData): void
+    private function Decode(\Plugwise\Frame $PlugwiseData): void
     {
         $this->SendDebug('EVENT', $PlugwiseData, 0);
 
         switch ($PlugwiseData->Command) {
-            case \Plugwise\Plugwise_Command::PushButtonResponse: //switch ???
+            case \Plugwise\Command::PushButtonResponse: //switch ???
                 $this->RegisterVariableBoolean('Switch', $this->Translate('Switch'), []);
-                $this->SetValueBoolean('Switch', (substr($PlugwiseData->Data, 0, 2) == \Plugwise\Plugwise_Switch::ON));
+                $this->SetValueBoolean('Switch', (substr($PlugwiseData->Data, 0, 2) == \Plugwise\SwitchState::ON));
                 break;
-            case \Plugwise\Plugwise_Command::KeyPressResponse: //switch
+            case \Plugwise\Command::KeyPressResponse: //switch
                 $this->RegisterVariableBoolean('Switch1', $this->Translate('Switch 1'), []);
                 $this->RegisterVariableBoolean('Switch2', $this->Translate('Switch 2'), []);
-                $this->SetValueBoolean('Switch1', (substr($PlugwiseData->Data, 0, 2) == \Plugwise\Plugwise_Switch::ON));
-                $this->SetValueBoolean('Switch2', (substr($PlugwiseData->Data, 2, 2) == \Plugwise\Plugwise_Switch::ON));
+                $this->SetValueBoolean('Switch1', (substr($PlugwiseData->Data, 0, 2) == \Plugwise\SwitchState::ON));
+                $this->SetValueBoolean('Switch2', (substr($PlugwiseData->Data, 2, 2) == \Plugwise\SwitchState::ON));
                 break;
-            case \Plugwise\Plugwise_Command::SensInfoResponse: //sens
+            case \Plugwise\Command::SensInfoResponse: //sens
                 if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showTemperature)) {
                     $Temperature = (hexdec(substr($PlugwiseData->Data, 4, 4)) - 17473) / 372.90;
                     $this->SetValueFloat('Temperature', $Temperature);
@@ -850,10 +850,10 @@ class PlugwiseDevice extends IPSModuleStrict
      *
      * Konvertiert $Data zu einem JSONString und versendet diese an den Splitter.
      *
-     * @param \Plugwise\Plugwise_Frame $PlugwiseData Zu versendende Daten.
-     * @return \Plugwise\Plugwise_Frame|bool Objekt mit der Antwort. false im Fehlerfall.
+     * @param \Plugwise\Frame $PlugwiseData Zu versendende Daten.
+     * @return \Plugwise\Frame|bool Objekt mit der Antwort. false im Fehlerfall.
      */
-    private function Send(\Plugwise\Plugwise_Frame $PlugwiseData): bool|\Plugwise\Plugwise_Frame
+    private function Send(\Plugwise\Frame $PlugwiseData): bool|\Plugwise\Frame
     {
         $NodeMAC = trim($this->ReadPropertyString(\Plugwise\Node\Property::NodeMAC));
         if ($NodeMAC == '') {
@@ -869,7 +869,7 @@ class PlugwiseDevice extends IPSModuleStrict
             echo $this->Translate('Timeout error') . PHP_EOL;
             return false;
         }
-        /** @var \Plugwise\Plugwise_Frame|bool $Result */
+        /** @var \Plugwise\Frame|bool $Result */
         $Result = @unserialize($ResultString);
         $this->SendDebug('Response', $Result, 0);
         if (($Result === null) || ($Result === false)) {
@@ -877,7 +877,7 @@ class PlugwiseDevice extends IPSModuleStrict
             echo $this->Translate('Error on send data') . PHP_EOL;
             return false;
         }
-        if ($Result->Data === \Plugwise\Plugwise_AckMsg::OUTOFRANGE) {
+        if ($Result->Data === \Plugwise\AckMsg::OUTOFRANGE) {
             $this->SetValueBoolean('Reachable', false);
             echo $this->Translate('Node not reachable') . PHP_EOL;
             return false;

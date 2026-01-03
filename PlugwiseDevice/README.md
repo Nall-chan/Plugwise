@@ -106,7 +106,7 @@ Tritt ein Fehler auf, wird eine Warnung erzeugt.
 Dies gilt auch wenn ein übergebender Wert für einen Parameter nicht gültig ist, oder außerhalb seines zulässigen Bereiches liegt.  
 
 ```php
-bool PLUGWISE_SwitchMode(int $InstanzID, bool $Value)
+bool SwitchStateMode(int $InstanzID, bool $Value)
 ```
 
 Schaltet einen Circle oder Stealth ein oder aus.  

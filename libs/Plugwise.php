@@ -59,9 +59,9 @@ namespace Plugwise{
     }
 
     /**
-     * Plugwise_NetworkState
+     * NetworkState
      */
-    class Plugwise_NetworkState
+    class NetworkState
     {
         public const StickNotFound = 0;
         public const CirclePlusMissing = 1;
@@ -104,9 +104,9 @@ namespace Plugwise{
     }
 
     /**
-     * Plugwise_Switch
+     * SwitchState
      */
-    class Plugwise_Switch
+    class SwitchState
     {
         public const ON = '01';
         public const OFF = '00';
@@ -119,12 +119,12 @@ namespace Plugwise{
         /**
          * ToString
          *
-         * @param  string $Plugwise_Switch
+         * @param  string $SwitchState
          * @return string
          */
-        public static function ToString(string $Plugwise_Switch): string
+        public static function ToString(string $SwitchState): string
         {
-            switch ($Plugwise_Switch) {
+            switch ($SwitchState) {
                 case self::ON:
                     return 'ON';
                 case self::OFF:
@@ -136,9 +136,9 @@ namespace Plugwise{
     }
 
     /**
-     * Plugwise_AckMsg
+     * AckMsg
      */
-    class Plugwise_AckMsg
+    class AckMsg
     {
         public const ACK = '00C1';
         public const NACK = '00C2';
@@ -206,12 +206,12 @@ namespace Plugwise{
         /**
          * ToString
          *
-         * @param  string $Plugwise_AckMsg
+         * @param  string $AckMsg
          * @return string
          */
-        public static function ToString(string $Plugwise_AckMsg): string
+        public static function ToString(string $AckMsg): string
         {
-            switch ($Plugwise_AckMsg) {
+            switch ($AckMsg) {
                 case self::ACK:
                     return 'ACK';
                 case self::NACK:
@@ -237,15 +237,15 @@ namespace Plugwise{
                 case self::SETTIMEACK:
                     return 'SET TIME ACK';
                 default:
-                    return $Plugwise_AckMsg . ' = ????????????';
+                    return $AckMsg . ' = ????????????';
             }
         }
     }
 
     /**
-     * Plugwise_Command
+     * Command
      */
-    class Plugwise_Command
+    class Command
     {
         /**
          * Response from stick after request
@@ -451,12 +451,12 @@ namespace Plugwise{
         /**
          * ToString
          *
-         * @param  string $Plugwise_Command
+         * @param  string $Command
          * @return string
          */
-        public static function ToString(string $Plugwise_Command): string
+        public static function ToString(string $Command): string
         {
-            switch ($Plugwise_Command) {
+            switch ($Command) {
                 case self::AckMsgResponse:
                     return 'AckMsgResponse';
                 case self::QueryCirclePlusRequest:
@@ -550,15 +550,15 @@ namespace Plugwise{
                 case self::AckAssociationResponse:
                     return 'AckAssociationResponse';
                 default:
-                    return $Plugwise_Command . ' ????';
+                    return $Command . ' ????';
             }
         }
     }
 
     /**
-     * Plugwise_Typ
+     * NodeTyp
      */
-    class Plugwise_Typ
+    class NodeTyp
     {
         public const unknown = 0;
         public const Cricle = 1;
@@ -580,12 +580,12 @@ namespace Plugwise{
         /**
          * ToString
          *
-         * @param  string $Plugwise_Type
+         * @param  string $NodeType
          * @return string
          */
-        public static function ToString(int $Plugwise_Type): string
+        public static function ToString(int $NodeType): string
         {
-            switch ($Plugwise_Type) {
+            switch ($NodeType) {
                 case self::CriclePlus:
                     return 'Circle+';
                 case self::Cricle:
@@ -597,7 +597,7 @@ namespace Plugwise{
                 case self::Scan:
                     return 'Scan';
                 default:
-                    return (string) $Plugwise_Type;
+                    return (string) $NodeType;
             }
         }
     }
@@ -619,7 +619,7 @@ namespace Plugwise{
      * @property string $Data Payload
      * @property ?bool $Checksum Checksumme
      */
-    class Plugwise_Frame
+    class Frame
     {
         public const CirclePlusMac = 'FFFFFFFF';
 
@@ -659,13 +659,13 @@ namespace Plugwise{
         public ?bool $Checksum = null;
 
         /**
-         * Erstellt ein Plugwise_Frame Objekt.
+         * Erstellt ein Frame Objekt.
          *
          *
          * @param string $Command [optional] Kommando
          * @param string $NodeMAC [optional] ID des Circle
          * @param string $Data [optional] Payload
-         * @return Plugwise_Frame
+         * @return Frame
          */
         public function __construct($Command = null, $NodeMAC = null, $Data = null)
         {
@@ -784,7 +784,7 @@ namespace Plugwise{
         /**
          * DecodeFrame
          *
-         * Zerlegt den String aus $Data in ein Plugwise_Frame-Objekt.
+         * Zerlegt den String aus $Data in ein Frame-Objekt.
          * Wird beim Datenempfang vom Stick genutzt.
          *
          * @param string $Data Payload vom Stick
@@ -796,32 +796,32 @@ namespace Plugwise{
             $this->FrameID = hexdec(substr($Data, 4, 4));
 
             switch ($this->Command) {
-                case Plugwise_Command::AdvertiseNodeResponse:
+                case Command::AdvertiseNodeResponse:
                     //   000D6F0000B1A240
                     //   Device MAC
-                case Plugwise_Command::PingResponse:
+                case Command::PingResponse:
                     //   000D6F0000B1B64B | xx  | xx   | xxxx
                     //   Circle+          | in? | out? | Time?
-                case Plugwise_Command::StickStatusResponse:
+                case Command::StickStatusResponse:
                     // 000D6F0000B835CB | 01 | 01              | 44          |    0D6F0000B1B64B | 3B44 | FF
                     //    Stick-MAC     | ?? | Circle+ bekannt |  PANID High | 00 CirclePlusMAC  | PANID| ??
                     // 000D6F0000B835CB | 01 | 00 |
                     //    Stick-MAC     | ?? | kein Circle+ bekannt
-                case Plugwise_Command::PowerUsageResponse:
+                case Command::PowerUsageResponse:
                     //                  24|      28|      32|        40|         48|   52|
                     //                   0|       4|       8|        16|         24|   28|
                     //                      000F   | 0075   | 0000A3C1 | 00000000  | 0005
                     //   000D6F0000994CAA | 0000   | FFFF   | 00000000 | FFFFFDB9  | 000D
                     //   Circle MAC       | pulse1 | pulse8 |PulseTotal| PulseHour | ????
                     // pulse8 == 'FFFF' -> Spike, do not log
-                case Plugwise_Command::AssociatedNodesResponse:
+                case Command::AssociatedNodesResponse:
                     //   000D6F0000B1B64B | 000D6F0000B1B967 | 00
                     //   Circle+ MAC      | Device MAC       | Index
-                case Plugwise_Command::RemoveNodeResponse:
+                case Command::RemoveNodeResponse:
                     //   000D6F00004BC34A | C4040E011610173A | 00
                     //   000D6F0000B1B64B | 000D6F0000B1B967 | 00
                     //   Circle+ MAC      | Device MAC       | 01 OK 00 Fehler
-                case Plugwise_Command::InfoResponse:
+                case Command::InfoResponse:
                     //                 16|              24|        32|   34|  36|              48|              56| 58
                     //                  0|               8|        16|   18|  20|              32|              40| 42
                     //                     11   0A   5855   000515C0   01    85   0000 0440 0107   4E0844C2         02
@@ -852,7 +852,7 @@ namespace Plugwise{
                     //            $hardware=sprintf("%s-%s-%s",substr($msg, 36, 4),substr($msg, 40, 4),substr($msg, 44, 4));
                     //            $firmware=date('d/m/Y', intval(hexdec(substr($msg, 48, 8))));
                     //            $Typ = substr($msg,60,2);
-                case Plugwise_Command::CalibrationResponse:
+                case Command::CalibrationResponse:
                     //                   0|         8|        16|        24|       32|
                     //                      3F7F7F74   B5965F1F   BBBAB054   00000000
                     //   000D6F0000B1B64B | 3F7FA7CC | 3F7FA7CC | 3CD87C2F | 00000000
@@ -866,13 +866,13 @@ namespace Plugwise{
                     //            $this->_devices[$macaddress]["gainB"]=$gainB;
                     //            $this->_devices[$macaddress]["offTot"]=$offTot;
                     //            $this->_devices[$macaddress]["offRuis"]=$offRuis;
-                case Plugwise_Command::DateTimeInfoResponse:
+                case Command::DateTimeInfoResponse:
                     //   000D6F0000B1B64B | 20|43|12 | 06 | 12|05|11
                     //   Device? MAC      | s |i |h  |dow | d |m |y
-                case Plugwise_Command::SendScheduleResponse:
+                case Command::SendScheduleResponse:
                     //   000D6F0000B1A240 | xx
                     //   Device MAC       | ???
-                case Plugwise_Command::ClockInfoResponse:
+                case Command::ClockInfoResponse:
                     //   000D6F0000B1B64B | 0C | 1F | 07 | 06 | 01 | 457A
                     //   Circle+          | H  | M  | S  |DoW | ?? | scheduleCRC
                     //            $macaddress = substr($msg,0,16);
@@ -884,26 +884,26 @@ namespace Plugwise{
                     //            $this->_devices[$macaddress]["clock_m"]=$minutes;
                     //            $this->_devices[$macaddress]["clock_s"]=$secondes;
                     //            $this->_devices[$macaddress]["clock_d"]=$day_of_week;
-                case Plugwise_Command::PowerBufferResponse:
+                case Command::PowerBufferResponse:
                     //                  16|              24|        32|                 48|                 64|                 96|
                     //   000D6F0000B1A240 | 0B | 04 | 7F80 | 00000A87 |0B|04|7FBC|00000ACF|0B|04|7FF8|00000AAC|FF|FF|FFFF|FFFFFFFF|00044460
                     //   Circle MAC       |year|mon |min   | curr_log |                   |  |  |    |        |  |  |    |        | address
                     //   $log_addr = ( hex($address) - 278528 ) / 8;
                     //   [later] I think the pairs of data is a power-value followed by a timestamp. The timestamp has the same structure as the date-word of the 0016 command. This means that  value 0B 04 7DA0 could mean Year 2011, Month April,  From the start of the month 32160 minutes, this is 536 hour, which is 22 days and 8 hour. Somewhere during the 23rd of april (yesterday), when the data was captured. So that is most likely.
                     //   [days later] The structure of this reply is explained in the plugwise unleased documents, and indeed 4 pairs of data, each pair represents one hour of accummulated power usage
-                case Plugwise_Command::PushButtonResponse:
+                case Command::PushButtonResponse:
                     //   000D6F0000B1A240 | xx
                     //   Device MAC       | ??
-                case Plugwise_Command::KeyPressResponse:
+                case Command::KeyPressResponse:
                     //   000D6F0000B1A240 | xx | yy
                     //   Device MAC       | ?? | ??
-                case Plugwise_Command::FeatureSetResponse:
+                case Command::FeatureSetResponse:
                     //   000D6F0000B1A240 | 0123456789ABCDEF
                     //   Device MAC       | Feature
-                case Plugwise_Command::AckAssociationResponse:
+                case Command::AckAssociationResponse:
                     //   000D6F0000B1A240
                     //   Device MAC
-                case Plugwise_Command::SensInfoResponse:
+                case Command::SensInfoResponse:
                     //   000D6F0000B1A240 | 01234 | 5678
                     //   Device MAC       | hum   | temp
                     //   (hex(hum)-3145)/524.30; Hum
@@ -913,17 +913,17 @@ namespace Plugwise{
                     $this->Data = strtoupper(substr($Data, 24, -4));
                     break;
                     //-------------------------------------------only Data without MAC
-                case Plugwise_Command::QueryCirclePlusResponse:
+                case Command::QueryCirclePlusResponse:
                     //     XX    | 000D6F0000B1B64B | 440D6F0000B1B64B | 440D6F0000B1B64B  | 440D6F0000B1B64B | 1234 | xx
                     //     0F    | FFFFFFFFFFFFFFFF | 6B0D6F0002588136 | FFFFFFFFFFFFFFFF  | 6B0D6F0002588136 | 2F6B | 01
                     //   channel |  Circle+ MAC     |   PANID-long     | unique_network_id | new_node_mac_id | PANID | ??
-                case Plugwise_Command::ConnectCirclePlusResponse:
+                case Command::ConnectCirclePlusResponse:
                     //       XX  | XX
                     // existing | allowed
-                case Plugwise_Command::QueryCirclePlusResponseEnd:
+                case Command::QueryCirclePlusResponseEnd:
                     //   xxxx
                     //   status
-                case Plugwise_Command::AckMsgResponse:
+                case Command::AckMsgResponse:
                 default:
                     $this->Data = strtoupper(substr($Data, 8, -4));
             }
@@ -1054,9 +1054,9 @@ namespace Plugwise{
          */
         protected function SendDebug(string $Message, mixed $Data, int $Format): bool
         {
-            if (is_a($Data, 'Plugwise\Plugwise_Frame')) {
-                /* @var $Data Plugwise_Frame */
-                $this->SendDebug($Message . ':Command', Plugwise_Command::ToString($Data->Command), 0);
+            if (is_a($Data, 'Plugwise\Frame')) {
+                /* @var $Data Frame */
+                $this->SendDebug($Message . ':Command', Command::ToString($Data->Command), 0);
                 if ($Data->FrameID !== -1) {
                     $this->SendDebug($Message . ':FrameID', $Data->FrameID, 0);
                 }

@@ -259,10 +259,10 @@ class PlugwiseConfigurator extends IPSModuleStrict
      *
      * Konvertiert $PlugwiseData zu einem JSONString und versendet diese an den Splitter.
      *
-     * @param \Plugwise\Plugwise_Frame $PlugwiseData Zu versendende Daten.
-     * @return \Plugwise\Plugwise_Frame|bool Objekt mit der Antwort. false im Fehlerfall.
+     * @param \Plugwise\Frame $PlugwiseData Zu versendende Daten.
+     * @return \Plugwise\Frame|bool Objekt mit der Antwort. false im Fehlerfall.
      */
-    private function Send(\Plugwise\Plugwise_Frame $PlugwiseData): bool|\Plugwise\Plugwise_Frame
+    private function Send(\Plugwise\Frame $PlugwiseData): bool|\Plugwise\Frame
     {
         $this->SendDebug('Send', $PlugwiseData, 0);
         $JSONData = $PlugwiseData->ToJSONStringForSplitter();
@@ -272,7 +272,7 @@ class PlugwiseConfigurator extends IPSModuleStrict
             $this->SendDebug('Receive', 'Error receive data', 0);
             return false;
         }
-        /** @var \Plugwise\Plugwise_Frame|bool $Result */
+        /** @var \Plugwise\Frame|bool $Result */
         $Result = @unserialize($ResultString);
         $this->SendDebug('Response', $Result, 0);
 
