@@ -1,9 +1,9 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
 [![Module Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FPlugwise%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.version&label=Modul%20Version&color=blue)](https://community.symcon.de/t/modul-plugwise/142771)
 [![Symcon Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FPlugwise%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.compatibility.version&suffix=%3E&label=Symcon%20Version&color=green)](https://www.symcon.de/de/service/dokumentation/installation/migrationen/v80-v81-q3-2025/)  
-[![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Check Style](https://github.com/Nall-chan/SqueezeBox/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/SqueezeBox/actions) [![Run Tests](https://github.com/Nall-chan/SqueezeBox/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/SqueezeBox/actions)  
-[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#2-spenden)[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#2-spenden)
+[![License](https://img.shields.io/badge/License-Custom--NC--SA-green.svg)](#10-lizenz)
+[![Check Style](https://github.com/Nall-chan/Plugwise/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Plugwise/actions) [![Run Tests](https://github.com/Nall-chan/Plugwise/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Plugwise/actions)  
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#2-spenden) [![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#2-spenden)
 
 # Plugwise Konfigurator <!-- omit in toc -->
 
@@ -33,7 +33,7 @@ Zum anlegen von Geräte Instanzen in Symcon.
 
 - Symcon ab Version 8.1  
 - Plugwise USB-Stick inklusive Circle+  
-- Weitere Plugwise-Geräte wie Circle, Stealth oder Sens  
+- Weitere Plugwise-Geräte wie Circle, Stealth, Scan, Sense oder Switch  
 
 ## 3. Software-Installation
 
@@ -56,7 +56,7 @@ Im letzten Dialog wird jetzt der [Serial Port](https://www.symcon.de/de/service/
 Hier ist der Anschluss des Plugwise USB-Stick auszuwählen.  
 ![Instanz hinzufügen](imgs/add4.png)  
 
-Anschließen kommt folgende Meldung, welche jedoch verschwindet, sobald Symcon das Plugwise-Netzwerk erfolgreich hochgefahren und nach Geräten durchsucht hat.  
+Anschließend kommt folgende Meldung, welche jedoch verschwindet, sobald Symcon das Plugwise-Netzwerk erfolgreich hochgefahren und nach Geräten durchsucht hat.  
 ![Instanz hinzufügen](imgs/add5.png)  
 
 Über das selektieren eines Eintrages in der Tabelle und betätigen des dazugehörigen `Erstellen` Button,  
@@ -83,7 +83,7 @@ Der Konfigurator unterstützt keine Aktionen.
 
 ### 1. Changelog
 
-[Changelog der Library](../README.md#3-changelog)
+[Changelog der Library](../README.md#2-changelog)
 
 ### 2. Spenden
 
@@ -98,4 +98,4 @@ Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als U
 ## 10. Lizenz
 
 IPS-Modul:  
-[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
+[Custom NC-SA](../LICENSE)  

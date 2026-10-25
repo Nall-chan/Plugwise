@@ -1,0 +1,65 @@
+{
+    "_source": "IPS_GetPresentations (Symcon 9.1, Rust-Edition), Darstellung 'Value Presentation' {3319437D-7CDE-699D-750A-3C6A3841FA75}",
+    "ValuePresentation": {
+        "id": "{3319437D-7CDE-699D-750A-3C6A3841FA75}",
+        "common": [
+            "COLOR",
+            "CONTENT_COLOR",
+            "DISPLAY_TYPE",
+            "ICON",
+            "PERCENTAGE",
+            "PREFIX",
+            "PREVIEW_STYLE",
+            "SHOW_PREVIEW",
+            "SUFFIX",
+            "USAGE_TYPE"
+        ],
+        "groups": {
+            "Boolean": [
+                "OPTIONS"
+            ],
+            "Numeric": [
+                "DECIMAL_SEPARATOR",
+                "DIGITS",
+                "INTERVALS",
+                "INTERVALS_ACTIVE",
+                "MAX",
+                "MIN",
+                "THOUSANDS_SEPARATOR"
+            ],
+            "String": [
+                "MULTILINE",
+                "OPTIONS"
+            ]
+        },
+        "booleanOptionKeys": [
+            "Caption",
+            "ColorActive",
+            "ColorValue",
+            "ContentColorActive",
+            "ContentColorValue",
+            "IconActive",
+            "IconValue",
+            "Value"
+        ],
+        "intervalKeys": [
+            "ColorActive",
+            "ColorValue",
+            "ConstantActive",
+            "ConstantValue",
+            "ContentColorActive",
+            "ContentColorValue",
+            "ConversionFactor",
+            "DigitsActive",
+            "DigitsValue",
+            "IconActive",
+            "IconValue",
+            "IntervalMaxValue",
+            "IntervalMinValue",
+            "PrefixActive",
+            "PrefixValue",
+            "SuffixActive",
+            "SuffixValue"
+        ]
+    }
+}

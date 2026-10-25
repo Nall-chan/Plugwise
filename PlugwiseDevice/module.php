@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 /**
  * @package       Plugwise
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2026 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.00
- * @example <b>Ohne</b>
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2017-2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.10
  */
 require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
 eval('declare(strict_types=1);namespace PlugwiseDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableHelper.php') . '}');
@@ -17,11 +16,10 @@ eval('declare(strict_types=1);namespace PlugwiseDevice {?>' . file_get_contents(
  * Erweitert IPSModule.
  *
  * @package       Plugwise
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2026 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.00
- * @example <b>Ohne</b>
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2017-2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.10
  * @property int $ParentID Die InstanzeID des IO-Parent
  * @property int  $Type Typ des Gerätes
  * @property bool $isCalib
@@ -29,13 +27,12 @@ eval('declare(strict_types=1);namespace PlugwiseDevice {?>' . file_get_contents(
  * @property float $gainB
  * @property float $offTot
  * @property float $offRuis
- * @property int $CurrentLogAddress
+ * @property int $LastTimeSync Zeitpunkt (Unix-Zeit) der letzten automatischen Korrektur der Uhr des Nodes
  * @method void SetValueBoolean(string $Ident, bool $value)
  * @method void SetValueFloat(string $Ident, float $value)
  * @method void SetValueInteger(string $Ident, int $value)
  * @method void SetValueString(string $Ident, string $value)
  * @method int RegisterParent()
- * @method void UnregisterProfile(string $Name)
  * @method bool IORequestAction(string $Ident, mixed $Value)
  * @method void IOMessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data)
  */
@@ -43,12 +40,21 @@ class PlugwiseDevice extends IPSModuleStrict
 {
     use \Plugwise\BufferHelper,
         \Plugwise\DebugHelper,
+        \Plugwise\FormHelper,
         \PlugwiseDevice\VariableHelper,
         \Plugwise\VariableProfileHelper,
         \Plugwise\InstanceStatus {
             \Plugwise\InstanceStatus::MessageSink as IOMessageSink;
             \Plugwise\InstanceStatus::RequestAction as IORequestAction;
         }
+    /** Instanzstatus, wenn der Node nicht antwortet. */
+    private const StatusNodeNotReachable = IS_EBASE + 1;
+
+    /** Attribut: zuletzt ermittelter Node-Typ. */
+    private const AttributeNodeType = 'NodeTypeCache';
+
+    /** Attribut: MAC des Nodes, zu dem der gespeicherte Typ gehört. */
+    private const AttributeNodeTypeMAC = 'NodeTypeCacheMAC';
 
     /**
      * Create
@@ -60,24 +66,30 @@ class PlugwiseDevice extends IPSModuleStrict
         parent::Create();
         $this->RegisterPropertyString(\Plugwise\Node\Property::NodeMAC, '');
         $this->RegisterPropertyInteger(\Plugwise\Node\Property::Interval, 5);
-        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showState, true);
-        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showCurrent, true);
-        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showAverage, true);
-        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showOverall, true);
-        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showFrequenz, true);
-        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showTemperature, true);
-        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showHumidity, true);
-        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showTime, true);
-        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showFirmware, true);
-        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::showHardware, true);
-        $this->RegisterTimer(\Plugwise\Node\Timer::RequestState, 0, 'PLUGWISE_TimerEvent($_IPS["TARGET"]);');
-        $this->RegisterTimer(\Plugwise\Node\Timer::SetTime, 0, 'PLUGWISE_SetTime($_IPS["TARGET"]);');
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowState, true);
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowCurrent, true);
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowAverage, true);
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowOverall, true);
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowFeedIn, false);
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowFrequenz, true);
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowTemperature, true);
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowHumidity, true);
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowTime, true);
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowFirmware, true);
+        $this->RegisterPropertyBoolean(\Plugwise\Node\Property::ShowHardware, true);
+        $this->RegisterTimer(\Plugwise\Node\Timer::RequestState, 0, 'IPS_RequestAction($_IPS[\'TARGET\'], \'TimerEvent\', 0);');
+        $this->RegisterTimer(\Plugwise\Node\Timer::SetTime, 0, 'IPS_RequestAction($_IPS[\'TARGET\'], \'SetTime\', 0);');
+        // Der Node-Typ muss einen Neustart überdauern, weil batteriebetriebene Nodes (Scan, Sense, Switch) nur selten antworten.
+        $this->RegisterAttributeInteger(self::AttributeNodeType, \Plugwise\NodeTyp::Unknown);
+        $this->RegisterAttributeString(self::AttributeNodeTypeMAC, '');
+        $this->ParentID = 0;
         $this->isCalib = false;
-        $this->Type = \Plugwise\NodeTyp::unknown;
+        $this->Type = \Plugwise\NodeTyp::Unknown;
         $this->gainA = 0;
         $this->gainB = 0;
         $this->offTot = 0;
         $this->offRuis = 0;
+        $this->LastTimeSync = 0;
     }
 
     /**
@@ -87,18 +99,25 @@ class PlugwiseDevice extends IPSModuleStrict
      */
     public function ApplyChanges(): void
     {
+        $this->ParentID = 0;
         $this->isCalib = false;
-        $this->Type = \Plugwise\NodeTyp::unknown;
+        $this->Type = \Plugwise\NodeTyp::Unknown;
         $this->gainA = 0;
         $this->gainB = 0;
         $this->offTot = 0;
         $this->offRuis = 0;
+        $this->LastTimeSync = 0;
         parent::ApplyChanges();
-        $NodeMAC = $this->ReadPropertyString(\Plugwise\Node\Property::NodeMAC);
+        $NodeMAC = strtoupper(trim($this->ReadPropertyString(\Plugwise\Node\Property::NodeMAC)));
+        // Gespeicherten Typ nur übernehmen, wenn er zu dieser MAC gehört.
+        if (($NodeMAC != '') && ($this->ReadAttributeString(self::AttributeNodeTypeMAC) === $NodeMAC)) {
+            $this->Type = $this->ReadAttributeInteger(self::AttributeNodeType);
+        }
         if ($NodeMAC == '') {
             $Filter = '.*"NodeMAC":"999999999".*';
         } else {
-            $Filter = '.*"NodeMAC":"' . $NodeMAC . '".*';
+            // Der Splitter überträgt die MAC hex-kodiert (bin2hex) im JSON.
+            $Filter = '.*"NodeMAC":"' . bin2hex($NodeMAC) . '".*';
         }
         $this->SetReceiveDataFilter($Filter);
         $this->RegisterMessage($this->InstanceID, FM_CONNECT);
@@ -110,68 +129,41 @@ class PlugwiseDevice extends IPSModuleStrict
         $this->RegisterVariableBoolean(
             'Reachable',
             $this->Translate('Reachable'),
-            ['MIN'                 => 0,
-                'DIGITS'           => 0,
-                'MULTILINE'        => false,
-                'ICON'             => 'Warning',
-                'INTERVALS_ACTIVE' => true,
-                'MAX'              => 1,
-                'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'PERCENTAGE'       => false,
-                'OPTIONS'          => json_encode(
-                    [
-                        [
-                            'Value'       => false,
-                            'Caption'     => $this->Translate('Alert'),
-                            'IconActive'  => false,
-                            'IconValue'   => '',
-                            'ColorActive' => true,
-                            'ColorValue'  => 16711680,
-                        ],
-                        1 => [
-                            'Value'       => true,
-                            'Caption'     => 'OK',
-                            'IconActive'  => false,
-                            'IconValue'   => '',
-                            'ColorActive' => true,
-                            'ColorValue'  => -1,
-                        ]]
-                ),
-                'PREFIX'           => '',
-                'SUFFIX'           => '',
-                'USAGE_TYPE'       => 0]
+            \Plugwise\Presentation::Reachable($this->Translate('Alert'), 'OK')
         );
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showState)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowState)) {
             $this->UnregisterVariable('State');
         }
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showFrequenz)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowFrequenz)) {
             $this->UnregisterVariable('Frequenz');
         }
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showTime)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowTime)) {
             $this->UnregisterVariable('Timestamp');
         }
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showCurrent)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowCurrent)) {
             $this->UnregisterVariable('PowerCurrent');
         }
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showAverage)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowAverage)) {
             $this->UnregisterVariable('PowerAverage');
         }
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showOverall)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowOverall)) {
             $this->UnregisterVariable('ConsumptionOverall');
         }
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showHardware)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowFeedIn)) {
+            $this->UnregisterVariable('FeedInOverall');
+        }
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowHardware)) {
             $this->UnregisterVariable('Hardware');
         }
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showFirmware)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowFirmware)) {
             $this->UnregisterVariable('Firmware');
         }
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showTemperature)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowTemperature)) {
             $this->UnregisterVariable('Temperature');
         }
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showHumidity)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowHumidity)) {
             $this->UnregisterVariable('Humidity');
         }
-        $this->UnregisterProfile('Plugwise.kwh');
         if ($NodeMAC != '' && $this->HasActiveParent()) {
             $this->IOChangeState(IS_ACTIVE);
         } else {
@@ -206,25 +198,24 @@ class PlugwiseDevice extends IPSModuleStrict
         }
         $this->SendDebug('GetConfigurationForm', \Plugwise\NodeTyp::ToString($this->Type), 0);
         switch ($this->Type) {
-            case \Plugwise\NodeTyp::Cricle:
-            case \Plugwise\NodeTyp::CriclePlus:
-                $Form['elements'][2]['visible'] = false;
+            case \Plugwise\NodeTyp::Circle:
+            case \Plugwise\NodeTyp::CirclePlus:
+            case \Plugwise\NodeTyp::Stealth:
+                $this->SetFormProperty($Form, 'Sens', 'visible', false);
                 break;
             case \Plugwise\NodeTyp::Scan:
-            case \Plugwise\NodeTyp::Switche:
-                $Form['elements'][1]['visible'] = false;
-                $Form['elements'][2]['visible'] = false;
-                $Form['actions'][2]['visible'] = false;
-                $Form['actions'][3]['visible'] = false;
+            case \Plugwise\NodeTyp::Switch:
+                $this->SetFormProperty($Form, 'Aktor', 'visible', false);
+                $this->SetFormProperty($Form, 'Sens', 'visible', false);
+                $this->SetFormProperty($Form, 'ReadCalibration', 'visible', false);
+                $this->SetFormProperty($Form, 'RequestEnergy', 'visible', false);
                 break;
             case \Plugwise\NodeTyp::Sense:
-                $Form['elements'][1]['visible'] = false;
-                $Form['actions'][2]['visible'] = false;
-                $Form['actions'][3]['visible'] = false;
+                $this->SetFormProperty($Form, 'Aktor', 'visible', false);
+                $this->SetFormProperty($Form, 'ReadCalibration', 'visible', false);
+                $this->SetFormProperty($Form, 'RequestEnergy', 'visible', false);
                 break;
         }
-        $this->SendDebug('FORM', json_encode($Form), 0);
-        $this->SendDebug('FORM', json_last_error_msg(), 0);
         return json_encode($Form);
     }
 
@@ -243,7 +234,13 @@ class PlugwiseDevice extends IPSModuleStrict
         }
         switch ($Ident) {
             case 'State':
-                $this->SwitchMode($Value);
+                $this->SwitchMode((bool) $Value);
+                break;
+            case 'TimerEvent':
+                $this->TimerEvent();
+                break;
+            case 'SetTime':
+                $this->SetTime();
                 break;
             default:
                 echo $this->Translate('Invalid Ident') . PHP_EOL;
@@ -252,38 +249,20 @@ class PlugwiseDevice extends IPSModuleStrict
     }
 
     /**
-     * TimerEvent
-     *
-     * @return void
-     */
-    public function TimerEvent(): void
-    {
-        if ($this->RequestState()) {
-            if (($this->Type == \Plugwise\NodeTyp::Cricle) || ($this->Type == \Plugwise\NodeTyp::CriclePlus)) {
-                $this->RequestEnergy();
-            }
-        }
-    }
-
-    /**
      * SwitchMode
      *
-     * IPS-Instanz-Funktion 'SwitchStateMode'. Schaltet den Circle ein oder aus.
+     * IPS-Instanz-Funktion 'PLUGWISE_SwitchMode'. Schaltet den Circle ein oder aus.
      *
      * @param bool $Value True für Ein,  False für aus.
      * @return bool true bei erfolgreicher Ausführung, sonst false.
      */
     public function SwitchMode(bool $Value): bool
     {
-        if (!is_bool($Value)) {
-            echo $this->Translate('Value must be boolean') . PHP_EOL;
-            return false;
-        }
-        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::showState)) {
+        if (!$this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowState)) {
             echo $this->Translate('Switch state not active in instance') . PHP_EOL;
             return false;
         }
-        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::SwitchRequest, null, ($Value ? \Plugwise\SwitchState::ON : \Plugwise\SwitchState::OFF));
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::SwitchRequest, null, ($Value ? \Plugwise\SwitchState::On : \Plugwise\SwitchState::Off));
         $ret = $this->Send($PlugwiseData);
         if ($ret === false) {
             return false;
@@ -311,7 +290,7 @@ class PlugwiseDevice extends IPSModuleStrict
         if ($Result == false || strlen($Result->Data) != 42) {
             return false;
         }
-        if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showHardware)) {
+        if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowHardware)) {
             $this->RegisterVariableString(
                 'Hardware',
                 $this->Translate('Hardware'),
@@ -320,7 +299,7 @@ class PlugwiseDevice extends IPSModuleStrict
             $Hardware = sprintf('%s-%s-%s', substr($Result->Data, 20, 4), substr($Result->Data, 24, 4), substr($Result->Data, 28, 4));
             $this->SetValueString('Hardware', $Hardware);
         }
-        if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showFirmware)) {
+        if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowFirmware)) {
             $this->RegisterVariableInteger(
                 'Firmware',
                 $this->Translate('Firmware'),
@@ -329,16 +308,24 @@ class PlugwiseDevice extends IPSModuleStrict
                     'TEMPLATE'        => VARIABLE_TEMPLATE_DATE
                 ]
             );
-            $Firmware = intval(hexdec(substr($Result->Data, 32, 8)));
+            $Firmware = \Plugwise\Frame::HexToInt(substr($Result->Data, 32, 8));
             $this->SetValueInteger('Firmware', $Firmware);
         }
-        $this->Type = \Plugwise\NodeTyp::$Type[substr($Result->Data, 40, 2)];
+        $TypeCode = substr($Result->Data, 40, 2);
+        $this->Type = \Plugwise\NodeTyp::FromHex($TypeCode);
+        if ($this->Type == \Plugwise\NodeTyp::Unknown) {
+            $this->SendDebug('Unknown node type', $TypeCode, 0);
+        } else {
+            $this->WriteAttributeInteger(self::AttributeNodeType, $this->Type);
+            $this->WriteAttributeString(self::AttributeNodeTypeMAC, strtoupper(trim($this->ReadPropertyString(\Plugwise\Node\Property::NodeMAC))));
+        }
         $this->SetSummary(\Plugwise\NodeTyp::ToString($this->Type));
         $this->SendDebug('Type', \Plugwise\NodeTyp::ToString($this->Type), 0);
         switch ($this->Type) {
-            case \Plugwise\NodeTyp::Cricle:
-            case \Plugwise\NodeTyp::CriclePlus:
-                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showState)) {
+            case \Plugwise\NodeTyp::Circle:
+            case \Plugwise\NodeTyp::CirclePlus:
+            case \Plugwise\NodeTyp::Stealth:
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowState)) {
                     $this->RegisterVariableBoolean(
                         'State',
                         $this->Translate('State'),
@@ -347,31 +334,23 @@ class PlugwiseDevice extends IPSModuleStrict
                         ]
                     );
                     $this->EnableAction('State');
-                    $Value = (substr($Result->Data, 16, 2) == \Plugwise\SwitchState::ON);
+                    $Value = (substr($Result->Data, 16, 2) == \Plugwise\SwitchState::On);
                     $this->SetValueBoolean('State', $Value);
                 }
-                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showFrequenz)) {
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowFrequenz)) {
                     $this->RegisterVariableFloat(
                         'Frequenz',
-                        $this->Translate('Frequenz'),
-                        [
-                            'MIN'              => 0,
-                            'DIGITS'           => 2,
-                            'MULTILINE'        => false,
-                            'ICON'             => 'Electricity',
-                            'MAX'              => 0,
-                            'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                            'INTERVALS'        => '[]',
-                            'INTERVALS_ACTIVE' => false,
-                            'PERCENTAGE'       => false,
-                            'PREFIX'           => '',
-                            'SUFFIX'           => ' Hz',
-                            'USAGE_TYPE'       => 0,
-                        ]
+                        $this->Translate('Frequency'),
+                        \Plugwise\Presentation::Frequency()
                     );
-                    $this->SetValueFloat('Frequenz', (float) \Plugwise\SwitchState::$Hertz[hexdec(substr($Result->Data, 18, 2))]);
+                    $Frequenz = \Plugwise\SwitchState::ToHertz(\Plugwise\Frame::HexToInt(substr($Result->Data, 18, 2)));
+                    if ($Frequenz === null) {
+                        $this->SendDebug('Unknown frequency code', substr($Result->Data, 18, 2), 0);
+                    } else {
+                        $this->SetValueFloat('Frequenz', $Frequenz);
+                    }
                 }
-                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showTime)) {
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowTime)) {
                     $this->RegisterVariableInteger(
                         'Timestamp',
                         $this->Translate('Timestamp'),
@@ -381,271 +360,65 @@ class PlugwiseDevice extends IPSModuleStrict
                         ]
                     );
                     $Timestamp = \Plugwise\Frame::Hex2Timestamp(substr($Result->Data, 0, 8));
-                    $this->SetValueInteger('Timestamp', $Timestamp);
-                    $this->SendDebug('Timestamp', $Timestamp, 0);
-                    $this->SendDebug('Timestamp', gmdate('H:i:s d.m.Y', $Timestamp), 0);
+                    if ($Timestamp > 0) {
+                        $this->SetValueInteger('Timestamp', $Timestamp);
+                        $this->SendDebug('Timestamp', gmdate('H:i:s d.m.Y', $Timestamp), 0);
+                    } else {
+                        $this->SendDebug('Timestamp', 'invalid: ' . substr($Result->Data, 0, 8), 0);
+                    }
                 }
-                $CurrentLogAddress = hexdec(substr($Result->Data, 8, 8));
-                $this->CurrentLogAddress = $CurrentLogAddress;
-                $this->SendDebug('CurrentLogAddress', dechex($CurrentLogAddress), 0);
-                $this->SendDebug('CurrentLogAddress', $CurrentLogAddress, 0);
-                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showCurrent)) {
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowCurrent)) {
                     $this->RegisterVariableFloat(
                         'PowerCurrent',
                         $this->Translate('Power current'),
-                        [
-                            'PRESENTATION'      => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                            'ICON'              => 'bolt',
-                            'DECIMAL_SEPARATOR' => 'Client',
-                            'COLOR'             => -1,
-                            'DISPLAY_TYPE'      => 0,
-                            'CONTENT_COLOR'     => -1,
-                            'DIGITS'            => 2,
-                            'INTERVALS'         => json_encode(
-                                [
-                                    [
-                                        'ColorDisplay'        => -1,
-                                        'ContentColorDisplay' => -1,
-                                        'IntervalMinValue'    => 0.001,
-                                        'IntervalMaxValue'    => 1,
-                                        'ConstantActive'      => false,
-                                        'ConstantValue'       => '',
-                                        'ConversionFactor'    => 0.001,
-                                        'PrefixActive'        => false,
-                                        'PrefixValue'         => '',
-                                        'SuffixActive'        => true,
-                                        'SuffixValue'         => ' mW',
-                                        'DigitsActive'        => false,
-                                        'DigitsValue'         => 0,
-                                        'IconActive'          => false,
-                                        'IconValue'           => '',
-                                        'ColorActive'         => false,
-                                        'ColorValue'          => -1,
-                                        'ContentColorActive'  => false,
-                                        'ContentColorValue'   => -1,
-                                    ],
-                                    [
-                                        'ColorDisplay'        => -1,
-                                        'ContentColorDisplay' => -1,
-                                        'IntervalMinValue'    => 1000,
-                                        'IntervalMaxValue'    => 999999,
-                                        'ConstantActive'      => false,
-                                        'ConstantValue'       => '',
-                                        'ConversionFactor'    => 1000,
-                                        'PrefixActive'        => false,
-                                        'PrefixValue'         => '',
-                                        'SuffixActive'        => true,
-                                        'SuffixValue'         => ' kW',
-                                        'DigitsActive'        => true,
-                                        'DigitsValue'         => 2,
-                                        'IconActive'          => false,
-                                        'IconValue'           => '',
-                                        'ColorActive'         => false,
-                                        'ColorValue'          => -1,
-                                        'ContentColorActive'  => false,
-                                        'ContentColorValue'   => -1,
-                                    ]
-                                ]
-                            ),
-                            'INTERVALS_ACTIVE'    => true,
-                            'MAX'                 => 0,
-                            'MIN'                 => 0,
-                            'PERCENTAGE'          => false,
-                            'PREFIX'              => '',
-                            'PREVIEW_STYLE'       => 1,
-                            'SHOW_PREVIEW'        => true,
-                            'SUFFIX'              => ' W',
-                            'THOUSANDS_SEPARATOR' => '',
-                            'USAGE_TYPE'          => 0,
-
-                        ]
+                        \Plugwise\Presentation::Power()
                     );
                 }
-                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showAverage)) {
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowAverage)) {
                     $this->RegisterVariableFloat(
                         'PowerAverage',
                         $this->Translate('Power average'),
-                        [
-                            'PRESENTATION'      => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                            'ICON'              => 'bolt',
-                            'DECIMAL_SEPARATOR' => 'Client',
-                            'COLOR'             => -1,
-                            'DISPLAY_TYPE'      => 0,
-                            'CONTENT_COLOR'     => -1,
-                            'DIGITS'            => 2,
-                            'INTERVALS'         => json_encode(
-                                [
-                                    [
-                                        'ColorDisplay'        => -1,
-                                        'ContentColorDisplay' => -1,
-                                        'IntervalMinValue'    => 0.001,
-                                        'IntervalMaxValue'    => 1,
-                                        'ConstantActive'      => false,
-                                        'ConstantValue'       => '',
-                                        'ConversionFactor'    => 0.001,
-                                        'PrefixActive'        => false,
-                                        'PrefixValue'         => '',
-                                        'SuffixActive'        => true,
-                                        'SuffixValue'         => ' mW',
-                                        'DigitsActive'        => false,
-                                        'DigitsValue'         => 0,
-                                        'IconActive'          => false,
-                                        'IconValue'           => '',
-                                        'ColorActive'         => false,
-                                        'ColorValue'          => -1,
-                                        'ContentColorActive'  => false,
-                                        'ContentColorValue'   => -1,
-                                    ],
-                                    [
-                                        'ColorDisplay'        => -1,
-                                        'ContentColorDisplay' => -1,
-                                        'IntervalMinValue'    => 1000,
-                                        'IntervalMaxValue'    => 999999,
-                                        'ConstantActive'      => false,
-                                        'ConstantValue'       => '',
-                                        'ConversionFactor'    => 1000,
-                                        'PrefixActive'        => false,
-                                        'PrefixValue'         => '',
-                                        'SuffixActive'        => true,
-                                        'SuffixValue'         => ' kW',
-                                        'DigitsActive'        => true,
-                                        'DigitsValue'         => 2,
-                                        'IconActive'          => false,
-                                        'IconValue'           => '',
-                                        'ColorActive'         => false,
-                                        'ColorValue'          => -1,
-                                        'ContentColorActive'  => false,
-                                        'ContentColorValue'   => -1,
-                                    ]
-                                ]
-                            ),
-                            'INTERVALS_ACTIVE'    => true,
-                            'MAX'                 => 0,
-                            'MIN'                 => 0,
-                            'PERCENTAGE'          => false,
-                            'PREFIX'              => '',
-                            'PREVIEW_STYLE'       => 1,
-                            'SHOW_PREVIEW'        => true,
-                            'SUFFIX'              => ' W',
-                            'THOUSANDS_SEPARATOR' => '',
-                            'USAGE_TYPE'          => 0,
-
-                        ]
+                        \Plugwise\Presentation::Power()
                     );
                 }
-                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showOverall)) {
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowOverall)) {
                     $this->RegisterVariableFloat(
                         'ConsumptionOverall',
                         $this->Translate('Consumption overall'),
-                        [
-                            'ICON'                => 'bolt',
-                            'DECIMAL_SEPARATOR'   => 'Client',
-                            'COLOR'               => -1,
-                            'DISPLAY_TYPE'        => 0,
-                            'CONTENT_COLOR'       => -1,
-                            'DIGITS'              => 2,
-                            'INTERVALS'           => json_encode([
-                                [
-                                    'ColorDisplay'        => -1,
-                                    'ContentColorDisplay' => -1,
-                                    'IntervalMinValue'    => 0.001,
-                                    'IntervalMaxValue'    => 1,
-                                    'ConstantActive'      => false,
-                                    'ConstantValue'       => '',
-                                    'ConversionFactor'    => 0.001,
-                                    'PrefixActive'        => false,
-                                    'PrefixValue'         => '',
-                                    'SuffixActive'        => true,
-                                    'SuffixValue'         => ' Wh',
-                                    'DigitsActive'        => false,
-                                    'DigitsValue'         => 2,
-                                    'IconActive'          => false,
-                                    'IconValue'           => '',
-                                    'ColorActive'         => false,
-                                    'ColorValue'          => -1,
-                                    'ContentColorActive'  => false,
-                                    'ContentColorValue'   => -1,
-                                ],
-
-                                [
-                                    'ColorDisplay'        => -1,
-                                    'ContentColorDisplay' => -1,
-                                    'IntervalMinValue'    => 1000,
-                                    'IntervalMaxValue'    => 999999,
-                                    'ConstantActive'      => false,
-                                    'ConstantValue'       => '',
-                                    'ConversionFactor'    => 1000,
-                                    'PrefixActive'        => false,
-                                    'PrefixValue'         => '',
-                                    'SuffixActive'        => true,
-                                    'SuffixValue'         => 'MWh',
-                                    'DigitsActive'        => true,
-                                    'DigitsValue'         => 2,
-                                    'IconActive'          => false,
-                                    'IconValue'           => '',
-                                    'ColorActive'         => false,
-                                    'ColorValue'          => -1,
-                                    'ContentColorActive'  => false,
-                                    'ContentColorValue'   => -1,
-                                ],
-                            ]),
-                            'INTERVALS_ACTIVE'    => true,
-                            'MAX'                 => 0,
-                            'PRESENTATION'        => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                            'MIN'                 => 0,
-                            'PERCENTAGE'          => false,
-                            'PREFIX'              => '',
-                            'PREVIEW_STYLE'       => 1,
-                            'SHOW_PREVIEW'        => true,
-                            'SUFFIX'              => ' kWh',
-                            'THOUSANDS_SEPARATOR' => '',
-                            'USAGE_TYPE'          => 0,
-                        ]
+                        \Plugwise\Presentation::EnergyOverall()
+                    );
+                }
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowFeedIn)) {
+                    $this->RegisterVariableFloat(
+                        'FeedInOverall',
+                        $this->Translate('Feed-in overall'),
+                        \Plugwise\Presentation::EnergyOverall()
                     );
                 }
                 break;
             case \Plugwise\NodeTyp::Sense:
-                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showTemperature)) {
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowTemperature)) {
                     $this->RegisterVariableFloat(
                         'Temperature',
                         $this->Translate('Temperature'),
-                        [
-                            'MIN'              => -30,
-                            'DIGITS'           => 1,
-                            'MULTILINE'        => false,
-                            'ICON'             => 'Temperature',
-                            'MAX'              => 70,
-                            'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                            'INTERVALS'        => '[]',
-                            'INTERVALS_ACTIVE' => false,
-                            'PERCENTAGE'       => false,
-                            'PREFIX'           => '',
-                            'SUFFIX'           => ' °C',
-                            'USAGE_TYPE'       => 1,
-                        ]
+                        \Plugwise\Presentation::Temperature()
                     );
                 }
-                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showHumidity)) {
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowHumidity)) {
                     $this->RegisterVariableFloat(
                         'Humidity',
                         $this->Translate('Humidity'),
-                        [
-                            'MIN'              => 0,
-                            'DIGITS'           => 1,
-                            'MULTILINE'        => false,
-                            'ICON'             => 'Gauge',
-                            'MAX'              => 100,
-                            'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                            'INTERVALS'        => '[]',
-                            'INTERVALS_ACTIVE' => false,
-                            'PERCENTAGE'       => true,
-                            'PREFIX'           => '',
-                            'SUFFIX'           => ' %',
-                            'USAGE_TYPE'       => 0,
-                        ]
+                        \Plugwise\Presentation::Humidity()
                     );
                 }
                 break;
+        }
+        // Hat der Node seine Uhr verloren (z.B. nach einem Stromausfall), wird die Zeit sofort gesendet, statt auf den Stundentimer
+        // zu warten. Höchstens alle 5 Minuten, falls der Node die Zeit nicht übernimmt.
+        if ($this->IsActuator() && \Plugwise\Frame::NodeTimeNeedsSync(\Plugwise\Frame::Hex2Timestamp(substr($Result->Data, 0, 8)), time()) && ((time() - $this->LastTimeSync) > 300)) {
+            $this->SendDebug('Node time', 'Deviation, set time', 0);
+            $this->LastTimeSync = time();
+            $this->SetTime();
         }
         return true;
     }
@@ -664,12 +437,21 @@ class PlugwiseDevice extends IPSModuleStrict
         if ($Result == false) {
             return false;
         }
-        $this->isCalib = true;
         $Values = str_split($Result->Data, 8);
-        $this->gainA = \Plugwise\Frame::Hex2Float($Values[0]);
-        $this->gainB = \Plugwise\Frame::Hex2Float($Values[1]);
-        $this->offTot = \Plugwise\Frame::Hex2Float($Values[2]);
-        $this->offRuis = \Plugwise\Frame::Hex2Float($Values[3]);
+        $Calibration = [];
+        // Fehlende Kalibrierwerte sendet der Node als FFFFFFFF, das ergibt als Float NAN und würde alle Berechnungen verfälschen.
+        if (count($Values) >= 4 && strlen($Values[3]) == 8) {
+            foreach (array_slice($Values, 0, 4) as $Value) {
+                $Calibration[] = \Plugwise\Frame::Hex2Float($Value);
+            }
+        }
+        if ((count($Calibration) != 4) || !array_reduce($Calibration, fn (bool $Valid, float $Value) => $Valid && is_finite($Value), true)) {
+            $this->SendDebug('Calibration', 'invalid: ' . $Result->Data, 0);
+            echo $this->Translate('Calibration data invalid') . PHP_EOL;
+            return false;
+        }
+        $this->isCalib = true;
+        [$this->gainA, $this->gainB, $this->offTot, $this->offRuis] = $Calibration;
         $this->SendDebug('gainA', $this->gainA, 0);
         $this->SendDebug('gainB', $this->gainB, 0);
         $this->SendDebug('offTot', $this->offTot, 0);
@@ -701,7 +483,7 @@ class PlugwiseDevice extends IPSModuleStrict
         $Pulses1Hex = substr($Result->Data, 0, 4);
         $Pulses2Hex = substr($Result->Data, 4, 4);
         $PulsesTotalHex = substr($Result->Data, 8, 8);
-        if ($Pulses1Hex != 'FFFF' && $this->ReadPropertyBoolean(\Plugwise\Node\Property::showCurrent)) {
+        if ($Pulses1Hex != 'FFFF' && $this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowCurrent)) {
             $Pulses = \Plugwise\Frame::pulsesCorrection(
                 $Pulses1Hex,
                 1,
@@ -714,7 +496,7 @@ class PlugwiseDevice extends IPSModuleStrict
             $this->SendDebug('PowerCurrent', $Watt, 0);
             $this->SetValueFloat('PowerCurrent', $Watt);
         }
-        if ($Pulses2Hex != 'FFFF' && $this->ReadPropertyBoolean(\Plugwise\Node\Property::showAverage)) {
+        if ($Pulses2Hex != 'FFFF' && $this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowAverage)) {
             $Pulses = \Plugwise\Frame::pulsesCorrection(
                 $Pulses2Hex,
                 8,
@@ -727,7 +509,9 @@ class PlugwiseDevice extends IPSModuleStrict
             $this->SendDebug('PowerAverage', $Watt, 0);
             $this->SetValueFloat('PowerAverage', $Watt);
         }
-        if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showOverall)) {
+        // Pulse und Zähler sind vorzeichenbehaftet (Zweierkomplement): Speist ein Gerät zurück (z.B. ein Wechselrichter),
+        // sind sie negativ. pulsesCorrection behält das Vorzeichen, Leistung und Energie werden dann negativ.
+        if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowOverall)) {
             $Pulses = \Plugwise\Frame::pulsesCorrection(
                 $PulsesTotalHex,
                 3600,
@@ -739,6 +523,22 @@ class PlugwiseDevice extends IPSModuleStrict
             $WattTotal = \Plugwise\Frame::pulsesToKwh($Pulses);
             $this->SendDebug('Consumption total', $WattTotal, 0);
             $this->SetValueFloat('ConsumptionOverall', $WattTotal);
+        }
+        // Zweiter Zähler (erzeugte Energie): Speist ein Gerät zurück, zählt er negativ. Die Einspeisung wird positiv dargestellt.
+        // Ältere Firmware sendet ihn eventuell nicht, die Variable behält dann ihren Wert.
+        $PulsesProducedHex = substr($Result->Data, 16, 8);
+        if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowFeedIn) && (strlen($PulsesProducedHex) == 8)) {
+            $Pulses = \Plugwise\Frame::pulsesCorrection(
+                $PulsesProducedHex,
+                3600,
+                $this->offRuis,
+                $this->offTot,
+                $this->gainA,
+                $this->gainB
+            );
+            $FeedIn = -\Plugwise\Frame::pulsesToKwh($Pulses);
+            $this->SendDebug('Feed-in total', $FeedIn, 0);
+            $this->SetValueFloat('FeedInOverall', $FeedIn);
         }
         return true;
     }
@@ -760,25 +560,6 @@ class PlugwiseDevice extends IPSModuleStrict
     }
 
     /**
-     * SetTime
-     *
-     * @return bool
-     */
-    public function SetTime(): bool
-    {
-        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::ClockSetRequest, null, \Plugwise\Frame::Timestamp2Hex(time()));
-        $Result = $this->Send($PlugwiseData);
-        if ($Result === false) {
-            return false;
-        }
-        if (substr($Result->Data, 0, 4) != \Plugwise\AckMsg::SETTIMEACK) {
-            trigger_error($this->Translate('Error on set time in Node'), E_USER_NOTICE);
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * IOChangeState
      *
      * Wird ausgeführt wenn sich der Status vom Parent ändert.
@@ -790,21 +571,54 @@ class PlugwiseDevice extends IPSModuleStrict
     {
         $this->SetTimerInterval(\Plugwise\Node\Timer::RequestState, 0);
         $this->SetTimerInterval(\Plugwise\Node\Timer::SetTime, 0);
-        if ($State == IS_ACTIVE) {
-            if ($this->HasActiveParent()) {
-                if ($this->RequestState()) {
-                    $this->SetTime();
-                    if (($this->Type == \Plugwise\NodeTyp::Cricle) || ($this->Type == \Plugwise\NodeTyp::CriclePlus)) {
-                        $this->RequestCalibration();
-                        $this->RequestEnergy();
-                    }
-                }
-                if ($this->ReadPropertyInteger(\Plugwise\Node\Property::Interval) > 0) {
-                    $this->SetTimerInterval(\Plugwise\Node\Timer::RequestState, $this->ReadPropertyInteger(\Plugwise\Node\Property::Interval) * 1000);
-                }
-                $this->SetTimerInterval(\Plugwise\Node\Timer::SetTime, 60 * 60 * 1000);
+        // Ohne MAC (z.B. per Skript angelegt) oder ohne aktiven Parent tut die Instanz nichts, der Status bleibt unverändert.
+        if (($State != IS_ACTIVE) || (trim($this->ReadPropertyString(\Plugwise\Node\Property::NodeMAC)) == '') || !$this->HasActiveParent()) {
+            return;
+        }
+        if ($this->RequestState()) {
+            $this->SetTime();
+            if ($this->IsActuator()) {
+                $this->RequestCalibration();
+                $this->RequestEnergy();
             }
         }
+        if ($this->ReadPropertyInteger(\Plugwise\Node\Property::Interval) > 0) {
+            $this->SetTimerInterval(\Plugwise\Node\Timer::RequestState, $this->ReadPropertyInteger(\Plugwise\Node\Property::Interval) * 1000);
+        }
+        $this->SetTimerInterval(\Plugwise\Node\Timer::SetTime, 60 * 60 * 1000);
+    }
+
+    /**
+     * TimerEvent
+     *
+     * @return void
+     */
+    private function TimerEvent(): void
+    {
+        if ($this->RequestState()) {
+            if ($this->IsActuator()) {
+                $this->RequestEnergy();
+            }
+        }
+    }
+
+    /**
+     * SetTime
+     *
+     * @return bool
+     */
+    private function SetTime(): bool
+    {
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::ClockSetRequest, null, \Plugwise\Frame::Timestamp2Hex(time()));
+        $Result = $this->Send($PlugwiseData);
+        if ($Result === false) {
+            return false;
+        }
+        if (substr($Result->Data, 0, 4) != \Plugwise\AckMsg::SETTIMEACK) {
+            echo $this->Translate('Error on set time in Node') . PHP_EOL;
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -820,24 +634,46 @@ class PlugwiseDevice extends IPSModuleStrict
         $this->SendDebug('EVENT', $PlugwiseData, 0);
 
         switch ($PlugwiseData->Command) {
-            case \Plugwise\Command::PushButtonResponse: //switch ???
-                $this->RegisterVariableBoolean('Switch', $this->Translate('Switch'), []);
-                $this->SetValueBoolean('Switch', (substr($PlugwiseData->Data, 0, 2) == \Plugwise\SwitchState::ON));
+            case \Plugwise\Command::NodeAwakeResponse: // Batteriebetriebener Node ist aufgewacht (Grund: 1 Byte).
+                $AwakeType = \Plugwise\Frame::HexToInt(substr($PlugwiseData->Data, 0, 2));
+                $this->SendDebug('Node awake', \Plugwise\NodeAwake::ToString($AwakeType), 0);
+                $this->SetReachable(true);
                 break;
-            case \Plugwise\Command::KeyPressResponse: //switch
-                $this->RegisterVariableBoolean('Switch1', $this->Translate('Switch 1'), []);
-                $this->RegisterVariableBoolean('Switch2', $this->Translate('Switch 2'), []);
-                $this->SetValueBoolean('Switch1', (substr($PlugwiseData->Data, 0, 2) == \Plugwise\SwitchState::ON));
-                $this->SetValueBoolean('Switch2', (substr($PlugwiseData->Data, 2, 2) == \Plugwise\SwitchState::ON));
+            case \Plugwise\Command::NodeSwitchGroupResponse: // Schaltbedingung einer Gruppe: Gruppe (1 Byte) und Zustand (1 Byte).
+                $SwitchGroup = \Plugwise\SwitchState::FromGroupData($PlugwiseData->Data);
+                if ($SwitchGroup === null) {
+                    $this->SendDebug('Switch group', 'Invalid data: ' . $PlugwiseData->Data, 0);
+                    break;
+                }
+                $this->SendDebug('Switch group', $SwitchGroup, 0);
+                switch ($this->Type) {
+                    case \Plugwise\NodeTyp::Scan: // Bewegung ein/aus
+                        $this->RegisterVariableBoolean('Motion', $this->Translate('Motion'), \Plugwise\Presentation::Motion($this->Translate('No motion'), $this->Translate('Motion')));
+                        $this->SetValueBoolean('Motion', $SwitchGroup['State']);
+                        break;
+                    case \Plugwise\NodeTyp::Switch: // Welche Gruppe zu welcher Taste gehört, ist nicht belegt (nur Gruppe 1 und 2 bekannt).
+                        if (($SwitchGroup['Group'] == 1) || ($SwitchGroup['Group'] == 2)) {
+                            $Ident = 'Switch' . $SwitchGroup['Group'];
+                            $this->RegisterVariableBoolean($Ident, $this->Translate('Switch ' . $SwitchGroup['Group']), []);
+                            $this->SetValueBoolean($Ident, $SwitchGroup['State']);
+                        }
+                        break;
+                    default: // z.B. Hysterese des Sense (Gruppe 1 Feuchte, Gruppe 2 Temperatur): wird nicht ausgewertet.
+                        break;
+                }
                 break;
             case \Plugwise\Command::SensInfoResponse: //sens
-                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showTemperature)) {
-                    $Temperature = (hexdec(substr($PlugwiseData->Data, 4, 4)) - 17473) / 372.90;
-                    $this->SetValueFloat('Temperature', $Temperature);
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowTemperature)) {
+                    $Temperature = \Plugwise\Sense::Temperature(\Plugwise\Frame::HexToInt(substr($PlugwiseData->Data, 4, 4)));
+                    if ($Temperature !== null) {
+                        $this->SetValueFloat('Temperature', $Temperature);
+                    }
                 }
-                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::showHumidity)) {
-                    $Humidity = (hexdec(substr($PlugwiseData->Data, 0, 4)) - 3145) / 524.30;
-                    $this->SetValueFloat('Humidity', $Humidity);
+                if ($this->ReadPropertyBoolean(\Plugwise\Node\Property::ShowHumidity)) {
+                    $Humidity = \Plugwise\Sense::Humidity(\Plugwise\Frame::HexToInt(substr($PlugwiseData->Data, 0, 4)));
+                    if ($Humidity !== null) {
+                        $this->SetValueFloat('Humidity', $Humidity);
+                    }
                 }
                 break;
             default:
@@ -845,6 +681,34 @@ class PlugwiseDevice extends IPSModuleStrict
         }
     }
 
+    /**
+     * IsActuator
+     *
+     * @return bool true bei Circle, Circle+ und Stealth.
+     */
+    private function IsActuator(): bool
+    {
+        return in_array($this->Type, [\Plugwise\NodeTyp::Circle, \Plugwise\NodeTyp::CirclePlus, \Plugwise\NodeTyp::Stealth]);
+    }
+
+    /**
+     * SetReachable
+     *
+     * Setzt die Statusvariable und den Instanzstatus, damit ein Watchdog den Ausfall erkennen kann.
+     *
+     * @param  bool $Reachable
+     * @return void
+     */
+    private function SetReachable(bool $Reachable): void
+    {
+        $this->SetValueBoolean('Reachable', $Reachable);
+        $Status = $this->GetStatus();
+        if (!$Reachable && ($Status == IS_ACTIVE)) {
+            $this->SetStatus(self::StatusNodeNotReachable);
+        } elseif ($Reachable && ($Status == self::StatusNodeNotReachable)) {
+            $this->SetStatus(IS_ACTIVE);
+        }
+    }
     /**
      * Send
      *
@@ -857,6 +721,7 @@ class PlugwiseDevice extends IPSModuleStrict
     {
         $NodeMAC = trim($this->ReadPropertyString(\Plugwise\Node\Property::NodeMAC));
         if ($NodeMAC == '') {
+            echo $this->Translate('Device MAC is not configured.') . PHP_EOL;
             return false;
         }
         $this->SendDebug('Send', $PlugwiseData, 0);
@@ -866,23 +731,26 @@ class PlugwiseDevice extends IPSModuleStrict
         $this->SendDebug('Send', $JSONData, 0);
         if ($ResultString == false) {
             $this->SendDebug('Receive', 'Error receive data', 0);
+            $this->SetReachable(false);
             echo $this->Translate('Timeout error') . PHP_EOL;
             return false;
         }
         /** @var \Plugwise\Frame|bool $Result */
-        $Result = @unserialize($ResultString);
+        $Result = @unserialize($ResultString, ['allowed_classes' => [\Plugwise\Frame::class]]);
         $this->SendDebug('Response', $Result, 0);
         if (($Result === null) || ($Result === false)) {
             $this->SendDebug('Receive', 'Error receive data', 0);
+            $this->SetReachable(false);
             echo $this->Translate('Error on send data') . PHP_EOL;
             return false;
         }
-        if ($Result->Data === \Plugwise\AckMsg::OUTOFRANGE) {
-            $this->SetValueBoolean('Reachable', false);
+        // Ack-Frames enthalten hinter dem Code noch die MAC des Nodes, daher nur den Code (4 Zeichen) vergleichen.
+        if (($Result->Command === \Plugwise\Command::AckMsgResponse) && (substr((string) $Result->Data, 0, 4) === \Plugwise\AckMsg::OUTOFRANGE)) {
+            $this->SetReachable(false);
             echo $this->Translate('Node not reachable') . PHP_EOL;
             return false;
         }
-        $this->SetValueBoolean('Reachable', true);
+        $this->SetReachable(true);
         return $Result;
     }
 }

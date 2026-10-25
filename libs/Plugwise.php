@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 /**
  * @package       Plugwise
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2019 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.00
- * @example <b>Ohne</b>
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2017-2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.10
+ *
  */
 
 namespace {
@@ -24,16 +24,17 @@ namespace Plugwise\Node{
     {
         public const NodeMAC = 'NodeMAC';
         public const Interval = 'Interval';
-        public const showState = 'showState';
-        public const showCurrent = 'showCurrent';
-        public const showAverage = 'showAverage';
-        public const showOverall = 'showOverall';
-        public const showFrequenz = 'showFrequenz';
-        public const showTemperature = 'showTemperature';
-        public const showHumidity = 'showHumidity';
-        public const showTime = 'showTime';
-        public const showFirmware = 'showFirmware';
-        public const showHardware = 'showHardware';
+        public const ShowState = 'showState';
+        public const ShowCurrent = 'showCurrent';
+        public const ShowAverage = 'showAverage';
+        public const ShowOverall = 'showOverall';
+        public const ShowFeedIn = 'showFeedIn';
+        public const ShowFrequenz = 'showFrequenz';
+        public const ShowTemperature = 'showTemperature';
+        public const ShowHumidity = 'showHumidity';
+        public const ShowTime = 'showTime';
+        public const ShowFirmware = 'showFirmware';
+        public const ShowHardware = 'showHardware';
     }
     class Timer
     {
@@ -47,6 +48,7 @@ namespace Plugwise\Network{
     {
         public const SearchNodes = 'SearchNodes';
         public const DisableNetworkJoining = 'DisableNetworkJoining';
+        public const SyncTime = 'SyncTime';
     }
 }
 
@@ -108,13 +110,47 @@ namespace Plugwise{
      */
     class SwitchState
     {
-        public const ON = '01';
-        public const OFF = '00';
+        public const On = '01';
+        public const Off = '00';
 
         public static $Hertz = [
             133 => 50,
             197 => 60
         ];
+
+        /**
+         * FromGroupData
+         *
+         * Dekodiert die Nutzdaten der NodeSwitchGroupResponse (0056): Gruppe (1 Byte) und Zustand (1 Byte).
+         * Alle batteriebetriebenen Nodes (Scan, Sense, Switch) melden damit, dass eine Schaltbedingung
+         * für eine Gruppe erfüllt (Zustand ungleich 0) oder beendet (0) ist. Der Scan meldet so Bewegung ein/aus.
+         *
+         * @param  string $Data Hex-String mit 4 Zeichen.
+         * @return array|null ['Group' => int, 'State' => bool] oder null, wenn die Daten nicht passen.
+         */
+        public static function FromGroupData(string $Data): ?array
+        {
+            if (preg_match('/^[0-9A-Fa-f]{4}/', $Data) !== 1) {
+                return null;
+            }
+            return [
+                'Group' => Frame::HexToInt(substr($Data, 0, 2)),
+                'State' => Frame::HexToInt(substr($Data, 2, 2)) != 0
+            ];
+        }
+
+        /**
+         * ToHertz
+         *
+         * Liefert die Netzfrequenz zum Code des Nodes.
+         *
+         * @param  int $Code
+         * @return float|null null, wenn der Code unbekannt ist.
+         */
+        public static function ToHertz(int $Code): ?float
+        {
+            return isset(self::$Hertz[$Code]) ? (float) self::$Hertz[$Code] : null;
+        }
 
         /**
          * ToString
@@ -125,9 +161,9 @@ namespace Plugwise{
         public static function ToString(string $SwitchState): string
         {
             switch ($SwitchState) {
-                case self::ON:
+                case self::On:
                     return 'ON';
-                case self::OFF:
+                case self::Off:
                     return 'OFF';
                 default:
                     return '????????????';
@@ -404,14 +440,15 @@ namespace Plugwise{
         public const GetConnectedCirclePlus = '004E'; // Antwort als ACK mit Connected 00F4
 
         /**
-         * PushButtons
+         * Ein batteriebetriebener Node (Scan, Sense, Switch) ist aufgewacht, Nutzdaten: Grund (1 Byte), siehe NodeAwake.
          */
-        public const PushButtonResponse = '004F';
+        public const NodeAwakeResponse = '004F';
 
         /**
-         * Keypress on Switch
+         * Schaltbedingung einer Gruppe, Nutzdaten: Gruppe (1 Byte) und Zustand (1 Byte).
+         * Scan: Bewegung, Switch: Taste, Sense: Hysterese von Feuchte und Temperatur.
          */
-        public const KeyPressResponse = '0056';
+        public const NodeSwitchGroupResponse = '0056';
 
         /**
          * ???
@@ -484,7 +521,7 @@ namespace Plugwise{
                 case self::PingResponse:
                     return 'PingResponse';
                 case self::StickStatusResponse:
-                    return 'StatusResponse';
+                    return 'StickStatusResponse';
                 case self::PowerUsageRequest:
                     return 'PowerUsageRequest';
                 case self::PowerUsageResponse:
@@ -531,12 +568,16 @@ namespace Plugwise{
                     return 'PowerBufferRequest';
                 case self::PowerBufferResponse:
                     return 'PowerBufferResponse';
+                case self::GetCirclePlus1:
+                    return 'GetCirclePlus1';
                 case self::GetConnectedCirclePlus:
-                    return 'GetCirclePlus';
-                case self::PushButtonResponse:
-                    return 'PushButtonResponse';
-                case self::KeyPressResponse:
-                    return 'KeyPressResponse';
+                    return 'GetConnectedCirclePlus';
+                case self::SensInfoResponse:
+                    return 'SensInfoResponse';
+                case self::NodeAwakeResponse:
+                    return 'NodeAwakeResponse';
+                case self::NodeSwitchGroupResponse:
+                    return 'NodeSwitchGroupResponse';
                 case self::LogIntervalRequest:
                     return 'LogIntervalRequest';
                 case self::ClearGroupMacRequest:
@@ -556,46 +597,105 @@ namespace Plugwise{
     }
 
     /**
-     * NodeTyp
+     * NodeAwake
+     *
+     * Grund, warum ein batteriebetriebener Node aufgewacht ist (NodeAwakeResponse 004F, 1 Byte).
      */
-    class NodeTyp
+    class NodeAwake
     {
-        public const unknown = 0;
-        public const Cricle = 1;
-        public const Switche = 2; //No typo, switch is reserved by PHP ;)
-        public const Sense = 3;
-        public const Scan = 4;
-        public const CriclePlus = 5;
-        public static $Type = [
-            //0    => self::Cricle,
-            '00' => self::CriclePlus,
-            '01' => self::CriclePlus,
-            '02' => self::Cricle,
-            '03' => self::Switche,
-            '04' => self::Switche,
-            '05' => self::Sense,
-            '06' => self::Scan,
-        ];
+        public const Maintenance = 0;
+        public const First = 1;
+        public const Startup = 2;
+        public const State = 3;
+        public const Button = 5;
 
         /**
          * ToString
          *
-         * @param  string $NodeType
+         * @param  int $AwakeType
+         * @return string
+         */
+        public static function ToString(int $AwakeType): string
+        {
+            switch ($AwakeType) {
+                case self::Maintenance:
+                    return 'Maintenance';
+                case self::First:
+                    return 'First join';
+                case self::Startup:
+                    return 'Startup';
+                case self::State:
+                    return 'Report state';
+                case self::Button:
+                    return 'Button pressed';
+                default:
+                    return (string) $AwakeType;
+            }
+        }
+    }
+
+    /**
+     * NodeTyp
+     */
+    class NodeTyp
+    {
+        public const Unknown = 0;
+        public const Circle = 1;
+        public const Switch = 2; //No typo, switch is reserved by PHP ;)
+        public const Sense = 3;
+        public const Scan = 4;
+        public const CirclePlus = 5;
+        public const Stealth = 6;
+        /**
+         * Typ-Codes aus der InfoResponse.
+         */
+        public static $Type = [
+            //0    => self::Circle,
+            '00' => self::CirclePlus,
+            '01' => self::CirclePlus,
+            '02' => self::Circle,
+            '03' => self::Switch,
+            '04' => self::Switch,
+            '05' => self::Sense,
+            '06' => self::Scan,
+            '09' => self::Stealth,
+        ];
+
+        /**
+         * FromHex
+         *
+         * Liefert den Node-Typ zum Typ-Code aus der InfoResponse.
+         * Unbekannte Codes (z.B. Stealth) ergeben NodeTyp::Unknown.
+         *
+         * @param  string $TypeCode Typ-Code als Hex-String (2 Zeichen).
+         * @return int
+         */
+        public static function FromHex(string $TypeCode): int
+        {
+            return self::$Type[strtoupper($TypeCode)] ?? self::Unknown;
+        }
+
+        /**
+         * ToString
+         *
+         * @param  int $NodeType
          * @return string
          */
         public static function ToString(int $NodeType): string
         {
             switch ($NodeType) {
-                case self::CriclePlus:
+                case self::CirclePlus:
                     return 'Circle+';
-                case self::Cricle:
+                case self::Circle:
                     return 'Circle';
-                case self::Switche:
+                case self::Switch:
                     return 'Switch';
                 case self::Sense:
                     return 'Sense';
                 case self::Scan:
                     return 'Scan';
+                case self::Stealth:
+                    return 'Stealth';
                 default:
                     return (string) $NodeType;
             }
@@ -606,11 +706,10 @@ namespace Plugwise{
      * Enthält einen Plugwise Datenpaket.
      *
      * @package       Plugwise
-     * @author        Michael Tröger <micha@nall-chan.net>
-     * @copyright     2026 Michael Tröger
-     * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
-     * @version       2.00
-     * @example <b>Ohne</b>
+     * @author        Michael Tröger <nall4chan@gmail.com>
+     * @copyright     2017-2026 Michael Tröger
+     * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+     * @version       2.10
      *
      *
      * @property string $Command Kommando
@@ -621,7 +720,12 @@ namespace Plugwise{
      */
     class Frame
     {
-        public const CirclePlusMac = 'FFFFFFFF';
+        /**
+         * Platzhalter für die MAC des Circle+ in Nachrichten der Instanzen an den Splitter.
+         * Der Splitter ersetzt ihn beim Weiterleiten durch die echte MAC (siehe Konstruktor).
+         * Hat bewusst nur 8 Zeichen und kann daher nie mit einer echten MAC (16 Zeichen) verwechselt werden.
+         */
+        public const CirclePlusPlaceholder = 'FFFFFFFF';
 
         /**
          * Kommando
@@ -654,7 +758,7 @@ namespace Plugwise{
         /**
          * Checksumme
          *
-         * @var bool
+         * @var bool|null null, solange sie nicht geprüft wurde.
          */
         public ?bool $Checksum = null;
 
@@ -673,7 +777,7 @@ namespace Plugwise{
                 $this->Command = hex2bin($Command->Command);
 
                 $NodeMAC2 = hex2bin($Command->NodeMAC);
-                if ($NodeMAC2 == self::CirclePlusMac) {
+                if ($NodeMAC2 == self::CirclePlusPlaceholder) {
                     $this->NodeMAC = $NodeMAC;
                 } else {
                     $this->NodeMAC = $NodeMAC2;
@@ -705,6 +809,67 @@ namespace Plugwise{
         }
 
         /**
+         * IsValidMAC
+         *
+         * Prüft, ob der String eine MAC eines Nodes ist (16 Hex-Zeichen, Großbuchstaben).
+         *
+         * @param  string $NodeMAC
+         * @return bool
+         */
+        public static function IsValidMAC(string $NodeMAC): bool
+        {
+            return preg_match('/^[0-9A-F]{16}$/', $NodeMAC) === 1;
+        }
+
+        /**
+         * HexToInt
+         *
+         * Wandelt einen Hex-String in einen Integer um. hexdec() liefert auf Systemen mit 32 Bit Integer
+         * für Werte über PHP_INT_MAX einen float. Ein solcher Wert wird auf $Max begrenzt.
+         *
+         * @param  string $Hex
+         * @param  int $Max Obergrenze, Standard PHP_INT_MAX.
+         * @return int
+         */
+        public static function HexToInt(string $Hex, int $Max = PHP_INT_MAX): int
+        {
+            $Value = hexdec($Hex);
+            return ($Value > $Max) ? $Max : (int) $Value;
+        }
+
+        /**
+         * DateTimeData2Timestamp
+         *
+         * Wandelt die Zeit des Circle+ (Sekunde, Minute, Stunde, Wochentag, Tag, Monat, Jahr je 2 Dezimalziffern,
+         * siehe SetNetworkTime) in einen UTC-Timestamp um. Der Wochentag wird ignoriert.
+         *
+         * @param  string $Data 14 Dezimalziffern.
+         * @return int|null null, wenn das Format nicht passt.
+         */
+        public static function DateTimeData2Timestamp(string $Data): ?int
+        {
+            if (preg_match('/^\d{14}$/', $Data) !== 1) {
+                return null;
+            }
+            $Timestamp = gmmktime((int) substr($Data, 4, 2), (int) substr($Data, 2, 2), (int) substr($Data, 0, 2), (int) substr($Data, 10, 2), (int) substr($Data, 8, 2), 2000 + (int) substr($Data, 12, 2));
+            return ($Timestamp === false) ? null : $Timestamp;
+        }
+        /**
+         * NodeTimeNeedsSync
+         *
+         * Prüft, ob die Uhr eines Nodes neu gesetzt werden muss, z.B. nach einem Stromausfall (die Uhr steht dann auf 01.01.2000).
+         *
+         * @param  int $NodeTime Zeit des Nodes als UTC-Timestamp, <= 0 wenn ungültig (siehe Hex2Timestamp).
+         * @param  int $Now Aktuelle Zeit als UTC-Timestamp.
+         * @param  int $MaxDeviation Erlaubte Abweichung in Sekunden.
+         * @return bool true, wenn die Zeit ungültig ist oder zu stark abweicht.
+         */
+        public static function NodeTimeNeedsSync(int $NodeTime, int $Now, int $MaxDeviation = 300): bool
+        {
+            return ($NodeTime <= 0) || (abs($NodeTime - $Now) > $MaxDeviation);
+        }
+
+        /**
          * Timestamp2Hex
          *
          * @param  int $TimeStamp
@@ -712,8 +877,10 @@ namespace Plugwise{
          */
         public static function Timestamp2Hex(int $TimeStamp): string
         {
-            $date = sprintf('%02X%02X%02X', gmdate('y', $TimeStamp), gmdate('m', $TimeStamp), ((gmdate('j', $TimeStamp) - 1) * 24 + gmdate('G', $TimeStamp)) * 60 + gmdate('i', $TimeStamp));
-            $time = sprintf('%02X%02X%02X%02X', gmdate('G', $TimeStamp), gmdate('i', $TimeStamp), gmdate('s', $TimeStamp), gmdate('N', $TimeStamp));
+            // Jahr (2 Zeichen), Monat (2 Zeichen) und Minuten seit Monatsanfang (immer 4 Zeichen, sonst verschiebt sich das Telegramm
+            // in den ersten Tagen eines Monats, wenn der Wert unter 0x1000 liegt).
+            $date = sprintf('%02X%02X%04X', gmdate('y', $TimeStamp), gmdate('m', $TimeStamp), ((gmdate('j', $TimeStamp) - 1) * 24 + gmdate('G', $TimeStamp)) * 60 + gmdate('i', $TimeStamp));
+            $time = sprintf('%02X%02X%02X%02X', gmdate('G', $TimeStamp), gmdate('i', $TimeStamp), gmdate('s', $TimeStamp), gmdate('N', $TimeStamp) - 1);
             return $date . 'FFFFFFFF' . $time;
         }
 
@@ -728,18 +895,49 @@ namespace Plugwise{
             if ($TimeString == 'FFFFFFFF') {
                 return -1;
             }
-            $circle_date = sprintf('%04d-%02d-%02d', hexdec(substr($TimeString, 0, 2)) + 2000, hexdec(substr($TimeString, 2, 2)), (hexdec(substr($TimeString, 4, 4)) / 60 / 24) + 1);
-            $time = hexdec(substr($TimeString, 4, 4)) % (60 * 24);
-            $hour = intval($time / 60);
-            $minutes = $time % 60;
-            $circle_time = sprintf('%02d:%02d', $hour, $minutes);
-            return strtotime($circle_date . $circle_time . ' UTC');
+            if (preg_match('/^[0-9A-Fa-f]{8}/', $TimeString) !== 1) {
+                return -1;
+            }
+            // Jahr (2 Zeichen), Monat (2 Zeichen), Minuten seit Monatsanfang (4 Zeichen)
+            $Year = 2000 + self::HexToInt(substr($TimeString, 0, 2));
+            $Month = self::HexToInt(substr($TimeString, 2, 2));
+            $MinutesOfMonth = self::HexToInt(substr($TimeString, 4, 4));
+            if (($Month < 1) || ($Month > 12) || ($MinutesOfMonth >= 31 * 24 * 60)) {
+                return -1;
+            }
+            $Day = intdiv($MinutesOfMonth, 24 * 60) + 1;
+            $MinutesOfDay = $MinutesOfMonth % (24 * 60);
+            return gmmktime(intdiv($MinutesOfDay, 60), $MinutesOfDay % 60, 0, $Month, $Day, $Year);
+        }
+
+        /**
+         * HexToSigned
+         *
+         * Wandelt einen Hex-String als vorzeichenbehafteten Wert (Zweierkomplement, Breite = 4 Bit je Zeichen) um.
+         * Die Pulse und Zähler der Nodes haben ein Vorzeichen: Speist ein Gerät zurück (z.B. ein Wechselrichter),
+         * sind sie negativ. Als vorzeichenloser Wert wären es riesige Zahlen (FFFE = 65534 statt -2).
+         *
+         * @param  string $Hex 4 Zeichen (16 Bit) oder 8 Zeichen (32 Bit).
+         * @return int|float float nur auf Systemen mit 32 Bit Integer für große Beträge.
+         */
+        public static function HexToSigned(string $Hex): int|float
+        {
+            $Value = hexdec($Hex);
+            $Range = pow(2, strlen($Hex) * 4);
+            if ($Value >= $Range / 2) {
+                $Value -= $Range;
+            }
+            return is_float($Value) && ($Value == floor($Value)) && (abs($Value) <= PHP_INT_MAX) ? (int) $Value : $Value;
         }
 
         /**
          * pulsesCorrection
          *
-         * @param  string $PulsesInHex
+         * Berechnet aus den Pulsen eines Nodes die kalibrierten Pulse pro Sekunde (siehe pulsesToWatt und pulsesToKwh).
+         * Das Vorzeichen bleibt erhalten: negative Pulse (Einspeisung) ergeben einen negativen Wert,
+         * die Kalibrierung wird auf den Betrag angewendet.
+         *
+         * @param  string $PulsesInHex Pulse als Hex-String mit Vorzeichen (4 oder 8 Zeichen)
          * @param  int $TimeSpan
          * @param  float $offRuis
          * @param  float $offTot
@@ -749,18 +947,20 @@ namespace Plugwise{
          */
         public static function pulsesCorrection(string $PulsesInHex, int $TimeSpan, float $offRuis, float $offTot, float $gainA, float $gainB): float
         {
-            $Pulses = hexdec($PulsesInHex);
-            if ($Pulses == 0) {
-                $Result = 0;
-            } else {
-                $value = $Pulses / $TimeSpan;
-                $Result = 1 * (((pow($value + $offRuis, 2.0) * $gainB) + (($value + $offRuis) * $gainA)) + $offTot);
+            $Signed = self::HexToSigned($PulsesInHex);
+            if ($Signed == 0) {
+                return 0.0;
             }
-            return $Result;
+            $Sign = ($Signed < 0) ? -1.0 : 1.0;
+            $value = abs($Signed) / $TimeSpan;
+            return $Sign * (((pow($value + $offRuis, 2.0) * $gainB) + (($value + $offRuis) * $gainA)) + $offTot);
         }
 
         /**
          * pulsesToKwh
+         *
+         * $pulses ist der kalibrierte Wert in Pulsen pro Sekunde, geteilt durch 468.9385193 ergibt kW, über eine Stunde kWh.
+         * Ob das 8-stellige Feld der PowerUsageResponse ein Gesamtzähler oder ein Stundenwert ist, ist ungeklärt (siehe STATUS.md).
          *
          * @param  float $pulses
          * @return float
@@ -772,6 +972,8 @@ namespace Plugwise{
 
         /**
          * pulsesToWatt
+         *
+         * Das Feld nanosecond_offset der Antwort wird nicht ausgewertet.
          *
          * @param  float $pulses
          * @return float
@@ -891,10 +1093,10 @@ namespace Plugwise{
                     //   $log_addr = ( hex($address) - 278528 ) / 8;
                     //   [later] I think the pairs of data is a power-value followed by a timestamp. The timestamp has the same structure as the date-word of the 0016 command. This means that  value 0B 04 7DA0 could mean Year 2011, Month April,  From the start of the month 32160 minutes, this is 536 hour, which is 22 days and 8 hour. Somewhere during the 23rd of april (yesterday), when the data was captured. So that is most likely.
                     //   [days later] The structure of this reply is explained in the plugwise unleased documents, and indeed 4 pairs of data, each pair represents one hour of accummulated power usage
-                case Command::PushButtonResponse:
+                case Command::NodeAwakeResponse:
                     //   000D6F0000B1A240 | xx
                     //   Device MAC       | ??
-                case Command::KeyPressResponse:
+                case Command::NodeSwitchGroupResponse:
                     //   000D6F0000B1A240 | xx | yy
                     //   Device MAC       | ?? | ??
                 case Command::FeatureSetResponse:
@@ -992,7 +1194,7 @@ namespace Plugwise{
                 $buffer .= sprintf('%04X', $this->FrameID);
             }
             $buffer .= $this->NodeMAC . $this->Data;
-            $crc16c = 0x0000;  // the crc initial value laut www.maartendamen.com
+            $crc16c = 0x0000;
             $buffer_length = strlen($buffer);
             for ($i = 0; $i < $buffer_length; $i++) {
                 $ch = ord($buffer[$i]);
@@ -1013,11 +1215,7 @@ namespace Plugwise{
          */
         private function update_common_crc16c(int $ch, int $crc16c): int
         {
-            $crc16c_polynomial = 0x11021;   //auch laut maartendamen
-            // This comment was in the code from
-            // http://www.joegeluso.com/software/articles/ccitt.htm
-            // Why are they shifting this byte left by 8 bits??
-            // How do the low bits of the poly ever see it?
+            $crc16c_polynomial = 0x11021;
             $ch <<= 8;
             for ($i = 0; $i < 8; $i++) {
                 if (($crc16c ^ $ch) & 0x8000) {
@@ -1038,7 +1236,304 @@ namespace Plugwise{
     }
 
     /**
+     * Sense
+     *
+     * Umrechnung der Rohwerte des Sense (SensInfoResponse).
+     * T = 175.72 * Raw / 65536 - 46.85, H = 125 * Raw / 65536 - 6, Rohwert 65535 = kein Wert.
+     */
+    class Sense
+    {
+        public const NoValue = 65535;
+
+        /**
+         * Temperature
+         *
+         * @param  int $Raw
+         * @return float|null null, wenn der Node keinen Wert geliefert hat.
+         */
+        public static function Temperature(int $Raw): ?float
+        {
+            return ($Raw === self::NoValue) ? null : (175.72 * $Raw / 65536 - 46.85);
+        }
+
+        /**
+         * Humidity
+         *
+         * @param  int $Raw
+         * @return float|null null, wenn der Node keinen Wert geliefert hat.
+         */
+        public static function Humidity(int $Raw): ?float
+        {
+            return ($Raw === self::NoValue) ? null : (125 * $Raw / 65536 - 6);
+        }
+    }
+
+    /**
+     * Presentation
+     *
+     * Darstellungsparameter der Statusvariablen. Die Parameter werden per Unit-Test gegen
+     * die Parameterlisten von IPS_GetPresentation geprüft (tests/PresentationParameters.json).
+     */
+    class Presentation
+    {
+        /**
+         * Reachable
+         *
+         * @param  string $Alert Beschriftung für false.
+         * @param  string $Ok Beschriftung für true.
+         * @return array
+         */
+        public static function Reachable(string $Alert, string $Ok): array
+        {
+            return [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => 'Warning',
+                'PREFIX'       => '',
+                'SUFFIX'       => '',
+                'USAGE_TYPE'   => 0,
+                'OPTIONS'      => json_encode([
+                    self::BooleanOption(false, $Alert, 16711680),
+                    self::BooleanOption(true, $Ok, -1),
+                ])
+            ];
+        }
+
+        /**
+         * Frequency
+         *
+         * @return array
+         */
+        public static function Frequency(): array
+        {
+            return [
+                'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'             => 'Electricity',
+                'DIGITS'           => 2,
+                'INTERVALS'        => '[]',
+                'INTERVALS_ACTIVE' => false,
+                'PERCENTAGE'       => false,
+                'PREFIX'           => '',
+                'SUFFIX'           => ' Hz',
+                'USAGE_TYPE'       => 0,
+            ];
+        }
+
+        /**
+         * Motion
+         *
+         * @param  string $NoMotion Beschriftung für false.
+         * @param  string $Motion Beschriftung für true.
+         * @return array
+         */
+        public static function Motion(string $NoMotion, string $Motion): array
+        {
+            return [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => 'person-walking',
+                'PREFIX'       => '',
+                'SUFFIX'       => '',
+                'USAGE_TYPE'   => 0,
+                'OPTIONS'      => json_encode([
+                    self::BooleanOption(false, $NoMotion, -1),
+                    self::BooleanOption(true, $Motion, 16750848),
+                ])
+            ];
+        }
+
+        /**
+         * Power
+         *
+         * Leistung in Watt (aktuell und Durchschnitt).
+         *
+         * @return array
+         */
+        public static function Power(): array
+        {
+            return self::Numeric(' W', ' mW', ' kW');
+        }
+
+        /**
+         * EnergyOverall
+         *
+         * Energie in kWh.
+         *
+         * @return array
+         */
+        public static function EnergyOverall(): array
+        {
+            return self::Numeric(' kWh', ' Wh', ' MWh');
+        }
+
+        /**
+         * Temperature
+         *
+         * @return array
+         */
+        public static function Temperature(): array
+        {
+            return [
+                'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'MIN'              => -30,
+                'MAX'              => 70,
+                'DIGITS'           => 1,
+                'ICON'             => 'Temperature',
+                'INTERVALS'        => '[]',
+                'INTERVALS_ACTIVE' => false,
+                'PERCENTAGE'       => false,
+                'PREFIX'           => '',
+                'SUFFIX'           => ' °C',
+                'USAGE_TYPE'       => 1,
+            ];
+        }
+
+        /**
+         * Humidity
+         *
+         * @return array
+         */
+        public static function Humidity(): array
+        {
+            return [
+                'PRESENTATION'     => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'MIN'              => 0,
+                'MAX'              => 100,
+                'DIGITS'           => 1,
+                'ICON'             => 'Gauge',
+                'INTERVALS'        => '[]',
+                'INTERVALS_ACTIVE' => false,
+                'PERCENTAGE'       => true,
+                'PREFIX'           => '',
+                'SUFFIX'           => ' %',
+                'USAGE_TYPE'       => 0,
+            ];
+        }
+
+        /**
+         * Numeric
+         *
+         * @param  string $Suffix Einheit der Variable.
+         * @param  string $SmallSuffix Einheit für Werte im Bereich 0,001 bis 1.
+         * @param  string $LargeSuffix Einheit für Werte im Bereich 1000 bis 999999.
+         * @return array
+         */
+        private static function Numeric(string $Suffix, string $SmallSuffix, string $LargeSuffix): array
+        {
+            return [
+                'PRESENTATION'        => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'                => 'bolt',
+                'DECIMAL_SEPARATOR'   => 'Client',
+                'COLOR'               => -1,
+                'DISPLAY_TYPE'        => 0,
+                'CONTENT_COLOR'       => -1,
+                'DIGITS'              => 2,
+                'INTERVALS'           => json_encode([
+                    self::Interval(0.001, 1, 0.001, $SmallSuffix, false),
+                    self::Interval(1000, 999999, 1000, $LargeSuffix, true),
+                ]),
+                'INTERVALS_ACTIVE'    => true,
+                'MIN'                 => 0,
+                'MAX'                 => 100,
+                'PERCENTAGE'          => false,
+                'PREFIX'              => '',
+                'PREVIEW_STYLE'       => 1,
+                'SHOW_PREVIEW'        => true,
+                'SUFFIX'              => $Suffix,
+                'THOUSANDS_SEPARATOR' => '',
+                'USAGE_TYPE'          => 0,
+            ];
+        }
+
+        /**
+         * Interval
+         *
+         * @param  float $Min
+         * @param  float $Max
+         * @param  float $Factor
+         * @param  string $Suffix
+         * @param  bool $Digits
+         * @return array
+         */
+        private static function Interval(float $Min, float $Max, float $Factor, string $Suffix, bool $Digits): array
+        {
+            return [
+                'IntervalMinValue'   => $Min,
+                'IntervalMaxValue'   => $Max,
+                'ConstantActive'     => false,
+                'ConstantValue'      => '',
+                'ConversionFactor'   => $Factor,
+                'PrefixActive'       => false,
+                'PrefixValue'        => '',
+                'SuffixActive'       => true,
+                'SuffixValue'        => $Suffix,
+                'DigitsActive'       => $Digits,
+                'DigitsValue'        => 2,
+                'IconActive'         => false,
+                'IconValue'          => '',
+                'ColorActive'        => false,
+                'ColorValue'         => -1,
+                'ContentColorActive' => false,
+                'ContentColorValue'  => -1,
+            ];
+        }
+
+        /**
+         * BooleanOption
+         *
+         * @param  bool $Value
+         * @param  string $Caption
+         * @param  int $Color
+         * @return array
+         */
+        private static function BooleanOption(bool $Value, string $Caption, int $Color): array
+        {
+            return [
+                'Value'              => $Value,
+                'Caption'            => $Caption,
+                'IconActive'         => false,
+                'IconValue'          => '',
+                'ColorActive'        => true,
+                'ColorValue'         => $Color,
+                'ContentColorActive' => false,
+                'ContentColorValue'  => -1,
+            ];
+        }
+    }
+    /**
+     * FormHelper
+     *
+     * Setzt Eigenschaften von Elementen eines Konfigurationsformulars über den Namen (`name`) statt über den Index.
+     */
+    trait FormHelper
+    {
+        /**
+         * Setzt eine Eigenschaft des ersten Elements mit dem Namen $Name (rekursiv in allen Ebenen des Formulars).
+         *
+         * @param  array $Form Das Formular oder ein Teil davon.
+         * @param  string $Name Wert von `name` des Elements.
+         * @param  string $Property Zu setzende Eigenschaft, z.B. `visible`, `enabled` oder `values`.
+         * @param  mixed $Value Neuer Wert.
+         * @return bool true, wenn das Element gefunden wurde.
+         */
+        protected function SetFormProperty(array &$Form, string $Name, string $Property, mixed $Value): bool
+        {
+            foreach ($Form as &$Element) {
+                if (!is_array($Element)) {
+                    continue;
+                }
+                if (($Element['name'] ?? null) === $Name) {
+                    $Element[$Property] = $Value;
+                    return true;
+                }
+                if ($this->SetFormProperty($Element, $Name, $Property, $Value)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    /**
      * DebugHelper ergänzt SendDebug um die Möglichkeit Array und Objekte auszugeben.
+     * Eigene Variante neben libs/helper/DebugHelper.php: Plugwise\Frame-Objekte werden lesbar ausgegeben.
      *
      */
     trait DebugHelper

@@ -10,7 +10,6 @@
             "Open I/O instance": "Öffne I/O-Instanz",
             "Add devices to network": "Geräte zum Netzwerk hinzufügen",
             "Searching...": "Suche...",
-            "Founded devices": "Gefundene Geräte",
             "Searching started": "Suche gestartet",
             "Error on start searching": "Fehler beim starten der Suche",
             "Remaining time for searching: ": "Verbleibende Zeit der Suche: ",
@@ -29,6 +28,7 @@
             "RF-Stick not found": "RF-Stick nicht gefunden",
             "Circle+ missing / No PAN ID": "Circle+ fehlt / Keine PAN ID",
             "Circle+ offline": "Circle+ offline",
+            "Search for nodes aborted, Circle+ does not respond": "Suche nach Nodes abgebrochen, Circle+ antwortet nicht",
             "Search for Circle+": "Suche nach Circle+",
             "Ongoing paring with Circle+": "Laufendes paring mit Circle+",
             "no Stick": "Kein Stick",
@@ -49,7 +49,22 @@
             "Finished scanning of the Plugwise network": "Durchsuchen des Plugwise Netzwerk abgeschlossen",
             "Plugwise network is up an running": "Plugwise Netzwerk ist online und bereit",
             "Circle+ not found": "Circle+ nicht gefunden",
-            "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:"
+            "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:",
+            "Found devices": "Gefundene Geräte",
+            "Node MAC": "Node MAC",
+            "Name": "Name",
+            "Hardware": "Hardware",
+            "Firmware": "Firmware",
+            "Invalid node MAC.": "Ungültige Node MAC.",
+            "BufferIN is locked": "Empfangspuffer ist gesperrt",
+            "Invalid Ident": "Ungültiger Ident",
+            "Search for nodes not possible:": "Suche nach Nodes nicht möglich:",
+            "Circle+ MAC:": "Circle+ MAC:",
+            "ReplyData is locked": "Antwortdaten sind gesperrt",
+            "Stick not found": "Stick nicht gefunden",
+            "Ongoing network discovery": "Netzwerksuche läuft",
+            "Online": "Online",
+            "Online, joining possible": "Online, Beitritt möglich"
         }
     }
 }

@@ -1,9 +1,9 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
 [![Module Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FPlugwise%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.version&label=Modul%20Version&color=blue)](https://community.symcon.de/t/modul-plugwise/142771)
 [![Symcon Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FPlugwise%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.compatibility.version&suffix=%3E&label=Symcon%20Version&color=green)](https://www.symcon.de/de/service/dokumentation/installation/migrationen/v80-v81-q3-2025/)  
-[![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Check Style](https://github.com/Nall-chan/SqueezeBox/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/SqueezeBox/actions) [![Run Tests](https://github.com/Nall-chan/SqueezeBox/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/SqueezeBox/actions)  
-[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#2-spenden)[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#2-spenden)
+[![License](https://img.shields.io/badge/License-Custom--NC--SA-green.svg)](#10-lizenz)
+[![Check Style](https://github.com/Nall-chan/Plugwise/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Plugwise/actions) [![Run Tests](https://github.com/Nall-chan/Plugwise/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Plugwise/actions)  
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#2-spenden) [![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#2-spenden)
 
 # Plugwise Netzwerk (Splitter) <!-- omit in toc -->
 
@@ -47,26 +47,44 @@ Bei der manuellen Einrichtung ist die Instanz im Dialog `Instanz hinzufügen` un
 
 **Konfigurationsseite:**  
 
-![Instanz hinzufügen](imgs/conf1.png)  
+![Konfigurationsseite](imgs/conf1.png)  
 
 Der Splitter hat keine einstellbaren Parameter.  
 
 Über die Schaltflächen im Aktionsbereich können neue Geräte zum Netzwerk hinzugefügt, oder auch vorhandene Geräte aus dem Netzwerk entfernt werden.
 
 **Neue Geräte in das Netzwerk aufnehmen:**  
-![Instanz hinzufügen](imgs/include.png)  
+![Neue Geräte in das Netzwerk aufnehmen](imgs/include.png)  
 
 **Vorhandene Geräte aus dem Netzwerk entfernen:**  
-![Instanz hinzufügen](imgs/exclude.png)  
+![Vorhandene Geräte aus dem Netzwerk entfernen](imgs/exclude.png)  
+
+**Gerät in den Werkszustand zurücksetzen und neu anlernen:**  
+
+1. Das Gerät mit `Vorhandene Geräte aus dem Netzwerk entfernen` aus dem Netzwerk entfernen (oder mit dem Befehl [`PLUGWISE_RequestExcludeOfNode`](#7-php-befehlsreferenz)). Dabei wird es automatisch auf die Werkseinstellungen zurückgesetzt.  
+2. Anschließend `Geräte zum Netzwerk hinzufügen` öffnen. Der Beitritt ist dann 4 Minuten erlaubt. Ein Gerät im Werkszustand, das mit Strom versorgt wird, meldet sich selbständig und erscheint in der Liste `Gefundene Geräte`.  
+3. Das Gerät in der Liste auswählen und mit `Ausgewählten Node zum Netzwerk hinzufügen` anlernen.  
+
+> [!NOTE]
+> Ist das Gerät nicht erreichbar (z.B. weil es in einem anderen Netzwerk angelernt ist oder keine Verbindung mehr zum Circle+ hat), kann es nicht über das Netzwerk zurückgesetzt werden. Dann ist ein Reset am Gerät selbst nötig.
+
+**Reset am Gerät (mit einem Circle geprüft):**  
+
+1. Das Gerät 2 Sekunden einstecken, dann 2 Sekunden ausstecken.  
+2. Das Gerät noch einmal 2 Sekunden einstecken und 2 Sekunden ausstecken.  
+3. Das Gerät 8 Sekunden einstecken und 8 Sekunden ausstecken.  
+4. Das Gerät wieder einstecken. Es ist jetzt im Werkszustand und kann wie oben beschrieben neu angelernt werden.  
+
+Bei anderen Modellen oder Firmwareständen kann das Verfahren abweichen, dann gilt die Anleitung des Herstellers.  
 
 ## 5. Statusvariablen
 
-Folgende Statusvariablen werden:  
+Folgende Statusvariablen werden automatisch angelegt:  
 
 | Name              |   Typ   | Ident         | Beschreibung                                            |
 | :---------------- | :-----: | :------------ | :------------------------------------------------------ |
 | Netzwerk ID       | string  | NetworkID     | PAN (Personal Area Netzwerk) ID                         |
-| Circle+ Zeit okay | boolean | TimeSync      | Wenn die Zeit erfolgreich an den Circle+ gesendet wurde |
+| Circle+ Zeit okay | boolean | TimeSync      | Wenn die Uhr des Circle+ stimmt. Sie wird alle 10 Minuten geprüft und bei Abweichung neu gesetzt |
 | Suche läuft       | boolean | ScanNetwork   | true so lange bis das auslesen des Netzwerkes andauert  |
 | Beitritt erlauben | boolean | JoiningActive | Steuert und zeigt den Zustand für Netzwerkbeitritt an   |
 | Hardware          | string  | Hardware      | Kennung der Hardware                                    |
@@ -79,44 +97,76 @@ Für die Visualisierung muss entsprechend mit [Links](https://www.symcon.de/de/s
 
 ## 7. PHP-Befehlsreferenz
 
-Für alle Befehle gilt:  
-Tritt ein Fehler auf, wird eine Warnung erzeugt.  
-Dies gilt auch wenn ein übergebender Wert für einen Parameter nicht gültig ist, oder außerhalb seines zulässigen Bereiches liegt.  
+Für alle Befehle gilt:
+Tritt ein Fehler auf, schlägt der Aufruf mit einer Fehlermeldung fehl (z.B. `Zeitüberschreitung` oder `Ungültige Node MAC.`).
+Dies gilt auch wenn ein übergebender Wert für einen Parameter nicht gültig ist, oder außerhalb seines zulässigen Bereiches liegt.
+Der Parameter `$InstanzID` ist die Objekt-ID der Netzwerk-Instanz.
+Der Parameter `$NodeMAC` ist die MAC Adresse des Gerätes (16 Hexadezimal-Zeichen, Großbuchstaben), so wie sie im Aktionsbereich der Instanz in der Spalte `Node MAC` steht.
+Die Befehle sind nur möglich, wenn das Plugwise-Netzwerk online ist (Stick und Circle+ erreichbar).
 
 ```php
-bool PLUGWISE_EnableNetworkJoining(int $InstanzID, bool $Value)
+boolean PLUGWISE_EnableNetworkJoining(integer $InstanzID, boolean $Value);
 ```
 
-Schaltet den Beitritt zum Netzwerk an (true) oder aus (false).  
+Schaltet den Beitritt zum Netzwerk an (`true`) oder aus (`false`).
+Nach dem Einschalten ist der Beitritt 4 Minuten erlaubt und wird danach automatisch beendet.
+Geräte, die sich anmelden, erscheinen in der Liste `Gefundene Geräte`.
+Gibt `true` zurück, wenn der Circle+ die Änderung bestätigt hat.
+
+Beispiel:
+
+```php
+PLUGWISE_EnableNetworkJoining(12345, true);
+```
 
 ---
 
 ```php
-bool PLUGWISE_RequestJoiningOfNode(int $InstanzID, string $NodeMAC)
+boolean PLUGWISE_RequestJoiningOfNode(integer $InstanzID, string $NodeMAC);
 ```
 
-Lernt das Gerät mit der $NodeMAC im Netzwerk an.  
+Lernt das Gerät mit der `$NodeMAC` im Netzwerk an.
+Gibt `true` zurück, wenn das Gerät die Anforderung bestätigt hat.
+
+Beispiel:
+
+```php
+PLUGWISE_RequestJoiningOfNode(12345, '000D6F0000000001');
+```
 
 ---
 
 ```php
-bool PLUGWISE_RequestExcludeOfNode(int $InstanzID, string $NodeMAC)
+boolean PLUGWISE_RequestExcludeOfNode(integer $InstanzID, string $NodeMAC);
 ```
 
-Entfernt das Gerät mit der $NodeMAC aus dem Netzwerk.  
-Anschließend wird automatisch ein Werksreset des Gerätes durchgeführt.  
+Entfernt das Gerät mit der `$NodeMAC` aus dem Netzwerk.
+Anschließend wird automatisch ein Werksreset des Gerätes durchgeführt.
+Gibt `true` zurück, wenn das Gerät entfernt wurde.
+
+Beispiel:
+
+```php
+PLUGWISE_RequestExcludeOfNode(12345, '000D6F0000000001');
+```
 
 ---
 
 ```php
-bool PLUGWISE_ResetNode(int $InstanzID,string $NodeMAC)
+boolean PLUGWISE_ResetNode(integer $InstanzID, string $NodeMAC);
 ```
 
-Setzt das Gerät zurück, es bleibt jedoch im Netzwerk angelernt.  
+Setzt das Gerät zurück, es bleibt jedoch im Netzwerk angelernt.
+Gibt `true` zurück, wenn das Gerät den Reset bestätigt hat.
 
+Beispiel:
+
+```php
+PLUGWISE_ResetNode(12345, '000D6F0000000001');
+```
 ## 8. Aktionen
 
-**Grundsätzlich können alle bedienbaren Statusvariablen als Ziel einer [`Aktion`](https://www.symcon.de/service/dokumentation/konzepte/automationen/ablaufplaene/aktionen/) mit `Auf Wert schalten` angesteuert werden, so das hier keine speziellen Aktionen benutzt werden müssen.**
+**Grundsätzlich können alle bedienbaren Statusvariablen als Ziel einer [`Aktion`](https://www.symcon.de/service/dokumentation/konzepte/automationen/ablaufplaene/aktionen/) mit `Auf Wert schalten` angesteuert werden, so dass hier keine speziellen Aktionen benutzt werden müssen.**
 
 Es werden keine Instanz spezifischen Aktionen angeboten.  
 
@@ -124,7 +174,7 @@ Es werden keine Instanz spezifischen Aktionen angeboten.
 
 ### 1. Changelog
 
-[Changelog der Library](../README.md#3-changelog)
+[Changelog der Library](../README.md#2-changelog)
 
 ### 2. Spenden
 
@@ -139,4 +189,4 @@ Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als U
 ## 10. Lizenz
 
 IPS-Modul:  
-[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
+[Custom NC-SA](../LICENSE)  

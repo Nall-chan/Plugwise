@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 /**
  * @package       Plugwise
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2026 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.00
- * @example <b>Ohne</b>
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2017-2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.10
  */
 require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
 
@@ -17,13 +16,12 @@ require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
  * Erweitert IPSModule.
  *
  * @package       Plugwise
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2026 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.00
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2017-2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.10
  * @property int $ParentID Die InstanzeID des IO-Parent
  * @method int RegisterParent()
- * @method void RegisterProfileFloat(string $Name, string $Icon, string $Prefix, string $Suffix, float $MinValue, float $MaxValue, float $StepSize, int $Digits)
  * @method bool IORequestAction(string $Ident, mixed $Value)
  * @method void IOMessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data)
  */
@@ -31,9 +29,21 @@ class PlugwiseConfigurator extends IPSModuleStrict
 {
     use \Plugwise\BufferHelper;
     use \Plugwise\DebugHelper;
+    use \Plugwise\FormHelper;
     use \Plugwise\InstanceStatus{
         \Plugwise\InstanceStatus::MessageSink as IOMessageSink;
         \Plugwise\InstanceStatus::RequestAction as IORequestAction;
+    }
+
+    /**
+     * Create
+     *
+     * @return void
+     */
+    public function Create(): void
+    {
+        parent::Create();
+        $this->ParentID = 0;
     }
 
     /**
@@ -43,6 +53,8 @@ class PlugwiseConfigurator extends IPSModuleStrict
      */
     public function ApplyChanges(): void
     {
+        $this->ParentID = 0;
+        parent::ApplyChanges();
         $this->RegisterMessage($this->InstanceID, FM_CONNECT);
         $this->RegisterMessage($this->InstanceID, FM_DISCONNECT);
         if (IPS_GetKernelRunlevel() != KR_READY) {
@@ -75,7 +87,6 @@ class PlugwiseConfigurator extends IPSModuleStrict
      */
     public function GetConfigurationForm(): string
     {
-
         $Form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
         if ($this->GetStatus() == IS_CREATING) {
             return json_encode($Form);
@@ -86,17 +97,17 @@ class PlugwiseConfigurator extends IPSModuleStrict
                 'popup' => [
                     'items' => [[
                         'type'    => 'Label',
-                        'caption' => 'Instance has no active parent.'
+                        'caption' => $this->Translate('Instance has no active parent.')
                     ]]
                 ]
             ];
-            $this->SendDebug('FORM', json_encode($Form), 0);
-            $this->SendDebug('FORM', json_last_error_msg(), 0);
             return json_encode($Form);
-
         }
         $FoundNodes = $this->GetNodes();
         $this->SendDebug('Found', $FoundNodes, 0);
+        if (!is_array($FoundNodes)) {
+            $FoundNodes = [];
+        }
         $InstanceIDListe = $this->GetInstanceList(\Plugwise\GUID::Node);
         $Values = [];
         foreach ($FoundNodes as $NodeMAC) {
@@ -134,9 +145,7 @@ class PlugwiseConfigurator extends IPSModuleStrict
                 'location'   => stristr(IPS_GetLocation($InstanceID), IPS_GetName($InstanceID), true)
             ];
         }
-        $Form['actions'][0]['values'] = $Values;
-        $this->SendDebug('FORM', json_encode($Form), 0);
-        $this->SendDebug('FORM', json_last_error_msg(), 0);
+        $this->SetFormProperty($Form, 'Nodes', 'values', $Values);
         return json_encode($Form);
     }
 
@@ -157,16 +166,14 @@ class PlugwiseConfigurator extends IPSModuleStrict
     /**
      * RequestAction
      *
-     * Actionhandler der Statusvariablen. Interne SDK-Funktion.
+     * Nimmt nur die internen Meldungen des Parent (IOChangeState) entgegen.
      *
-     * @param string $Ident Der Ident der Statusvariable.
-     * @param bool|float|int|string $Value Der angeforderte neue Wert.
+     * @param string $Ident Der Ident der Aktion.
+     * @param mixed $Value Der Wert.
      */
     public function RequestAction(string $Ident, mixed $Value): void
     {
-        if ($this->IORequestAction($Ident, $Value)) {
-            return;
-        }
+        $this->IORequestAction($Ident, $Value);
     }
 
     /**
@@ -208,7 +215,7 @@ class PlugwiseConfigurator extends IPSModuleStrict
             return false;
         }
         /** @var string|array  $Result */
-        $Result = @unserialize($ResultString);
+        $Result = @unserialize($ResultString, ['allowed_classes' => false]);
         $this->SendDebug('Result Function', $Result, 0);
         if (($Result === null) || ($Result === false)) {
             $this->SendDebug('Result Function', 'Error receive data', 0);
@@ -252,35 +259,6 @@ class PlugwiseConfigurator extends IPSModuleStrict
     private function GetConfigParam(mixed &$item1, int $InstanceID, string $ConfigParam): void
     {
         $item1 = IPS_GetProperty($InstanceID, $ConfigParam);
-    }
-
-    /**
-     * Send
-     *
-     * Konvertiert $PlugwiseData zu einem JSONString und versendet diese an den Splitter.
-     *
-     * @param \Plugwise\Frame $PlugwiseData Zu versendende Daten.
-     * @return \Plugwise\Frame|bool Objekt mit der Antwort. false im Fehlerfall.
-     */
-    private function Send(\Plugwise\Frame $PlugwiseData): bool|\Plugwise\Frame
-    {
-        $this->SendDebug('Send', $PlugwiseData, 0);
-        $JSONData = $PlugwiseData->ToJSONStringForSplitter();
-        $ResultString = @$this->SendDataToParent($JSONData);
-        $this->SendDebug('Send', $JSONData, 0);
-        if ($ResultString == false) {
-            $this->SendDebug('Receive', 'Error receive data', 0);
-            return false;
-        }
-        /** @var \Plugwise\Frame|bool $Result */
-        $Result = @unserialize($ResultString);
-        $this->SendDebug('Response', $Result, 0);
-
-        if (($Result === null) || ($Result === false)) {
-            $this->SendDebug('Receive', 'Error receive data', 0);
-            return false;
-        }
-        return $Result;
     }
 
     /**

@@ -6,12 +6,15 @@
                 {
                     "name": "NodeMAC",
                     "type": "ValidationTextBox",
+                    "validate": "^([0-9A-Fa-f]{16})?$",
                     "caption": "Device MAC"
                 },
                 {
                     "name": "Interval",
                     "type": "NumberSpinner",
-                    "caption": "Refresh Interval"
+                    "caption": "Refresh Interval",
+                    "minimum": 0,
+                    "suffix": "seconds"
                 }
             ]
         },
@@ -42,15 +45,20 @@
                     "caption": "Show overall consumption"
                 },
                 {
+                    "name": "showFeedIn",
+                    "type": "CheckBox",
+                    "caption": "Show overall feed-in"
+                },
+                {
                     "name": "showFrequenz",
                     "type": "CheckBox",
-                    "caption": "Show frequenz"
+                    "caption": "Show frequency"
                 }
             ]
         },
         {
             "type": "ExpansionPanel",
-            "name": "Send",
+            "name": "Sens",
             "caption": "Sens",
             "expanded": true,
             "items": [
@@ -88,6 +96,17 @@
                     "caption": "Show hardware version"
                 }
             ]
+        },
+        {
+            "type": "Label",
+            "caption": "Deselecting an option deletes the corresponding status variable."
+        }
+    ],
+    "status": [
+        {
+            "code": 201,
+            "icon": "error",
+            "caption": "Node not reachable"
         }
     ],
     "actions": [
@@ -97,6 +116,7 @@
         {
             "type": "Button",
             "label": "Request state",
+            "name": "RequestState",
             "onClick": "PLUGWISE_RequestState($id);"
         },
         {
@@ -108,7 +128,7 @@
         {
             "type": "Button",
             "label": "Read energy measurement",
-            "name": "equestEnergy",
+            "name": "RequestEnergy",
             "onClick": "PLUGWISE_RequestEnergy($id);"
         },
         {

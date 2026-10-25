@@ -5,10 +5,10 @@ declare(strict_types=1);
 /**
  * @package       Plugwise
  * @file          module.php
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2026 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.00
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2017-2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.10
  *
  */
 require_once __DIR__ . '/../libs/Plugwise.php';  // diverse Klassen
@@ -20,11 +20,10 @@ eval('declare(strict_types=1);namespace PlugwiseNetwork {?>' . file_get_contents
  * Erweitert IPSModule.
  *
  * @package       Plugwise
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2026 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.00
- * @example <b>Ohne</b>
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2017-2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.10
  * @property int $ParentID Die InstanzeID des IO-Parent
  * @property int $FrameID
  * @property int $LastFrameID
@@ -36,6 +35,7 @@ eval('declare(strict_types=1);namespace PlugwiseNetwork {?>' . file_get_contents
  * @property array $NewNodes
  * @property array $Nodes
  * @property int $SearchIndex
+ * @property int $SearchErrors Anzahl der aufeinanderfolgenden Fehlversuche beim Suchen der Nodes
  * @property int $NetworkState
  * @property int $DisableNetworkJoiningTime
  * @method bool lock(string $ident)
@@ -51,12 +51,21 @@ class PlugwiseNetwork extends IPSModuleStrict
 {
     use \Plugwise\BufferHelper,
         \Plugwise\DebugHelper,
+        \Plugwise\FormHelper,
         \PlugwiseNetwork\VariableHelper,
         \Plugwise\Semaphore,
         \Plugwise\InstanceStatus{
             \Plugwise\InstanceStatus::MessageSink as IOMessageSink;
             \Plugwise\InstanceStatus::RequestAction as IORequestAction;
         }
+    /** Anzahl der Fehlversuche in Folge, nach denen die Suche nach Nodes abgebrochen wird. */
+    private const MaxSearchErrors = 3;
+
+    /** Abstand in Sekunden, in dem die Uhr des Circle+ geprüft wird. */
+    private const SyncTimeInterval = 600;
+
+    /** Abweichung in Sekunden, ab der die Uhr des Circle+ neu gesetzt wird. */
+    private const MaxTimeDeviation = 60;
 
     /**
      * Create
@@ -66,6 +75,7 @@ class PlugwiseNetwork extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
+        $this->ParentID = 0;
         $this->ParentID = 0;
         $this->FrameID = 0;
         $this->LastFrameID = 0;
@@ -77,10 +87,12 @@ class PlugwiseNetwork extends IPSModuleStrict
         $this->NewNodes = [];
         $this->Nodes = [];
         $this->SearchIndex = 0;
+        $this->SearchErrors = 0;
         $this->NetworkState = \Plugwise\NetworkState::Online;
         $this->DisableNetworkJoiningTime = 0;
         $this->RegisterTimer(Plugwise\Network\Timer::SearchNodes, 0, 'IPS_RequestAction($_IPS[\'TARGET\'], \'SearchNodes\', \'\');');
         $this->RegisterTimer(Plugwise\Network\Timer::DisableNetworkJoining, 0, 'IPS_RequestAction($_IPS[\'TARGET\'], \'DisableNetworkJoining\', \'\');');
+        $this->RegisterTimer(Plugwise\Network\Timer::SyncTime, 0, 'IPS_RequestAction($_IPS[\'TARGET\'], \'SyncTime\', \'\');');
         if (IPS_GetKernelRunlevel() != KR_READY) {
             $this->RegisterMessage(0, IPS_KERNELSTARTED);
         }
@@ -103,7 +115,12 @@ class PlugwiseNetwork extends IPSModuleStrict
         $this->NetworkID = '';
         $this->NewNodes = [];
         $this->Nodes = [];
+        $this->FrameID = 0;
+        $this->LastFrameID = 0;
+        $this->ParentID = 0;
+        $this->NetworkState = \Plugwise\NetworkState::StickNotFound;
         $this->SearchIndex = 0;
+        $this->SearchErrors = 0;
         $this->DisableNetworkJoiningTime = 0;
         parent::ApplyChanges();
         $this->RegisterParent();
@@ -135,7 +152,8 @@ class PlugwiseNetwork extends IPSModuleStrict
             $this->Translate('Hardware'),
             []
         );
-        $this->RegisterVariableString(
+        // Bis Version 2.0 war Firmware ein String; RegisterVariableInteger migriert den Typ der vorhandenen Variable.
+        $this->RegisterVariableInteger(
             'Firmware',
             $this->Translate('Firmware'),
             [
@@ -205,6 +223,9 @@ class PlugwiseNetwork extends IPSModuleStrict
             case 'SearchNodes':
                 $this->SearchNodes();
                 break;
+            case 'SyncTime':
+                $this->CheckNetworkTime();
+                break;
             case 'DisableNetworkJoining':
                 if ($this->DisableNetworkJoiningTime > time()) {
                     $Time = gmdate('i:s', $this->DisableNetworkJoiningTime - time());
@@ -216,12 +237,10 @@ class PlugwiseNetwork extends IPSModuleStrict
                 }
                 break;
             case 'JoiningActive':
-                if (!$this->EnableNetworkJoining((bool) $Value)) {
-                    echo $this->Translate('Error');
-                }
+                $this->EnableNetworkJoining((bool) $Value);
                 break;
             default:
-                echo $this->Translate('Invalid Ident');
+                echo $this->Translate('Invalid Ident') . PHP_EOL;
                 break;
         }
     }
@@ -237,14 +256,14 @@ class PlugwiseNetwork extends IPSModuleStrict
         if ($this->GetStatus() == IS_CREATING) {
             return json_encode($Form);
         }
-        if (IPS_InstanceExists($this->ParentID)) {
-            $Form['elements'][1]['objectID'] = $this->ParentID;
-            $Form['elements'][1]['enabled'] = true;
+        if ($this->ParentID > 0) {
+            $this->SetFormProperty($Form, 'OpenIO', 'objectID', $this->ParentID);
+            $this->SetFormProperty($Form, 'OpenIO', 'enabled', true);
         }
 
         if ($this->NetworkState < \Plugwise\NetworkState::Online) {
-            $Form['actions'][0]['enabled'] = false;
-            $Form['actions'][1]['enabled'] = false;
+            $this->SetFormProperty($Form, 'AddNodePopup', 'enabled', false);
+            $this->SetFormProperty($Form, 'RemoveNodePopup', 'enabled', false);
         }
 
         $Nodes = $this->Nodes;
@@ -254,31 +273,27 @@ class PlugwiseNetwork extends IPSModuleStrict
             $InstanceID = array_search($Node, $InstanceIDListe);
             $Items[] = [
                 'NodeMAC' => $Node,
+                // Lesezugriff auf fremde Instanzen nur für die Namensanzeige, es gibt dafür keine IPSModule-Methode.
                 'name'    => $InstanceID === false ? $this->Translate('Not configured in Symcon') : IPS_GetName($InstanceID)
             ];
         }
-        $Form['actions'][1]['popup']['items'][0]['values'] = $Items;
-        $this->SendDebug('FORM', json_encode($Form), 0);
-        $this->SendDebug('FORM', json_last_error_msg(), 0);
+        $this->SetFormProperty($Form, 'Nodes', 'values', $Items);
         return json_encode($Form);
     }
 
     /**
      * GetConfigurationForParent
      *
-     * @return void
+     * @return string
      */
     public function GetConfigurationForParent(): string
     {
-        $parentGUID = IPS_GetInstance($this->ParentID)['ModuleInfo']['ModuleID'];
-        if ($parentGUID == \Plugwise\GUID::SerialPort) {
-            $Config['StopBits'] = '1';
-            $Config['BaudRate'] = '115200';
-            $Config['Parity'] = 'None';
-            $Config['DataBits'] = '8';
-            return json_encode($Config);
-        }
-        return '[]';
+        // GetCompatibleParents erlaubt nur den Serial Port als Parent.
+        $Config['StopBits'] = '1';
+        $Config['BaudRate'] = '115200';
+        $Config['Parity'] = 'None';
+        $Config['DataBits'] = '8';
+        return json_encode($Config);
     }
 
     /**
@@ -290,16 +305,17 @@ class PlugwiseNetwork extends IPSModuleStrict
     public function EnableNetworkJoining(bool $Value): bool
     {
         if ($this->NetworkState < \Plugwise\NetworkState::Online) {
-            trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
+            echo $this->Translate('Network not ready.') . PHP_EOL;
             return false;
         }
         if ($this->NetworkState == \Plugwise\NetworkState::Online) {
             $this->NewNodes = [];
         }
-        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::EnableJoiningRequest, ($Value ? \Plugwise\SwitchState::ON : \Plugwise\SwitchState::OFF));
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::EnableJoiningRequest, ($Value ? \Plugwise\SwitchState::On : \Plugwise\SwitchState::Off));
         $Result = $this->Send($PlugwiseData);
         if ($Result === false) {
             $this->UpdateFormField('DisableNetworkJoining', 'caption', $this->Translate('Error on start searching'));
+            echo $this->Translate('Error on start searching') . PHP_EOL;
             return false;
         }
         $Ok = (substr($Result->Data, 0, 4) == ($Value ? \Plugwise\AckMsg::JOININGENABLE : \Plugwise\AckMsg::JOININGDISABLE));
@@ -313,31 +329,32 @@ class PlugwiseNetwork extends IPSModuleStrict
             $this->SetTimerInterval(\Plugwise\Network\Timer::DisableNetworkJoining, $Value ? 1000 : 0);
         } else {
             $this->UpdateFormField('DisableNetworkJoining', 'caption', $this->Translate('Error on start searching'));
+            echo $this->Translate('Error on start searching') . PHP_EOL;
         }
         return $Ok;
     }
 
     /**
-     * RequestJoiningOfNodeEx
+     * UIRequestJoiningOfNode
+     *
+     * Für das Konfigurationsformular. Gibt die Meldung zurück, das Formular gibt sie per echo aus.
      *
      * @param  string $NodeMAC
-     * @return bool
+     * @return string
      */
-    public function UIRequestJoiningOfNode(string $NodeMAC): bool
+    public function UIRequestJoiningOfNode(string $NodeMAC): string
     {
         $result = $this->RequestJoiningOfNode($NodeMAC);
         if ($result === true) {
-            echo $this->Translate('MESSAGE:OK. Node accepted join request.');
             $NewNodes = $this->NewNodes;
             $Items = [];
             foreach ($NewNodes as $NewNode) {
                 $Items[] = ['NodeMAC' => $NewNode];
             }
             $this->UpdateFormField('NewNodes', 'values', json_encode($Items));
-            return true;
+            return $this->Translate('MESSAGE:OK. Node accepted join request.');
         }
-        echo $this->Translate('Join of node failed.');
-        return false;
+        return $this->Translate('Join of node failed.');
     }
 
     /**
@@ -348,6 +365,11 @@ class PlugwiseNetwork extends IPSModuleStrict
      */
     public function RequestJoiningOfNode(string $NodeMAC): bool
     {
+        $NodeMAC = strtoupper(trim($NodeMAC));
+        if (!\Plugwise\Frame::IsValidMAC($NodeMAC)) {
+            echo $this->Translate('Invalid node MAC.') . PHP_EOL;
+            return false;
+        }
         $Nodes = $this->Nodes;
         $Index = array_search($NodeMAC, $Nodes);
         if ($Index !== false) {
@@ -359,13 +381,13 @@ class PlugwiseNetwork extends IPSModuleStrict
             }
         }
         if ($this->NetworkState < \Plugwise\NetworkState::Online) {
-            trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
+            echo $this->Translate('Network not ready.') . PHP_EOL;
             return false;
         }
         if ($this->NetworkState == \Plugwise\NetworkState::Online) {
             $this->EnableNetworkJoining(true);
         }
-        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::JoinNodeRequest, '', \Plugwise\SwitchState::ON . $NodeMAC);
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::JoinNodeRequest, '', \Plugwise\SwitchState::On . $NodeMAC);
         $Result = $this->Send($PlugwiseData);
         $this->NetworkState = \Plugwise\NetworkState::Online;
         if ($Result !== true) {
@@ -407,20 +429,20 @@ class PlugwiseNetwork extends IPSModuleStrict
     }
 
     /**
-     * RequestExcludeOfNodeEx
+     * UIRequestExcludeOfNode
+     *
+     * Für das Konfigurationsformular. Gibt die Meldung zurück, das Formular gibt sie per echo aus.
      *
      * @param  string $NodeMAC
-     * @return bool
+     * @return string
      */
-    public function UIRequestExcludeOfNode(string $NodeMAC): bool
+    public function UIRequestExcludeOfNode(string $NodeMAC): string
     {
         $result = $this->RequestExcludeOfNode($NodeMAC);
         if ($result === true) {
-            echo $this->Translate('MESSAGE:OK. Node accepted exclude request.');
-            return true;
+            return $this->Translate('MESSAGE:OK. Node accepted exclude request.');
         }
-        echo $this->Translate('Exclude of node failed.');
-        return false;
+        return $this->Translate('Exclude of node failed.');
     }
 
     /**
@@ -431,8 +453,13 @@ class PlugwiseNetwork extends IPSModuleStrict
      */
     public function RequestExcludeOfNode(string $NodeMAC): bool
     {
+        $NodeMAC = strtoupper(trim($NodeMAC));
+        if (!\Plugwise\Frame::IsValidMAC($NodeMAC)) {
+            echo $this->Translate('Invalid node MAC.') . PHP_EOL;
+            return false;
+        }
         if ($this->NetworkState < \Plugwise\NetworkState::Online) {
-            trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
+            echo $this->Translate('Network not ready.') . PHP_EOL;
             return false;
         }
         $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::RemoveNodeRequest, $this->CirclePlusMAC, $NodeMAC);
@@ -441,7 +468,7 @@ class PlugwiseNetwork extends IPSModuleStrict
         if ($Result === false) {
             return false;
         }
-        if (substr($Result->Data, -2) == \Plugwise\SwitchState::ON) {
+        if (substr($Result->Data, -2) == \Plugwise\SwitchState::On) {
             return $this->ResetNode($NodeMAC);
         }
         return false;
@@ -455,8 +482,13 @@ class PlugwiseNetwork extends IPSModuleStrict
      */
     public function ResetNode(string $NodeMAC): bool
     {
+        $NodeMAC = strtoupper(trim($NodeMAC));
+        if (!\Plugwise\Frame::IsValidMAC($NodeMAC)) {
+            echo $this->Translate('Invalid node MAC.') . PHP_EOL;
+            return false;
+        }
         if ($this->NetworkState < \Plugwise\NetworkState::Online) {
-            trigger_error($this->Translate('Network not ready.'), E_USER_NOTICE);
+            echo $this->Translate('Network not ready.') . PHP_EOL;
             return false;
         }
         $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::ResetRequest, $NodeMAC, \Plugwise\Command::QueryCirclePlusRequest);
@@ -480,12 +512,17 @@ class PlugwiseNetwork extends IPSModuleStrict
     /**
      * ConnectCirclePlus
      *
-     * @param  string $CirclePlusMac
+     * @param  string $CirclePlusPlaceholder
      * @return array|bool
      */
-    public function ConnectCirclePlus(string $CirclePlusMac): array|bool
+    public function ConnectCirclePlus(string $CirclePlusPlaceholder): array|bool
     {
-        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::ConnectCirclePlusRequest, '00000000000000000000', $CirclePlusMac);
+        $CirclePlusPlaceholder = strtoupper(trim($CirclePlusPlaceholder));
+        if (!\Plugwise\Frame::IsValidMAC($CirclePlusPlaceholder)) {
+            echo $this->Translate('Invalid node MAC.') . PHP_EOL;
+            return false;
+        }
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::ConnectCirclePlusRequest, '00000000000000000000', $CirclePlusPlaceholder);
 
         $Result = $this->Send($PlugwiseData);
         if ($Result === false) {
@@ -506,6 +543,10 @@ class PlugwiseNetwork extends IPSModuleStrict
     {
         $this->SendDebug('Forward from Child', $JSONString, 0);
         $Data = json_decode($JSONString);
+        if (!is_object($Data) || !isset($Data->DataID)) {
+            $this->SendDebug('Forward from Child', 'Invalid data', 0);
+            return serialize(false);
+        }
         if ($Data->DataID == '{E7DA1628-D62B-47BF-A834-E5556DD110E7}') {
             $PlugwiseData = new \Plugwise\Frame($Data, $this->CirclePlusMAC);
             $ret = $this->Send($PlugwiseData);
@@ -517,7 +558,8 @@ class PlugwiseNetwork extends IPSModuleStrict
             if ($this->NetworkState < \Plugwise\NetworkState::Online) {
                 return serialize(false);
             }
-            switch (hex2bin($Data->Function)) {
+            $Function = isset($Data->Function) ? hex2bin((string) $Data->Function) : false;
+            switch ($Function) {
                 case 'GetCirclePlusMAC':
                     return serialize($this->CirclePlusMAC);
                 case 'ListNodes':
@@ -538,50 +580,33 @@ class PlugwiseNetwork extends IPSModuleStrict
     public function ReceiveData(string $JSONString): string
     {
         $data = json_decode($JSONString);
-        // Datenstrom zusammenfügen
-        $head = $this->BufferIN;
-        $Data = $head . hex2bin($data->Buffer);
-        // Stream in einzelne Pakete schneiden
-        $Lines = explode(chr(0x0D) . chr(0x0A), $Data);
-        $tail = array_pop($Lines);
-        $this->BufferIN = $tail;
+        $Received = (is_object($data) && isset($data->Buffer)) ? hex2bin((string) $data->Buffer) : false;
+        if ($Received === false) {
+            $this->SendDebug('Receive Error', 'Invalid data', 0);
+            return '';
+        }
+        if (!$this->lock('BufferIN')) {
+            $this->SendDebug('Receive Error', 'BufferIN is locked', 0);
+            echo $this->Translate('BufferIN is locked') . PHP_EOL;
+            return '';
+        }
+        try {
+            // Datenstrom zusammenfügen
+            $Data = $this->BufferIN . $Received;
+            // Stream in einzelne Pakete schneiden
+            $Lines = explode(chr(0x0D) . chr(0x0A), $Data);
+            $tail = array_pop($Lines);
+            $this->BufferIN = $tail;
+        } finally {
+            $this->unlock('BufferIN');
+        }
         foreach ($Lines as $Line) {
-            $Start = strpos($Line, "\x05\x05\x03\x03");
-            if ($Start === false) {
-                $this->SendDebug('Receive Frame invalid', $Line, 0);
-                continue;
-            }
-            $this->SendDebug('Receive Frame', $Line, 0);
-
-            $Line = substr($Line, $Start + 4);
-            $this->SendDebug('ReceiveRaw', $Line, 0);
-            $PlugwiseData = new \Plugwise\Frame();
-            $PlugwiseData->DecodeFrame($Line);
-            if ($PlugwiseData->Command === \Plugwise\Command::AckMsgResponse) {
-                $this->SendDebug('ReceiveAck (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
-                if ($PlugwiseData->Checksum !== true) {
-                    $this->SendDebug('ReceiveCRC (' . $PlugwiseData->FrameID . ')', 'Receive CRC ERROR', 0);
-                    $this->FrameID = -1;
-                    continue;
-                }
-                $AckData = substr($PlugwiseData->Data, 0, 4);
-                $this->SendDebug('ReceiveAck:PayloadText (' . $PlugwiseData->FrameID . ')', \Plugwise\AckMsg::ToString($AckData), 0);
-                switch ($AckData) {
-                    case \Plugwise\AckMsg::ACK:
-                        $this->SendQueuePush($PlugwiseData->FrameID);
-                        $this->FrameID = $PlugwiseData->FrameID;
-                        break;
-                    case \Plugwise\AckMsg::NACK:
-                        $this->FrameID = -2;
-                        break;
-                    default:
-                        $this->SendQueueUpdate($PlugwiseData);
-                }
-                continue;
-            }
-            if (!$this->SendQueueUpdate($PlugwiseData)) {
-                $this->SendDebug('EVENT (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
-                $this->Decode($PlugwiseData);
+            // Ein Fehler (z.B. gesperrte ReplyData) darf die restlichen Frames im Puffer nicht verwerfen.
+            try {
+                $this->ProcessLine($Line);
+            } catch (Exception $ex) {
+                $this->SendDebug('Receive Error', $ex->getMessage(), 0);
+                echo $ex->getMessage() . PHP_EOL;
             }
         }
         return '';
@@ -616,12 +641,13 @@ class PlugwiseNetwork extends IPSModuleStrict
         $this->SendDebug('IOChangeState', $State, 0);
         $this->SetValueBoolean('ScanNetwork', false);
         $this->SetValueBoolean('JoiningActive', false);
-        $this->SetValueString('NetworkID', 'no network');
+        $this->SetValueString('NetworkID', $this->Translate('no network'));
         $this->NetworkState = \Plugwise\NetworkState::StickNotFound;
         if ($State == IS_ACTIVE) {
             $this->StartNetwork();
         } else {
             $this->SetTimerInterval(Plugwise\Network\Timer::SearchNodes, 0);
+            $this->SetTimerInterval(Plugwise\Network\Timer::SyncTime, 0);
             $this->SetStatus(IS_INACTIVE);
         }
     }
@@ -690,6 +716,56 @@ class PlugwiseNetwork extends IPSModuleStrict
     }
 
     /**
+     * ProcessLine
+     *
+     * Dekodiert eine empfangene Zeile (ein Frame) vom Stick und verteilt sie.
+     *
+     * @param string $Line Rohdaten eines Frames ohne abschließendes CRLF.
+     * @return void
+     * @throws Exception Wenn die ReplyData gesperrt sind.
+     */
+    private function ProcessLine(string $Line): void
+    {
+        $Start = strpos($Line, "\x05\x05\x03\x03");
+        if ($Start === false) {
+            $this->SendDebug('Receive Frame invalid', $Line, 0);
+            return;
+        }
+        $this->SendDebug('Receive Frame', $Line, 0);
+
+        $Line = substr($Line, $Start + 4);
+        $this->SendDebug('ReceiveRaw', $Line, 0);
+        $PlugwiseData = new \Plugwise\Frame();
+        $PlugwiseData->DecodeFrame($Line);
+        if ($PlugwiseData->Command === \Plugwise\Command::AckMsgResponse) {
+            $this->SendDebug('ReceiveAck (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
+            if ($PlugwiseData->Checksum !== true) {
+                $this->SendDebug('ReceiveCRC (' . $PlugwiseData->FrameID . ')', 'Receive CRC ERROR', 0);
+                $this->FrameID = -1;
+                return;
+            }
+            $AckData = substr($PlugwiseData->Data, 0, 4);
+            $this->SendDebug('ReceiveAck:PayloadText (' . $PlugwiseData->FrameID . ')', \Plugwise\AckMsg::ToString($AckData), 0);
+            switch ($AckData) {
+                case \Plugwise\AckMsg::ACK:
+                    $this->SendQueuePush($PlugwiseData->FrameID);
+                    $this->FrameID = $PlugwiseData->FrameID;
+                    break;
+                case \Plugwise\AckMsg::NACK:
+                    $this->FrameID = -2;
+                    break;
+                default:
+                    $this->SendQueueUpdate($PlugwiseData);
+            }
+            return;
+        }
+        if (!$this->SendQueueUpdate($PlugwiseData)) {
+            $this->SendDebug('EVENT (' . $PlugwiseData->FrameID . ')', $PlugwiseData, 0);
+            $this->Decode($PlugwiseData);
+        }
+    }
+
+    /**
      * GetInstanceList
      *
      * @param  string $GUID
@@ -726,11 +802,12 @@ class PlugwiseNetwork extends IPSModuleStrict
         if ($this->NetworkState >= \Plugwise\NetworkState::Online) {
             $this->Nodes = [];
             $this->SearchIndex = 0;
+            $this->SearchErrors = 0;
             $this->NetworkState = \Plugwise\NetworkState::SearchingNodes;
             $this->SetValueBoolean('ScanNetwork', true);
         }
         if ($this->NetworkState != \Plugwise\NetworkState::SearchingNodes) {
-            trigger_error('Search for nodes not possible:' . \Plugwise\NetworkState::ToString($this->NetworkState), E_USER_NOTICE);
+            echo $this->Translate('Search for nodes not possible:') . ' ' . $this->Translate(\Plugwise\NetworkState::ToString($this->NetworkState)) . PHP_EOL;
             return false;
         }
 
@@ -739,19 +816,39 @@ class PlugwiseNetwork extends IPSModuleStrict
             $TargetIndex = 64;
         }
         $Nodes = $this->Nodes;
+        $Failed = false;
         for ($index = $this->SearchIndex; $index < $TargetIndex; $index++) {
             $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::AssociatedNodesRequest, $this->CirclePlusMAC, sprintf('%02X', $index));
 
             $Result = $this->Send($PlugwiseData);
-            if ($Result == false) {
+            // Antwortet der Circle+ nicht, quittiert der Stick nur mit einem Ack (z.B. OUT OF RANGE) statt mit AssociatedNodesResponse.
+            if (($Result == false) || ($Result->Command !== \Plugwise\Command::AssociatedNodesResponse)) {
+                $Failed = true;
                 break;
             }
+            $this->SearchErrors = 0;
             $NodeMac = substr($Result->Data, 0, -2);
             if ($NodeMac != 'FFFFFFFFFFFFFFFF') {
                 $Nodes[] = $NodeMac;
             }
         }
         $this->Nodes = $Nodes;
+        if ($Failed) {
+            $this->SearchErrors = $this->SearchErrors + 1;
+            if ($this->SearchErrors >= self::MaxSearchErrors) {
+                // Circle+ antwortet nicht: Suche beenden, statt endlos neu zu starten.
+                $this->SearchIndex = 0;
+                $this->SearchErrors = 0;
+                $this->NetworkState = \Plugwise\NetworkState::CirclePlusOffline;
+                $this->SetValueBoolean('ScanNetwork', false);
+                $this->LogMessage($this->Translate('Search for nodes aborted, Circle+ does not respond'), KL_WARNING);
+                $this->SetStatus(IS_EBASE + 2 + $this->NetworkState);
+                return false;
+            }
+            $this->SearchIndex = $index;
+            $this->SetTimerInterval(Plugwise\Network\Timer::SearchNodes, 1000);
+            return false;
+        }
         if ($index < 63) {
             $this->SearchIndex = $index;
             $this->SetTimerInterval(Plugwise\Network\Timer::SearchNodes, 100);
@@ -785,17 +882,20 @@ class PlugwiseNetwork extends IPSModuleStrict
             if (!$this->lock('WaitForStick')) {
                 throw new Exception($this->Translate('Send to Stick is locked.'), E_USER_NOTICE);
             }
-            $LastFrameId = $this->LastFrameID + 1;
-            $DataLine = $PlugwiseFrame->EncodeFrame();
-            $JsonString = $this->ToJSONStringForStick($DataLine);
-            $this->SendDebug('Send (' . $LastFrameId . ')', $PlugwiseFrame, 0);
-            $this->SendDebug('Send (' . $LastFrameId . ') Frame', $DataLine, 0);
-            $this->FrameID = 0;
-            $this->SendDataToParent($JsonString);
-            $Result = $this->WaitForStick();
-            $this->LastFrameID = $Result;
-            $this->FrameID = 0;
-            $this->unlock('WaitForStick');
+            try {
+                $LastFrameId = $this->LastFrameID + 1;
+                $DataLine = $PlugwiseFrame->EncodeFrame();
+                $JsonString = $this->ToJSONStringForStick($DataLine);
+                $this->SendDebug('Send (' . $LastFrameId . ')', $PlugwiseFrame, 0);
+                $this->SendDebug('Send (' . $LastFrameId . ') Frame', $DataLine, 0);
+                $this->FrameID = 0;
+                $this->SendDataToParent($JsonString);
+                $Result = $this->WaitForStick();
+                $this->LastFrameID = $Result;
+                $this->FrameID = 0;
+            } finally {
+                $this->unlock('WaitForStick');
+            }
             if ($Result === -10) { // Timeout
                 throw new Exception($this->Translate('Stick did not response.'), E_USER_NOTICE);
             } elseif ($Result === -4) { // unknown
@@ -823,7 +923,7 @@ class PlugwiseNetwork extends IPSModuleStrict
             return $ReplyPlugwiseFrame;
         } catch (Exception $ex) {
             $this->SendDebug('Response Error', $ex->getMessage() . ' (' . $LastFrameId . ')', 0);
-            trigger_error($ex->getMessage(), $ex->getCode());
+            echo $ex->getMessage() . PHP_EOL;
         }
         return false;
     }
@@ -837,6 +937,7 @@ class PlugwiseNetwork extends IPSModuleStrict
     {
         $this->LogMessage($this->Translate('Starting Plugwise network'), KL_NOTIFY);
         $this->SendDebug('StartNetwork', \Plugwise\NetworkState::ToString($this->NetworkState), 0);
+        $this->SetTimerInterval(Plugwise\Network\Timer::SyncTime, 0);
 
         switch ($this->NetworkState) {
             case \Plugwise\NetworkState::CirclePlusMissing:
@@ -866,6 +967,8 @@ class PlugwiseNetwork extends IPSModuleStrict
                 $this->SendDebug('NewNetworkState', \Plugwise\NetworkState::ToString($this->NetworkState), 0);
                 $this->GetStickHardwareInfo();
                 $this->SetNetworkTime();
+                // Der Circle+ verliert seine Uhr, wenn er ohne Strom war. Daher regelmäßig prüfen.
+                $this->SetTimerInterval(Plugwise\Network\Timer::SyncTime, self::SyncTimeInterval * 1000);
                 $this->LogMessage($this->Translate('Plugwise network is up an running'), KL_NOTIFY);
                 $this->NewNodes = [];
                 $this->SearchNodes();
@@ -967,7 +1070,10 @@ class PlugwiseNetwork extends IPSModuleStrict
      */
     private function SetNetworkTime(): bool
     {
-        $Data = gmdate('siH0Ndmy', time());
+        // Sekunde, Minute, Stunde, Wochentag, Tag, Monat, Jahr je als 2 Dezimalziffern.
+        // Wochentag 0-6 (Montag = 0)
+        $Now = time();
+        $Data = gmdate('siH', $Now) . sprintf('%02d', (int) gmdate('N', $Now) - 1) . gmdate('dmy', $Now);
         $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::SetDateTimeRequest, $this->CirclePlusMAC, $Data);
         $Result = $this->Send($PlugwiseData);
         if ($Result === false) {
@@ -976,7 +1082,7 @@ class PlugwiseNetwork extends IPSModuleStrict
         }
         if (substr($Result->Data, 0, 4) != \Plugwise\AckMsg::SUCCESSFUL) {
             $this->SetValueBoolean('TimeSync', false);
-            trigger_error($this->Translate('Error on set time in Circle+'), E_USER_NOTICE);
+            echo $this->Translate('Error on set time in Circle+') . PHP_EOL;
             return false;
         }
         $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::DateTimeInfoRequest, $this->CirclePlusMAC);
@@ -985,13 +1091,43 @@ class PlugwiseNetwork extends IPSModuleStrict
             $this->SetValueBoolean('TimeSync', false);
             return false;
         }
-        if ($Result->Data != $Data) {
+        // Die Uhr läuft weiter, daher mit Toleranz vergleichen (Sekundenübertrag, Laufzeit).
+        $CirclePlusTime = \Plugwise\Frame::DateTimeData2Timestamp($Result->Data);
+        if (($CirclePlusTime === null) || (abs($CirclePlusTime - time()) > 10)) {
             $this->SetValueBoolean('TimeSync', false);
-            trigger_error($this->Translate('Error on verify time in Circle+'), E_USER_NOTICE);
+            echo $this->Translate('Error on verify time in Circle+') . PHP_EOL;
             return false;
         }
         $this->SetValueBoolean('TimeSync', true);
         return true;
+    }
+
+    /**
+     * CheckNetworkTime
+     *
+     * Liest die Uhr des Circle+ und setzt sie neu, wenn sie abweicht (z.B. nach einem Stromausfall des Circle+).
+     * Die Variable 'TimeSync' zeigt dabei immer den aktuellen Zustand.
+     *
+     * @return bool true, wenn die Uhr stimmt oder wieder gesetzt werden konnte.
+     */
+    private function CheckNetworkTime(): bool
+    {
+        if ($this->NetworkState < \Plugwise\NetworkState::Online) {
+            return false;
+        }
+        $PlugwiseData = new \Plugwise\Frame(\Plugwise\Command::DateTimeInfoRequest, $this->CirclePlusMAC);
+        $Result = $this->Send($PlugwiseData);
+        if ($Result === false) {
+            $this->SetValueBoolean('TimeSync', false);
+            return false;
+        }
+        $CirclePlusTime = \Plugwise\Frame::DateTimeData2Timestamp($Result->Data);
+        if (($CirclePlusTime !== null) && !\Plugwise\Frame::NodeTimeNeedsSync($CirclePlusTime, time(), self::MaxTimeDeviation)) {
+            $this->SetValueBoolean('TimeSync', true);
+            return true;
+        }
+        $this->SendDebug('Circle+ time', 'Deviation, set time', 0);
+        return $this->SetNetworkTime();
     }
 
     /**
@@ -1003,7 +1139,7 @@ class PlugwiseNetwork extends IPSModuleStrict
     {
         for ($i = 0; $i < 1000; $i++) {
             if ($this->FrameID === 0) {
-                IPS_Sleep(5);
+                usleep(5000);
             } else {
                 $FrameID = $this->FrameID;
                 $this->FrameID = 0;
@@ -1019,15 +1155,15 @@ class PlugwiseNetwork extends IPSModuleStrict
      * Wartet auf eine Antwort.
      *
      * @param  int $FrameID
-     * @param  mixed $Seconds
+     * @param  int|null $Milliseconds Maximale Wartezeit in Millisekunden (Standard 5000).
      * @return \Plugwise\Frame|bool Enthält ein Antwort eines \Plugwise\Frame-Objekt mit der Antwort, oder false bei einem Timeout.
      */
-    private function WaitForResponse(int $FrameID, ?int $Seconds = null): bool|\Plugwise\Frame
+    private function WaitForResponse(int $FrameID, ?int $Milliseconds = null): bool|\Plugwise\Frame
     {
-        if ($Seconds == null) {
-            $Seconds = 5000;
+        if ($Milliseconds == null) {
+            $Milliseconds = 5000;
         }
-        $Slot = $Seconds / 5;
+        $Slot = $Milliseconds / 5;
         for ($i = 0; $i < $Slot; $i++) {
             $Buffer = $this->ReplyData;
             if (!array_key_exists($FrameID, $Buffer)) {
@@ -1037,7 +1173,7 @@ class PlugwiseNetwork extends IPSModuleStrict
                 $this->SendQueueRemove($FrameID);
                 return $Buffer[$FrameID];
             }
-            IPS_Sleep(5);
+            usleep(5000);
         }
         $this->SendQueueRemove($FrameID);
         return false;
@@ -1052,7 +1188,7 @@ class PlugwiseNetwork extends IPSModuleStrict
     private function SendQueuePush(int $FrameID): void
     {
         if (!$this->lock('ReplyData')) {
-            throw new Exception('ReplyData is locked', E_USER_NOTICE);
+            throw new Exception($this->Translate('ReplyData is locked'), E_USER_NOTICE);
         }
         $Buffer = $this->ReplyData;
         $Buffer[$FrameID] = null;
@@ -1069,7 +1205,7 @@ class PlugwiseNetwork extends IPSModuleStrict
     private function SendQueueUpdate(\Plugwise\Frame $PlugwiseData): bool
     {
         if (!$this->lock('ReplyData')) {
-            throw new Exception('ReplyData is locked', E_USER_NOTICE);
+            throw new Exception($this->Translate('ReplyData is locked'), E_USER_NOTICE);
         }
         $Buffer = $this->ReplyData;
         if (array_key_exists($PlugwiseData->FrameID, $Buffer)) {
@@ -1091,7 +1227,7 @@ class PlugwiseNetwork extends IPSModuleStrict
     private function SendQueueRemove(int $FrameID): void
     {
         if (!$this->lock('ReplyData')) {
-            throw new Exception('ReplyData is locked', E_USER_NOTICE);
+            throw new Exception($this->Translate('ReplyData is locked'), E_USER_NOTICE);
         }
 
         $Buffer = $this->ReplyData;

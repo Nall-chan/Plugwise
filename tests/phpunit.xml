@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
-    <coverage processUncoveredFiles="true">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd">
+    <source>
         <include>
-            <directory suffix=".php">../Plugwise</directory>
+            <directory suffix=".php">../libs</directory>
+            <directory suffix=".php">../PlugwiseConfigurator</directory>
+            <directory suffix=".php">../PlugwiseDevice</directory>
+            <directory suffix=".php">../PlugwiseNetwork</directory>
         </include>
-    </coverage>
+        <exclude>
+            <directory>../libs/helper</directory>
+        </exclude>
+    </source>
     <php>
         <const name="PHPUNIT_TESTSUITE" value="true"/>
     </php>

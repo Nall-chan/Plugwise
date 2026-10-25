@@ -11,6 +11,8 @@ jobs:
         with:
           php-version: 8.2
       - name: Checkout module
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: Check style
         uses: Nall-chan/action-style@strict

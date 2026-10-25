@@ -3,9 +3,9 @@
     "author": "Michael Tröger",
     "name": "Plugwise Library",
     "url": "https://github.com/Nall-chan/Plugwise/",
-    "version": "2.0",
-    "build": 200,
-    "date": 1767423394,
+    "version": "2.10",
+    "build": 210,
+    "date": 1792928464,
     "compatibility": {
         "version": "8.1"
     }

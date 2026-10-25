@@ -2,10 +2,13 @@
     "translations": {
         "de": {
             "Plugwise Configurator": "Plugwise Konfigurator",
-            "Instance has no active parent.": "Instanz hat keinen aktiven Parent.",
+            "Instance has no active parent.": "Die Instanz hat keinen aktiven übergeordneten Parent.",
             "Location": "Ort",
             "Plugwise Device - ": "Plugwise Gerät - ",
-            "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:"
+            "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:",
+            "Nodes": "Geräte",
+            "Node MAC": "Node MAC",
+            "Name": "Name"
         }
     }
 }
