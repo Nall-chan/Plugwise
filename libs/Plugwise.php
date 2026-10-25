@@ -1491,7 +1491,7 @@ namespace Plugwise{
                 'Caption'            => $Caption,
                 'IconActive'         => false,
                 'IconValue'          => '',
-                'ColorActive'        => true,
+                'ColorActive'        => ($Color !== -1), // -1 = keine Farbe, dann darf die Farbe nicht aktiv sein
                 'ColorValue'         => $Color,
                 'ContentColorActive' => false,
                 'ContentColorValue'  => -1,
